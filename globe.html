@@ -17,12 +17,22 @@
    (north-north-west), is tilted 70.8° to the equator, and runs over Poland,
    the Greenland Sea and Hudson Bay before it comes down over the canyon.
 
-   THE TRANSIT. Climb out of Giza slowly through thick air, merge into the
-   lane 2,000 km up, run it fast and cold, and watch for Hells Canyon to rise
-   over the curve of the Earth — it does, a little past halfway — then
-   peel off, come down, and fly stage one.
+   THE TRANSIT is yours to fly. E / Q throttle, ↑ ↓ (or W S) climb and
+   dive. The same rules as the canyon: heat comes from the air you tear
+   through — speed squared times its thickness — so climb out of Giza
+   gently, open up once the air is gone, and shed speed before you come
+   back down into it. In the vacuum nothing burns, and the cold carries
+   the heat off. Fuel only drains up there; empty, you coast, and can still
+   let yourself fall. Below the lane you are held to 60% of full speed;
+   in it you have it all. Come down within 40 km of the canyon to arrive —
+   overshoot and you lose 30 s coming round again.
 
-   Drag to turn the globe, scroll to zoom. G glow.
+   THE RACE carries through the pages: fuel, heat and the race clock are
+   handed from the start to the globe to the canyon (moonracer.race in the
+   browser). Opened on its own, the globe is practice.
+
+   Drag to turn the globe when not flying, scroll to zoom. I imagery,
+   G glow.
    ==========================================================================
 -->
 <html lang="en-GB"><head><meta charset="utf-8">
@@ -64,6 +74,12 @@ canvas#gl{display:block;position:fixed;inset:0;touch-action:none}
 #tele .row{font-size:10.5px;letter-spacing:.2em;color:var(--dim)}
 #tele .row b{font-weight:400;color:var(--ink)}
 #sight{font-size:12px;letter-spacing:.24em;color:var(--dim)}
+#tele .bar{align-self:flex-end;width:150px;height:5px;background:rgba(159,179,194,.2);margin:-1px 0 3px}
+#tele .bar i{display:block;height:100%;width:50%;background:var(--ink)}
+#msg{position:fixed;z-index:6;left:50%;top:24%;transform:translateX(-50%);font-size:14px;letter-spacing:.3em;color:var(--brass);
+  text-shadow:0 1px 4px rgba(0,0,0,.9);opacity:0;transition:opacity .3s;white-space:nowrap}
+#msg.on{opacity:1}
+#leg .keys{font-size:10.5px;letter-spacing:.14em;color:var(--dim);display:none}
 #sight.on{color:#8fe6a8}
 .tag{position:fixed;z-index:4;pointer-events:none;font-size:10.5px;letter-spacing:.22em;color:var(--ink);
   text-shadow:0 1px 3px rgba(0,0,0,.9);transform:translate(10px,-50%);white-space:nowrap}
@@ -80,6 +96,10 @@ canvas#gl{display:block;position:fixed;inset:0;touch-action:none}
 <div class="hud" id="title"><div class="a">MOON RACER</div><div class="b">THE GLOBE · LEG ONE</div>
   <button type="button" id="look" aria-pressed="false" title="Imagery (I)">IMAGERY</button></div>
 <div class="hud" id="tele">
+  <div class="row">RACE <b id="clock">0:00.0</b></div>
+  <div class="row">FUEL <b id="fuelT">100%</b></div><div class="bar"><i id="fuelB"></i></div>
+  <div class="row">HEAT <b id="heatT">10%</b></div><div class="bar"><i id="heatB"></i></div>
+  <div class="row">THROTTLE <b id="thr">0%</b></div>
   <div class="row">ALTITUDE <b id="alt">0 km</b></div>
   <div class="row">SPEED <b id="spd">0.00 c</b></div>
   <div class="row">AIR <b id="air">thick</b></div>
@@ -92,9 +112,11 @@ canvas#gl{display:block;position:fixed;inset:0;touch-action:none}
   <div class="route">GIZA → HELLS CANYON</div>
   <div class="facts">11,041 km · 99° round the Earth · lane tilted 70.8°<br>
     over Poland, the Greenland Sea and Hudson Bay · 2,000 km up</div>
+  <div class="keys" id="keys">E / Q THROTTLE · ↑ ↓ CLIMB / DIVE<br>climb gently · open up in the vacuum · slow before you come down</div>
   <button type="button" id="launch">LAUNCH</button>
   <a class="go" id="go" href="hells-canyon.html">FLY STAGE ONE →</a>
 </div>
+<div id="msg"></div>
 <div class="hud" id="hint">drag to turn · scroll to zoom · I imagery · G glow</div>
 <div id="nogl"><h1 style="font-weight:400;letter-spacing:.3em;color:#ffd070">MOON RACER</h1><p>The globe needs WebGL, which this browser has turned off.</p></div>
 
@@ -321,30 +343,104 @@ trail.geometry.setDrawRange(0, 0);
 scene.add(trail);
 let trailN = 0;
 
-/* ============================================================ the transit
-   Forty seconds of it: a slow climb through the air (the engines would
-   cook), the long run in the lane, and a slowing descent onto the dam.
-   The profile is worked in fractions of the arc and of the time. */
-const DUR = 40;
-const CLIMB_ARC = 0.06, DESC_ARC = 0.06;                 // radians of the arc spent climbing, descending
-function profile(k) {                                   // time 0..1 → [arc angle, radius, speed 0..1]
-  const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
-  /* arc advances slow–fast–slow */
-  const a = ease(k) * 0.15 + 0.85 * (k < 0.18 ? 0 : k > 0.86 ? 1 : (k - 0.18) / 0.68);
-  const arc = Math.min(1, Math.max(0, a)) * ARC;
-  const up = ease(arc / CLIMB_ARC), down = ease((ARC - arc) / DESC_ARC);
-  const r = R + (RL - R) * Math.min(up, down);
-  const speed = (k > 0.18 && k < 0.86) ? 1 : Math.min(1, Math.min(k / 0.18, (1 - k) / 0.14)) * 0.35;
-  return [arc, r, speed];
-}
-let run = null;
+/* ============================================================ the flight
+   Units here are kilometres and seconds. The lane is drawn 2,000 km up. */
+const VMAX = 420;                     // km/s, all out, in the lane
+const SCALE_H = 8.5;                  // the air thins by e every 8.5 km
+const ARRIVE_KM = 40, OVERSHOOT_KM = 300;
+const F = { flying: false, arc: 0, h: 0, v: 0, throttle: 0.15, fuel: 1, heat: 0.1, cut: 0, t: 0, done: false };
+
+/* THE RACE, handed between pages */
+const RACE_KEY = 'moonracer.race';
+function readRace() { try { const r = JSON.parse(localStorage.getItem(RACE_KEY) || 'null');
+  return r && Date.now() - (r.stamp || 0) < 3 * 3600e3 ? r : null; } catch (e) { return null; } }
+function writeRace(r) { try { r.stamp = Date.now(); localStorage.setItem(RACE_KEY, JSON.stringify(r)); } catch (e) {} }
+const race = (() => { const r = readRace(); return r && r.at === 'giza' ? r : null; })();
+if (race) { F.fuel = race.fuel; F.heat = race.heat; console.log('[moon-racer] race carried in: fuel ' + Math.round(race.fuel * 100) + '%, clock ' + race.t.toFixed(1) + ' s'); }
+else console.log('[moon-racer] no race in progress — practice run');
+const raceT0 = race ? race.t : 0;
+
+const keys = {};
+addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true;
+  if (F.flying && ['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(e.key.toLowerCase())) e.preventDefault(); });
+addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+const msgEl = document.getElementById('msg'); let msgUntil = 0, clockS = 0;
+function say(t, secs) { msgEl.textContent = t; msgEl.classList.add('on'); msgUntil = clockS + (secs || 1.8); }
+const fmt = s => Math.floor(s / 60) + ':' + (s % 60).toFixed(1).padStart(4, '0');
+
 const launchBtn = document.getElementById('launch'), goLink = document.getElementById('go');
 launchBtn.addEventListener('click', () => {
-  run = { t0: performance.now() };
-  launchBtn.disabled = true; launchBtn.textContent = 'IN THE LANE';
-  trailN = 0;
+  if (F.flying || F.done) return;
+  F.flying = true; trailN = 0;
+  launchBtn.disabled = true; launchBtn.textContent = 'IN FLIGHT';
+  document.getElementById('keys').style.display = 'block';
+  say('CLIMB GENTLY · THE AIR IS THICK', 2.5);
   console.log('[moon-racer] launch: Giza → Hells Canyon');
 });
+
+function fly(dt) {
+  const climb = (keys['arrowup'] || keys['w'] ? 1 : 0) - (keys['arrowdown'] || keys['s'] ? 1 : 0);
+  if (keys['e']) F.throttle = Math.min(1, F.throttle + dt * 0.6);
+  if (keys['q']) F.throttle = Math.max(0, F.throttle - dt * 0.6);
+  const rho = Math.exp(-F.h / SCALE_H);
+
+  if (F.heat >= 1.2 && F.cut < 2) { F.cut = 2; say('BREAKDOWN — ENGINES OUT', 2.6); }
+  else if (F.heat >= 1 && F.cut <= 0) { F.cut = 1; say('OVERHEAT — ENGINES CUT', 2.2); }
+  if (F.cut === 1 && F.heat < 0.55) { F.cut = 0; say('ENGINES BACK', 1.2); }
+  if (F.cut === 2 && F.heat < 0.3) { F.cut = 0; say('ENGINES RESTORED', 1.4); }
+  const power = F.cut <= 0 && F.fuel > 0 ? F.throttle : 0;
+
+  /* below the lane, held to 60%; in it, everything */
+  const vcap = VMAX * (0.6 + 0.4 * Math.min(1, Math.max(0, (F.h - 1200) / 700)));
+  const want = power * vcap;
+  if (F.v < want) F.v += (want - F.v) * Math.min(1, dt * 0.5);
+  /* slowing down: the air drags in proportion to its thickness; in the
+     vacuum there is none, so the engines brake instead — reverse thrust,
+     and it burns fuel. Dry, or with the engines out, you just coast. */
+  else {
+    const brake = F.cut <= 0 && F.fuel > 0 ? 0.6 : 0;
+    F.v -= (F.v - want) * Math.min(1, dt * (0.02 + 0.8 * rho + brake));
+    if (brake) F.fuel = Math.max(0, F.fuel - (F.v - want) / VMAX * 0.02 * dt);
+  }
+
+  /* climb needs thrust; falling does not — and falls fast through the
+     vacuum, slower as the air thickens and holds you up */
+  const vz = climb > 0 ? (power > 0 ? 6 + F.v * 0.9 : 0)
+           : climb < 0 ? -(40 + F.v * 0.9) * (0.25 + 0.75 * (1 - rho)) : 0;
+  F.h = Math.max(0.2, Math.min(2600, F.h + vz * dt));
+
+  /* heat and fuel, the canyon's rules in kilometres */
+  const gain = 0.25 * Math.pow(F.v / 16, 2) * rho + power * 0.15 * rho * 0.2;   // ~13 km/s holds at sea level
+  const cool = F.heat * (0.12 + 0.6 * (1 - rho));
+  F.heat = Math.max(0, F.heat + (gain - cool) * dt);
+  const burn = 0.002 + power * 0.012 + (F.v / VMAX) * 0.006;
+  F.fuel = Math.min(1, Math.max(0, F.fuel + (rho * 0.003 - burn) * dt));
+  if (F.fuel <= 0 && !F.dry) { F.dry = true; say('TANK DRY · COASTING', 2.2); }
+
+  F.arc += F.v * dt / EARTH_KM;
+  F.t += dt;
+
+  const togo = (ARC - F.arc) * EARTH_KM;
+  if (Math.abs(togo) < ARRIVE_KM && F.h < 25) arrive();
+  else if (togo < -OVERSHOOT_KM) {
+    F.arc = ARC - 600 / EARTH_KM; F.t += 30;
+    say('OVERSHOT — COMING ROUND · +30 s', 2.6);
+    console.log('[moon-racer] overshot the canyon');
+  }
+  return rho;
+}
+function arrive() {
+  F.flying = false; F.done = true;
+  const total = raceT0 + F.t;
+  launchBtn.textContent = 'ARRIVED · ' + fmt(F.t) + ' IN THE LANE';
+  goLink.style.display = 'flex';
+  document.getElementById('keys').style.display = 'none';
+  say('HELLS CANYON · ARRIVED', 2.6);
+  if (race) writeRace(Object.assign({}, race, { at: 'hells-canyon', t: total, fuel: F.fuel, heat: Math.min(1, F.heat), laneT: F.t }));
+  controls.target.set(0, 0, 0); camera.up.set(0, 1, 0);
+  console.log('[moon-racer] arrived at Hells Canyon Dam: lane ' + F.t.toFixed(1) + ' s, fuel ' + Math.round(F.fuel * 100) + '%');
+}
 
 /* ================================================================ controls */
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -377,9 +473,19 @@ function nearestOver(p) {
   return best.name;
 }
 function hud(pos, speed) {
+  $('clock').textContent = fmt(raceT0 + F.t) + (race ? '' : ' · practice');
+  $('fuelB').style.width = (F.fuel * 100).toFixed(1) + '%';
+  $('fuelB').style.background = F.fuel < 0.2 ? '#ff7a5c' : '#f2efe6';
+  $('fuelT').textContent = Math.round(F.fuel * 100) + '%';
+  const hh = Math.min(1, F.heat);
+  $('heatB').style.width = (hh * 100).toFixed(1) + '%';
+  $('heatB').style.background = F.cut === 2 ? '#c0392b' : F.cut ? '#ff5a3c' : hh > 0.75 ? '#ffb347' : '#ffd070';
+  $('heatT').textContent = F.cut === 2 ? 'BROKEN' : F.cut ? 'CUT' : Math.round(hh * 100) + '%';
+  $('thr').textContent = Math.round(F.throttle * 100) + '%';
+  if (clockS > msgUntil) msgEl.classList.remove('on');
   const altKm = (pos.length() - R) / KM;
   $('alt').textContent = altKm < 1 ? '0 km' : Math.round(altKm).toLocaleString('en-GB') + ' km';
-  $('spd').textContent = (speed * 0.93).toFixed(2) + ' c';
+  $('spd').textContent = (speed * 0.97).toFixed(2) + ' c';
   $('air').textContent = altKm < 12 ? 'thick' : altKm < 50 ? 'thinning' : altKm < 100 ? 'thin' : 'space — cold';
   $('over').textContent = nearestOver(pos);
   $('togo').textContent = Math.round(Math.acos(Math.min(1, pos.clone().normalize().dot(bn))) * EARTH_KM).toLocaleString('en-GB') + ' km';
@@ -415,33 +521,25 @@ function frame(now) {
   if (now - lastSun > 60000) { placeSun(); lastSun = now; }
   atmo.material.uniforms.sunDir.value.copy(sun.position).normalize();
 
-  let speed = 0;
-  if (run) {
-    const k = Math.min(1, (now - run.t0) / 1000 / DUR);
-    const [arc, r, sp] = profile(k);
-    speed = sp;
+  clockS += dt;
+  let speed = F.v / VMAX;
+  if (F.flying) {
+    fly(dt);
+    speed = F.v / VMAX;
+    const arc = F.arc, r = R + F.h * KM;
     const up = lanePoint(arc, 1).normalize();
     craft.position.copy(up.clone().multiplyScalar(r));
     if (trailN < TRAIL_N) { trailPos.set(craft.position.toArray(), trailN * 3); trailN++;
       trail.geometry.attributes.position.needsUpdate = true; trail.geometry.setDrawRange(0, trailN); }
     else { trailPos.copyWithin(0, 3); trailPos.set(craft.position.toArray(), (TRAIL_N - 1) * 3); trail.geometry.attributes.position.needsUpdate = true; }
-
     /* the chase: behind along the lane and above, looking ahead and down */
-    const ahead = lanePoint(Math.min(ARC + 0.02, arc + 0.18), 1).normalize().multiplyScalar(R);
+    const ahead = lanePoint(arc + 0.18, 1).normalize().multiplyScalar(R);
     const behind = lanePoint(arc - 0.09, 1).normalize();
     camWant.copy(behind.multiplyScalar(r + R * 0.22 + (r - R) * 0.5));
     camera.position.lerp(camWant, 1 - Math.exp(-dt * 3.6));          // the same feel at any frame rate
     look.lerp(ahead.clone().lerp(craft.position, 0.5), 1 - Math.exp(-dt * 4.8));
     camera.up.copy(up);
     camera.lookAt(look);
-    if (k >= 1) {
-      run = null;
-      launchBtn.textContent = 'ARRIVED · HELLS CANYON DAM';
-      goLink.style.display = 'flex';
-      controls.target.copy(B.clone().multiplyScalar(0.0));
-      camera.up.set(0, 1, 0);
-      console.log('[moon-racer] arrived at Hells Canyon Dam');
-    }
   } else {
     controls.update();
   }

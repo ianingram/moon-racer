@@ -117,6 +117,7 @@ canvas#gl{display:block;position:fixed;inset:0}
   <div class="row">GATES <b id="endGates"></b></div>
   <div class="row">MISSED GATES <b id="endPen"></b></div>
   <div class="row">BEST <b id="endBest"></b></div>
+  <div class="row">LEG ONE, GIZA TO HERE <b id="endRace"></b></div>
   <button type="button" id="again">FLY IT AGAIN · R</button>
 </div></div>
 <div id="nogl"><h1 style="font-weight:400;letter-spacing:.3em">MOON RACER</h1><p>This stage needs WebGL, which this browser has turned off.</p></div>
@@ -575,10 +576,18 @@ try { glowOn = localStorage.getItem('moonracer.glow') !== 'off'; } catch (e) {}
 const VMAX = 1400;               // units a second, all out, where the air allows
 const ATMO_H = 1200;             // the air thins by e every 1200 units (~6 km)
 const S = {};
+/* THE RACE, carried in from the lane: fuel and heat as you arrived, and
+   the race clock so far. Opened on its own, the stage is practice. */
+const RACE_KEY = 'moonracer.race';
+const race = (() => { try { const r = JSON.parse(localStorage.getItem(RACE_KEY) || 'null');
+  return r && r.at === 'hells-canyon' && Date.now() - (r.stamp || 0) < 3 * 3600e3 ? r : null; } catch (e) { return null; } })();
+if (race) console.log('[moon-racer] race carried in: fuel ' + Math.round(race.fuel * 100) + '%, heat ' + Math.round(race.heat * 100) + '%, clock ' + race.t.toFixed(1) + ' s');
+else console.log('[moon-racer] no race in progress — practice run');
+const raceT0 = race ? race.t : 0;
 function reset() {
   const i = 18, c = riverAt(i);
   Object.assign(S, { pos: new THREE.Vector3(c.x, 10, c.z), yaw: Math.atan2(T[i].x, -T[i].z), pitch: 0, roll: 0,
-    v: 0, throttle: 0.22, fuel: 0.8, heat: 0.1, cut: 0, row: i, t: 0, started: false, count: 3,
+    v: 0, throttle: 0.22, fuel: race ? race.fuel : 0.8, heat: race ? race.heat : 0.1, cut: 0, row: i, t: 0, started: false, count: 3,
     gatesDone: 0, missed: 0, over: false, hitT: -9 });
   gates.forEach(g => { g.done = false; g.mesh.visible = true; });
   PF.row = i; PF.laid = i; PF.n = 0; PF.mode = 'lead'; PF.since = 0; PF.calm = 0; PF.lastRow = i; PF.rowSpeed = 0;
@@ -741,7 +750,7 @@ function step(dt) {
     /* is the craft in trouble? */
     const off = Math.abs(at2.u) > RIVER_W / 2 + 260 && S.pos.y < 900;
     const back = S.v > 30 && fwd.clone().setY(0).normalize().dot(T[at2.i]) < -0.5;
-    const stalled = S.started && S.v < 40 && !S.over;
+    const stalled = S.started && S.t > 5 && S.v < 40 && !S.over;          // not in the first seconds off the line
     const why = S.cut === 2 ? 'ENGINES DOWN' : S.fuel < 0.18 ? 'LOW ON FUEL' : off ? 'OFF COURSE' : back ? 'WRONG WAY' : stalled ? 'STALLED' : '';
     if (why && S.started && !S.over) { PF.since += dt; PF.calm = 0; } else { PF.since = 0; PF.calm += dt; }
     if (PF.mode === 'lead' && PF.since > 1.5) {
@@ -851,6 +860,11 @@ function finish() {
   document.getElementById('endGates').textContent = S.gatesDone + ' / ' + gates.length;
   document.getElementById('endPen').textContent = S.missed ? S.missed + ' · +' + (S.missed * 3) + ' s' : 'none';
   document.getElementById('endBest').textContent = fmt(best);
+  document.getElementById('endRace').textContent = race ? fmt(raceT0 + total) + '  (lane ' + fmt(race.laneT || race.t) + ' + canyon ' + fmt(total) + ')' : 'practice';
+  if (race) {
+    try { localStorage.setItem(RACE_KEY, JSON.stringify(Object.assign({}, race, { at: 'done', t: raceT0 + total, canyonT: total, stamp: Date.now() }))); } catch (e) {}
+    console.log('[moon-racer] leg one complete: ' + fmt(raceT0 + total));
+  }
   document.getElementById('end').style.display = 'flex';
   S.throttle = 0.2;
   console.log('[moon-racer] Hells Canyon finished: ' + fmt(total) + ', missed ' + S.missed);
@@ -871,7 +885,7 @@ function hud(rho, skimming, inCloud) {
   document.getElementById('alt').textContent = S.pos.y * 4.85 >= 1000 ? (S.pos.y * 4.85 / 1000).toFixed(1) + ' km' : Math.round(S.pos.y * 4.85) + ' m';
   document.getElementById('time').textContent = fmt(S.t);
   document.getElementById('gates').textContent = 'GATES ' + S.gatesDone + ' / ' + gates.length;
-  document.getElementById('best').textContent = best !== null ? 'BEST ' + fmt(best) : '';
+  document.getElementById('best').textContent = (race ? 'RACE ' + fmt(raceT0 + S.t) + ' · ' : '') + (best !== null ? 'BEST ' + fmt(best) : '');
   if (clock > msgUntil) msgEl.classList.remove('on');
 
   /* the route map: the river, the gates, you */

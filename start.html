@@ -345,10 +345,17 @@ function pick(i) {
   if (r.go) { goBtn.disabled = false; goBtn.textContent = 'GO · ' + r.n; }
   else { goBtn.disabled = true; goBtn.textContent = r.n + ' · NOT BUILT YET'; }
 }
-goBtn.addEventListener('click', () => { const r = ROUTES[chosen]; if (r && r.go) location.href = r.go; });
+/* THE RACE begins here: a full tank, cool engines, the clock at zero,
+   handed on to the next page (moonracer.race in the browser). */
+function begin(r) {
+  try { localStorage.setItem('moonracer.race', JSON.stringify({ route: r.id, t: 0, fuel: 1, heat: 0.1, at: 'giza', stamp: Date.now() })); } catch (e) {}
+  console.log('[moon-racer] race begins: ' + r.n);
+  location.href = r.go;
+}
+goBtn.addEventListener('click', () => { const r = ROUTES[chosen]; if (r && r.go) begin(r); });
 addEventListener('keydown', e => {
   if (e.key >= '1' && e.key <= '4') { skip(); pick(+e.key - 1); }
-  if (e.key === 'Enter' && chosen >= 0 && ROUTES[chosen].go) location.href = ROUTES[chosen].go;
+  if (e.key === 'Enter' && chosen >= 0 && ROUTES[chosen].go) begin(ROUTES[chosen]);
   if (e.key === ' ' || e.key === 'Escape') skip();
 });
 </script>
