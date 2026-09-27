@@ -29,11 +29,17 @@
      FUEL  fills fast skimming any water, steadily inside a dense cloud, and
            barely at all from the open air. Thrust and speed burn it. Empty,
            the engines stop and the craft glides and sinks.
-     HEAT  rises with speed squared and with the thickness of the air.
-           Down in the canyon the air is thick and warm: cruise and you
-           hold, push and you cook. High up the air is thin and cold, and
-           the same speed costs almost nothing. Skimming water cools the
-           engines too. At full heat they cut out until they cool.
+     HEAT  comes from what the engines burn and tear through. Driving
+           hard through thick air rips its molecules apart — hydrogen and
+           oxygen from the water, nitrogen and oxygen from the air — and
+           the space round the craft overheats. So heat rises with speed
+           squared and the thickness of the air, and again with throttle
+           times how rich the intake is: skimming water fills the tank
+           fastest and runs hottest. In a vacuum there is nothing round the
+           craft to burn or rip apart, so none of this happens: high and
+           thin, the same speed costs almost nothing, and the cold carries
+           the heat away. At full heat the engines cut out until they cool;
+           push past that and they break down, and take much longer.
    So the stage is a rhythm: low to drink and to take the gates, high to
    run fast and cool, and down again before the tank is dry.
 
@@ -545,8 +551,11 @@ function step(dt) {
   for (const c of clouds) if (c.at.distanceTo(S.pos) < c.r) { inCloud = c; break; }
 
   /* engines: they stop when the tank is dry, and cut out when they cook */
-  if (S.heat >= 1 && S.cut <= 0) { S.cut = 1; say('OVERHEAT — ENGINES CUT', 2.2); }
-  if (S.cut > 0 && S.heat < 0.55) { S.cut = 0; say('ENGINES BACK', 1.2); }
+  if (S.heat >= 1.2 && S.cut < 2) { S.cut = 2; say('BREAKDOWN — ENGINES OUT', 2.6);
+    console.log('[moon-racer] breakdown at heat ' + S.heat.toFixed(2)); }
+  else if (S.heat >= 1 && S.cut <= 0) { S.cut = 1; say('OVERHEAT — ENGINES CUT', 2.2); }
+  if (S.cut === 1 && S.heat < 0.55) { S.cut = 0; say('ENGINES BACK', 1.2); }
+  if (S.cut === 2 && S.heat < 0.3) { S.cut = 0; say('ENGINES RESTORED', 1.4); }
   const power = S.started && S.cut <= 0 && S.fuel > 0 ? S.throttle : 0;
 
   /* speed eases to what the throttle asks; drag bleeds it in thick air */
@@ -554,10 +563,14 @@ function step(dt) {
   if (S.v < want) S.v += (want - S.v) * Math.min(1, dt * 0.55);
   else S.v -= (S.v - want) * Math.min(1, dt * (0.25 + 0.6 * rho));
 
-  /* heat: speed squared times the air, against cooling that grows as the
-     air thins and colds; water under the hull cools it as well */
-  const gain = 0.25 * Math.pow(S.v / 400, 2) * rho;
-  const cool = S.heat * (0.12 + 0.6 * (1 - rho) + (skimming ? 0.25 : 0));
+  /* heat: the molecules round the craft, burnt and torn apart. Speed
+     squared times the air's thickness; then throttle times how rich the
+     intake is — water fullest, cloud next, damp air least. In a vacuum
+     (rho → 0) both go to nothing. Cooling grows as the air thins and
+     colds. */
+  const rich = (skimming ? 1 : 0) + (inCloud ? 0.5 * inCloud.dens : 0) + 0.15 * rho;
+  const gain = 0.25 * Math.pow(S.v / 400, 2) * rho + power * rich * 0.2 * rho;
+  const cool = S.heat * (0.12 + 0.6 * (1 - rho));
   S.heat = Math.max(0, S.heat + (gain - cool) * dt);
 
   /* fuel: thrust and speed burn it; water, cloud and damp air give it */
@@ -675,8 +688,8 @@ function hud(rho, skimming, inCloud) {
   document.getElementById('fuelTxt').textContent = skimming ? 'WATER' : inCloud ? 'CLOUD' : Math.round(S.fuel * 100) + '%';
   const h = Math.min(1, S.heat);
   heatBar.style.width = (h * 100).toFixed(1) + '%';
-  heatBar.style.background = S.cut > 0 ? '#ff5a3c' : h > 0.75 ? '#ffb347' : '#ffd070';
-  document.getElementById('heatTxt').textContent = S.cut > 0 ? 'CUT' : rho < 0.3 ? 'COLD AIR' : Math.round(h * 100) + '%';
+  heatBar.style.background = S.cut === 2 ? '#c0392b' : S.cut > 0 ? '#ff5a3c' : h > 0.75 ? '#ffb347' : '#ffd070';
+  document.getElementById('heatTxt').textContent = S.cut === 2 ? 'BROKEN' : S.cut > 0 ? 'CUT' : rho < 0.3 ? 'COLD AIR' : Math.round(h * 100) + '%';
   document.getElementById('spd').textContent = (S.v / VMAX * 0.97).toFixed(2) + ' c';
   document.getElementById('alt').textContent = S.pos.y * 4.85 >= 1000 ? (S.pos.y * 4.85 / 1000).toFixed(1) + ' km' : Math.round(S.pos.y * 4.85) + ' m';
   document.getElementById('time').textContent = fmt(S.t);
