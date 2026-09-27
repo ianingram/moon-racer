@@ -67,7 +67,9 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 #who .name{font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.78)}
 #mail{font-size:10.5px;letter-spacing:.12em;color:rgba(255,255,255,.55);text-decoration:none}
 #mail:hover{color:var(--brass)}
-@media (max-width:520px){ #qr{width:58px;height:58px} #mail{font-size:9.5px} #who .title{font-size:12.5px} }
+#repo{font-size:10.5px;letter-spacing:.12em;color:rgba(255,255,255,.42);text-decoration:none}
+#repo:hover{color:var(--brass)}
+@media (max-width:520px){ #qr{width:58px;height:58px} #mail{font-size:9.5px} #repo{font-size:9.5px} #who .title{font-size:12.5px} }
 #hudTab{position:fixed;right:236px;bottom:calc(34px + env(safe-area-inset-bottom,0px));z-index:7;
   transition:right .32s cubic-bezier(.4,0,.2,1);
   writing-mode:vertical-rl;font:inherit;font-size:10px;letter-spacing:.32em;text-transform:uppercase;
@@ -209,6 +211,7 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
     <span class="title">Moon Racer</span>
     <span class="name">Ian Ingram</span>
     <a id="mail" href="mailto:ingram.manor@gmail.com">ingram.manor@gmail.com</a>
+    <a id="repo" href="https://github.com/ianingram/moon-racer" target="_blank" rel="noopener">ianingram / moon-racer</a>
   </div>
 </div>
 <div id="hint">drag to look &middot; click a ship</div>
@@ -1442,7 +1445,13 @@ function planetPosition(name, date, lat, lon) {
   const earth = helio({ N:[0,0], i:[0,0], w:[282.9404, 4.70935e-5], a:1.000000,
                         e:[0.016709, -1.151e-9], M:[356.0470, 0.9856002585] }, d);
   const pl = helio(ELEMENTS[name], d);
-  const x = pl.x - earth.x, y = pl.y - earth.y, z = pl.z - earth.z;
+  /* THE SIGN. These elements (w 282.94, M 356.05) are the SUN's orbit as
+     seen from the Earth, not the Earth's round the Sun — the Earth is the
+     same ellipse turned half a circle. So a planet seen from here is the
+     planet's position PLUS the Sun's. It was minus, which put every planet
+     but the Moon in the wrong part of the sky: Venus came out opposite the
+     Sun, where it can never be, and Saturn two AU too far away. */
+  const x = pl.x + earth.x, y = pl.y + earth.y, z = pl.z + earth.z;
   const eps = (23.4393 - 3.563e-7 * d) * rad;
   const ye = y * Math.cos(eps) - z * Math.sin(eps), ze = y * Math.sin(eps) + z * Math.cos(eps);
   const ra = Math.atan2(ye, x) * deg, dec = Math.atan2(ze, Math.hypot(x, ye));
@@ -3240,7 +3249,7 @@ function bodyRangeKm(name, date) {
   const earth = helio({ N:[0,0], i:[0,0], w:[282.9404, 4.70935e-5], a:1,
                         e:[0.016709,-1.151e-9], M:[356.0470,0.9856002585] }, d);
   const pl = helio(ELEMENTS[name], d);
-  return Math.hypot(pl.x - earth.x, pl.y - earth.y, pl.z - earth.z) * 149597870.7;
+  return Math.hypot(pl.x + earth.x, pl.y + earth.y, pl.z + earth.z) * 149597870.7;   // plus: see THE SIGN
 }
 
 /* jumpCost: what the drive has to spool, in seconds */
@@ -3317,7 +3326,7 @@ function bodyRange(name, date) {
   const earth = helio({ N:[0,0], i:[0,0], w:[282.9404, 4.70935e-5], a:1,
                         e:[0.016709,-1.151e-9], M:[356.0470,0.9856002585] }, d);
   const pl = helio(ELEMENTS[name], d);
-  return Math.hypot(pl.x - earth.x, pl.y - earth.y, pl.z - earth.z) * AU;
+  return Math.hypot(pl.x + earth.x, pl.y + earth.y, pl.z + earth.z) * AU;   // plus: see THE SIGN
 }
 
 /* is this body usable: up, and in the frame? */
