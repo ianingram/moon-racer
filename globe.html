@@ -29,6 +29,11 @@
    in it you have it all. Come down within 40 km of the canyon to arrive —
    overshoot and you lose 30 s coming round again.
 
+   THE STARDUST ENGINE idles everywhere inside the atmosphere and becomes
+   active once the craft is out of it, above the Kármán line (100 km): one
+   kilogram of water carries the craft to the Moon in a day, costing more
+   as the square of the speed. The tank holds 10 kg.
+
    THE RACE carries through the pages: fuel, heat and the race clock are
    handed from the start to the globe to the canyon (moonracer.race in the
    browser). Opened on its own, the globe is practice.
@@ -101,6 +106,7 @@ canvas#gl{display:block;position:fixed;inset:0;touch-action:none}
   <button type="button" id="look" aria-pressed="false" title="Imagery (I)">IMAGERY</button></div>
 <div class="hud" id="tele">
   <div class="row">RACE <b id="clock">0:00.0</b></div>
+  <div class="row">STARDUST <b id="sdT">IDLE</b></div>
   <div class="row">FUEL <b id="fuelT">100%</b></div><div class="bar"><i id="fuelB"></i></div>
   <div class="row">HEAT <b id="heatT">10%</b></div><div class="bar"><i id="heatB"></i><s id="heatE"></s></div>
   <div class="row">COLD CORE <b id="coldT">0%</b></div><div class="bar"><i id="coldB" style="background:#6fb7e6"></i></div>
@@ -351,6 +357,14 @@ let trailN = 0;
 /* ============================================================ the flight
    Units here are kilometres and seconds. The lane is drawn 2,000 km up. */
 const VMAX = 420;                     // km/s, all out, in the lane
+/* THE STARDUST ENGINE. Past the Kármán line (100 km, the edge of space)
+   the air engines give way to the stardust engine, which runs on the same
+   water at an efficiency nothing in the air can match: one kilogram carries
+   the craft to the Moon (384,400 km) in a day — a steady 4.45 km/s. Going
+   faster costs more, as the square of the speed. The tank holds TANK_KG. */
+const KARMAN_KM = 100, TANK_KG = 10;
+const MOON_KM = 384400, DAY_S = 86400, STARDUST_V = MOON_KM / DAY_S;     // 4.45 km/s on 1 kg a day
+const stardustKgPerS = v => Math.pow(v / STARDUST_V, 2) / DAY_S;
 const SCALE_H = 8.5;                  // the air thins by e every 8.5 km
 const ARRIVE_KM = 40, OVERSHOOT_KM = 300;
 const F = { flying: false, arc: 0, h: 0, v: 0, throttle: 0.15, fuel: 1, heat: 0.1, cold: 0, ice: 0, cut: 0, t: 0, done: false };
@@ -408,7 +422,7 @@ function fly(dt) {
   else {
     const brake = F.cut <= 0 && F.fuel > 0 ? 0.6 : 0;
     F.v -= (F.v - want) * Math.min(1, dt * (0.02 + 0.8 * rho + brake));
-    if (brake) F.fuel = Math.max(0, F.fuel - (F.v - want) / VMAX * 0.02 * dt);
+    if (brake) F.fuel = Math.max(0, F.fuel - (F.h >= KARMAN_KM ? stardustKgPerS(F.v - want) / TANK_KG : (F.v - want) / VMAX * 0.02) * dt);
   }
 
   /* climb needs thrust; falling does not — and falls fast through the
@@ -438,7 +452,14 @@ function fly(dt) {
   if (F.cold > 0.66) F.ice = Math.min(1.1, F.ice + dt * (F.cold - 0.66) * 1.4 * (0.3 + 1.2 * Math.exp(-F.h / 2)));
   F.ice = Math.max(0, F.ice - dt * (0.05 + F.heat * 0.25 + (rho < 0.01 ? 0.05 : 0)));
   if (venting) F.v -= F.v * Math.min(1, dt * 0.45 * rho);
-  const burn = 0.002 + power * 0.012 + (F.v / VMAX) * 0.006;
+  const stardust = F.h >= KARMAN_KM;
+  if (stardust !== F.stardust) {
+    F.stardust = stardust;
+    if (F.flying) say(stardust ? 'STARDUST ENGINE ACTIVE' : 'STARDUST OFF · AIR ENGINES', 2.2);
+    console.log('[moon-racer] stardust ' + (stardust ? 'active' : 'off') + ' at ' + Math.round(F.h) + ' km');
+  }
+  const burn = stardust ? (power > 0 ? stardustKgPerS(F.v) / TANK_KG : 0)
+                        : 0.002 + power * 0.012 + (F.v / VMAX) * 0.006;
   F.fuel = Math.min(1, Math.max(0, F.fuel + (rho * 0.003 - burn) * dt));
   if (F.fuel <= 0 && !F.dry) { F.dry = true; say('TANK DRY · COASTING', 2.2); }
 
@@ -500,7 +521,9 @@ function hud(pos, speed) {
   $('clock').textContent = fmt(raceT0 + F.t) + (race ? '' : ' · practice');
   $('fuelB').style.width = (F.fuel * 100).toFixed(1) + '%';
   $('fuelB').style.background = F.fuel < 0.2 ? '#ff7a5c' : '#f2efe6';
-  $('fuelT').textContent = Math.round(F.fuel * 100) + '%';
+  $('fuelT').textContent = Math.round(F.fuel * 100) + '% · ' + (F.fuel * TANK_KG).toFixed(1) + ' kg';
+  $('sdT').textContent = F.stardust ? 'ACTIVE · ' + (stardustKgPerS(F.v) * 1000).toFixed(1) + ' g/s' : 'IDLE · IN THE ATMOSPHERE · ' + Math.max(0, Math.round(KARMAN_KM - F.h)) + ' km to space';
+  $('sdT').style.color = F.stardust ? '#b8a6ff' : '';
   const hh = Math.min(1, F.heat);
   $('heatB').style.width = (hh * 100).toFixed(1) + '%';
   $('heatB').style.background = F.cut === 2 ? '#c0392b' : F.cut === 1 ? '#ff5a3c' : hh > 0.75 ? '#ffb347' : '#ffd070';

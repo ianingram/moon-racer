@@ -16,8 +16,10 @@
                moves: legs of thousands of kilometres.
      FLIGHT    four readings that decide the next second — speed, heat
                (with where it will settle), fuel, cold core — and the state
-               lights: water, cloud, venting, ice. Numbers only where a
-               number helps.
+               lights: water, cloud, venting, ice, hot, and STARDUST, which
+               lights once the craft is past the Kármán line (100 km) and
+               the stardust engine takes over. Numbers only where a number
+               helps.
      SEA LEVEL the plan view flat at sea level around you — river, gates,
                the pathfinder's trace, the walls — and under it the
                profile: your height over the ground ahead. For the small
@@ -67,7 +69,7 @@ html,body{height:100%;margin:0;background:#05080c;overflow:hidden;font:13px/1.5 
 .lights{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
 .lt{font-size:10px;letter-spacing:.2em;padding:4px 8px;border:1px solid rgba(159,179,194,.25);color:rgba(159,179,194,.45)}
 .lt.on{color:#06090d;border-color:transparent}
-.lt.water.on{background:#4fb3d9}.lt.cloud.on{background:#e8f1f5}.lt.vent.on{background:#8fe6a8}.lt.ice.on{background:#f2f7ff}.lt.hot.on{background:#ffb347}
+.lt.star.on{background:#b8a6ff}.lt.water.on{background:#4fb3d9}.lt.cloud.on{background:#e8f1f5}.lt.vent.on{background:#8fe6a8}.lt.ice.on{background:#f2f7ff}.lt.hot.on{background:#ffb347}
 #note{position:fixed;left:50%;bottom:262px;transform:translateX(-50%);font-size:10px;letter-spacing:.2em;color:var(--ink);opacity:.7;
   text-shadow:0 1px 3px rgba(0,0,0,.8)}
 @media (max-width:900px){ #console{height:auto;grid-template-columns:1fr;} #glass{bottom:0} .inst canvas{height:160px} }
@@ -87,10 +89,10 @@ html,body{height:100%;margin:0;background:#05080c;overflow:hidden;font:13px/1.5 
       <div class="big"><span class="l">SPEED</span><span class="v">0.21 c</span><span class="s">RIVER LEVEL · THICK AIR</span></div>
       <div class="big"><span class="l">ABOVE WATER</span><span class="v">96 m</span><span class="s">GROUND AHEAD 40 m ▲</span></div>
       <div class="meter"><div class="l">HEAT <b>82% → 108%</b></div><div class="bar"><i style="width:82%;background:#ffb347"></i><s style="left:100%"></s></div></div>
-      <div class="meter"><div class="l">FUEL <b>64%</b></div><div class="bar"><i style="width:64%;background:#f2efe6"></i></div></div>
+      <div class="meter"><div class="l">FUEL <b>64% · 6.4 kg</b></div><div class="bar"><i style="width:64%;background:#f2efe6"></i></div></div>
       <div class="meter"><div class="l">COLD CORE <b>38%</b></div><div class="bar"><i style="width:38%;background:#6fb7e6"></i><u style="width:0"></u></div></div>
       <div class="meter"><div class="l">PATHFINDER <b>3.9 km AHEAD</b></div><div class="bar"><i style="width:100%;background:rgba(255,208,112,.5)"></i></div></div>
-      <div class="lights"><span class="lt water">WATER</span><span class="lt cloud">CLOUD</span><span class="lt vent">VENT</span><span class="lt ice">ICE</span><span class="lt hot on">HOT</span></div>
+      <div class="lights"><span class="lt water">WATER</span><span class="lt cloud">CLOUD</span><span class="lt vent">VENT</span><span class="lt ice">ICE</span><span class="lt hot on">HOT</span><span class="lt star">STARDUST · IDLE</span></div>
     </div>
   </section>
   <section class="inst"><h3>SEA LEVEL <b>5 km AROUND · PROFILE AHEAD</b></h3><canvas id="plan"></canvas></section>
