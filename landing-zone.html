@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<!--
+   REPO: moon-racer/landing-zone.html
+   ==========================================================================
+   MOON RACER — the landing zone
+   ==========================================================================
+   The field every leg of the race comes down to: a pyramid at the centre,
+   a gold ring round it, and six runways running in from the edge of a
+   plateau, one every sixty degrees, so whichever way a craft comes out of
+   a jump there is a runway within thirty degrees of its bearing.
+
+   SCALE. The same as the game: one unit is about 1.7 m, so a mile is about
+   970 units. The plateau is 2,400 units across the radius — just over four
+   kilometres — which makes its top about twenty square miles. The runways
+   are 2.4 km long and stop at the ring; the ring is 2.4 km across.
+
+   One plan, every world: the field is identical everywhere and only the
+   ground, the sky and the light change (WORLDS, below).
+
+   Nothing is downloaded — no models, no textures. Drag to orbit, scroll to
+   zoom, or use the three views. G switches the glow.
+   ==========================================================================
+-->
+<html lang="en-GB"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moon Racer — landing zone</title>
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<style>
+:root{--ink:#f2efe6;--dim:#9fb3c2;--gold:#d4af50;--brass:#ffd070;--oak:#2a1d12;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:inherit}
+html,body{height:100%;margin:0;background:#05090e;overflow:hidden;
+  font:14px/1.6 ui-monospace,Menlo,Consolas,monospace;color:var(--ink)}
+canvas{display:block;position:fixed;inset:0;touch-action:none}
+#panel{position:fixed;left:20px;top:calc(18px + env(safe-area-inset-top,0px));z-index:5;
+  display:flex;flex-direction:column;gap:12px;padding:14px 16px;
+  background:rgba(8,12,18,.62);border:1px solid rgba(232,223,200,.22)}
+#panel h1{margin:0;font-size:14px;font-weight:400;letter-spacing:.34em;color:var(--brass)}
+#panel .sub{font-size:10.5px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+.row .lab{width:100%;font-size:9.5px;letter-spacing:.24em;color:var(--dim)}
+button{font:11px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.16em;color:var(--ink);
+  background:transparent;border:1px solid rgba(159,179,194,.45);padding:9px 10px;min-height:34px;cursor:pointer}
+button:hover{border-color:var(--brass)}
+button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#1c140b}
+button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+#facts{position:fixed;left:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:5;
+  font-size:10.5px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase;
+  text-shadow:0 1px 2px rgba(0,0,0,.6)}
+#hint{position:fixed;right:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:5;
+  font-size:10.5px;letter-spacing:.16em;color:var(--dim);text-shadow:0 1px 2px rgba(0,0,0,.6)}
+#nogl{display:none;padding:40px;max-width:640px}
+@media (max-width:620px){ #panel{right:20px} #hint{display:none} }
+</style></head><body>
+
+<div id="panel">
+  <div><h1>MOON RACER</h1><div class="sub" id="where">landing zone</div></div>
+  <div class="row" role="group" aria-label="World">
+    <span class="lab">WORLD</span>
+    <button type="button" data-world="moon">MOON</button>
+    <button type="button" data-world="mercury">MERCURY</button>
+    <button type="button" data-world="venus">VENUS</button>
+    <button type="button" data-world="mars">MARS</button>
+  </div>
+  <div class="row" role="group" aria-label="View">
+    <span class="lab">VIEW</span>
+    <button type="button" data-view="over">OVERHEAD</button>
+    <button type="button" data-view="approach">APPROACH 18</button>
+    <button type="button" data-view="ring">AT THE RING</button>
+    <button type="button" data-view="edge">FROM BELOW</button>
+  </div>
+</div>
+<div id="facts">plateau ≈ 20 sq mi · six runways, 2.4 km · ring 2.4 km across</div>
+<div id="hint">drag to orbit · scroll to zoom · G glow</div>
+<div id="nogl"><h1 style="font-weight:400;letter-spacing:.3em;color:#ffd070">MOON RACER</h1>
+<p>The landing zone needs WebGL, which this browser has turned off.</p></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+if (!(() => { try { const c = document.createElement('canvas');
+       return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl'))); }
+     catch (e) { return false; } })()) {
+  document.getElementById('nogl').style.display = 'block';
+  document.getElementById('panel').style.display = 'none';
+  throw new Error('no WebGL');
+}
+
+/* ================================================================ the plan
+   Every figure here is in game units (about 1.7 m each). */
+const PLATEAU_R   = 2400;   // radius of the flat top: ~4.1 km, ~20 sq mi
+const CLIFF_DROP  = 420;    // how far the plateau stands above the land round it
+const RING_R      = 700;    // centre line of the gold ring
+const RING_W      = 34;     // its width
+const RWY_IN      = RING_R + RING_W;   // runways stop at the ring
+const RWY_OUT     = 2150;   // and start this far out, short of the edge
+const RWY_W       = 60;     // about 100 m wide
+const PY_HALF     = 180;    // pyramid: half the base (a 610 m base)
+const PY_H        = 230;    // and its height (about 390 m)
+const STAND_R     = 430;    // the stands, inside the ring
+const RUNWAYS     = 6;
+
+/* =============================================================== the worlds
+   The field never changes. The ground, the sky, the fog and the light do.
+   Jupiter and Saturn wait on the open question: a platform at the cloud
+   tops, or a moon of theirs. */
+const WORLDS = {
+  moon:    { name: 'MOON',    top: 0xb9b6ad, cliff: 0x77746d, low: 0x8f8c84, sky: 0x000000,
+             fog: null, stars: true,  sun: 1.9, hemi: 0.25, sunCol: 0xffffff, g: '0.17 g', day: '29.5 days' },
+  mercury: { name: 'MERCURY', top: 0x9a948a, cliff: 0x5d5850, low: 0x7c776e, sky: 0x000000,
+             fog: null, stars: true,  sun: 2.4, hemi: 0.22, sunCol: 0xfff6e6, g: '0.38 g', day: '176 days' },
+  venus:   { name: 'VENUS',   top: 0x8a6a45, cliff: 0x5c4128, low: 0x74553a, sky: 0xc79a5c,
+             fog: [0xc79a5c, 1800, 11000], stars: false, sun: 0.9, hemi: 0.9, sunCol: 0xffd9a0, g: '0.90 g', day: '117 days' },
+  mars:    { name: 'MARS',    top: 0xa4613a, cliff: 0x6a3a22, low: 0x8c5433, sky: 0xd2a67e,
+             fog: [0xd2a67e, 7000, 32000], stars: false, sun: 1.5, hemi: 0.6, sunCol: 0xfff0dc, g: '0.38 g', day: '24 h 40 m' }
+};
+
+/* ============================================================== the scene */
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 2, 40000);
+camera.position.set(3200, 2600, 3200);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.6));   // a 2014 iMac does not want 2x
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ReinhardToneMapping;
+renderer.toneMappingExposure = 1.4;
+document.body.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 120;
+controls.maxDistance = 14000;
+controls.maxPolarAngle = Math.PI * 0.495;   // never under the ground
+
+const hemi = new THREE.HemisphereLight(0xdfe8f0, 0x3a3028, 0.4);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+sun.position.set(-4000, 3200, 2200);        // low and raking, so the relief reads
+scene.add(sun);
+
+/* ---------------------------------------------------------------- noise
+   A small value noise, enough to break the cliff line and roughen the land
+   below. Deterministic, so the plateau is the same every time. */
+function hash(x, y) { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); }
+function vnoise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+function fbm(x, y, oct) { let s = 0, amp = 0.5, f = 1; for (let i = 0; i < oct; i++) { s += amp * vnoise(x * f, y * f); f *= 2.03; amp *= 0.5; } return s; }
+const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+/* ------------------------------------------------------------ the plateau
+   Flat on top — the runways need it — with an edge that wanders, a cliff
+   that falls away over about three hundred units, and rougher land below.
+   A radial grid rather than a square one: rings bunched at the cliff, so
+   the drop is sharp without a million vertices everywhere else. */
+function edgeR(theta) {
+  return PLATEAU_R + (fbm(Math.cos(theta) * 3 + 10, Math.sin(theta) * 3 + 10, 4) - 0.5) * 420;
+}
+function height(r, theta) {
+  const e = edgeR(theta);
+  const t = smooth(e - 40, e + 320, r);
+  const x = Math.cos(theta) * r, z = Math.sin(theta) * r;
+  const rough = (fbm(x * 0.004, z * 0.004, 5) - 0.5) * 70;           // the land below
+  const crag  = (fbm(x * 0.02, z * 0.02, 3) - 0.5) * 60 * (t * (1 - t) * 4);   // broken cliff face
+  const top   = r > e - 300 ? (fbm(x * 0.006, z * 0.006, 3) - 0.5) * 6 : 0;   // dead flat inside
+  return top * (1 - t) + (-CLIFF_DROP + rough) * t + crag;
+}
+let ground;
+function buildGround(W) {
+  if (ground) { scene.remove(ground); ground.geometry.dispose(); ground.material.dispose(); }
+  const radii = [];
+  for (let r = 0; r < 1900; r += 150) radii.push(r);
+  for (let r = 1900; r < 3300; r += 18) radii.push(r);          // dense through the cliff
+  for (let r = 3300; r <= 16000; r *= 1.06) radii.push(r);
+  const SEG = 360;
+  const pos = [], col = [], idx = [];
+  const cTop = new THREE.Color(W.top), cCliff = new THREE.Color(W.cliff), cLow = new THREE.Color(W.low), c = new THREE.Color();
+  for (let i = 0; i < radii.length; i++) {
+    for (let j = 0; j < SEG; j++) {
+      const th = j / SEG * Math.PI * 2, r = radii[i];
+      const y = height(r, th);
+      pos.push(Math.cos(th) * r, y, Math.sin(th) * r);
+      const e = edgeR(th);
+      const inCliff = smooth(e - 40, e + 60, r) * (1 - smooth(e + 200, e + 420, r));
+      const below = smooth(e + 150, e + 420, r);
+      c.copy(cTop).lerp(cLow, below).lerp(cCliff, inCliff * 0.85);
+      const grain = 0.93 + hash(i * 0.37, j * 0.91) * 0.12;             // a little mottle
+      col.push(c.r * grain, c.g * grain, c.b * grain);
+    }
+  }
+  for (let i = 0; i < radii.length - 1; i++)
+    for (let j = 0; j < SEG; j++) {
+      const a = i * SEG + j, b = i * SEG + (j + 1) % SEG, cc = (i + 1) * SEG + j, d = (i + 1) * SEG + (j + 1) % SEG;
+      idx.push(a, b, cc, b, d, cc);                     // counter-clockwise from above, so the top faces up
+    }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  ground = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.97, metalness: 0 }));
+  scene.add(ground);
+}
+
+/* ------------------------------------------------------------- textures */
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  return t;
+}
+/* the runway surface: dark, a dashed centre line and edge lines. Laid
+   along the texture's height, repeated down the length. */
+const runwayTex = canvasTex(128, 256, (x, w, h) => {
+  x.fillStyle = '#23262b'; x.fillRect(0, 0, w, h);
+  for (let i = 0; i < 900; i++) {                       // wear
+    x.fillStyle = `rgba(255,255,255,${Math.random() * 0.035})`;
+    x.fillRect(Math.random() * w, Math.random() * h, 2, 2);
+  }
+  x.fillStyle = '#e9e4d6';
+  x.fillRect(4, 0, 3, h); x.fillRect(w - 7, 0, 3, h);    // edge lines
+  x.fillRect(w / 2 - 2, 0, 4, h * 0.55);                 // centre dash
+});
+runwayTex.wrapS = THREE.ClampToEdgeWrapping;
+runwayTex.wrapT = THREE.RepeatWrapping;
+
+function numberTex(txt) {
+  return canvasTex(256, 256, (x, w, h) => {
+    x.fillStyle = '#e9e4d6';
+    x.font = 'bold 170px ui-monospace, Menlo, Consolas, monospace';
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillText(txt, w / 2, h / 2);
+  });
+}
+const thresholdTex = canvasTex(256, 64, (x, w, h) => {
+  x.fillStyle = '#e9e4d6';
+  for (let i = 0; i < 8; i++) x.fillRect(10 + i * 30 + (i >= 4 ? 16 : 0), 0, 16, h);   // piano keys
+});
+
+/* ------------------------------------------------------------ the field */
+const field = new THREE.Group();
+scene.add(field);
+const flat = (w, l, mat) => { const g = new THREE.PlaneGeometry(w, l); g.rotateX(-Math.PI / 2); return new THREE.Mesh(g, mat); };
+const decal = (map, opts) => new THREE.MeshStandardMaterial(Object.assign({
+  map, transparent: true, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }, opts || {}));
+
+/* the lights: little points that are genuinely bright, so the glow picks
+   them up and nothing else. Colours above 1 are allowed in linear light. */
+const LIGHT_N = 900;
+const lights = new THREE.InstancedMesh(new THREE.SphereGeometry(2.2, 6, 4),
+  new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }), LIGHT_N);
+lights.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+const lightCol = new Float32Array(LIGHT_N * 3);
+lights.instanceColor = new THREE.InstancedBufferAttribute(lightCol, 3);
+let lightCount = 0;
+const _m = new THREE.Matrix4();
+function addLight(x, y, z, col) {
+  if (lightCount >= LIGHT_N) return;
+  _m.makeTranslation(x, y, z);
+  lights.setMatrixAt(lightCount, _m);
+  lightCol.set([col[0], col[1], col[2]], lightCount * 3);
+  lightCount++;
+}
+const AMBER = [3.2, 2.2, 0.8], WHITE = [2.6, 2.6, 2.4], GREEN = [0.5, 2.8, 1.0];
+
+for (let i = 0; i < RUNWAYS; i++) {
+  const b = i * Math.PI * 2 / RUNWAYS;                  // bearing of the far end, from north
+  const ux = Math.sin(b), uz = -Math.cos(b);            // outward, north being -z
+  const len = RWY_OUT - RWY_IN, mid = (RWY_IN + RWY_OUT) / 2;
+
+  const tex = runwayTex.clone(); tex.needsUpdate = true;
+  tex.repeat.set(1, len / 90);
+  const rw = flat(RWY_W, len, decal(tex, { transparent: false }));
+  rw.rotation.y = -b;                                   // the plane's length onto the bearing
+  rw.position.set(ux * mid, 0.6, uz * mid);
+  field.add(rw);
+
+  /* the designator reads from the approach: landing heading is inward */
+  const hdg = Math.round(((b * 180 / Math.PI + 180) % 360) / 10) || 36;
+  const num = flat(RWY_W * 0.8, RWY_W * 0.8, decal(numberTex(String(hdg).padStart(2, '0'))));
+  num.rotation.y = -b + Math.PI;
+  const nd = RWY_OUT - 95;
+  num.position.set(ux * nd, 0.8, uz * nd);
+  field.add(num);
+
+  const th = flat(RWY_W * 0.9, 22, decal(thresholdTex));
+  th.rotation.y = -b;
+  const td = RWY_OUT - 30;
+  th.position.set(ux * td, 0.8, uz * td);
+  field.add(th);
+
+  /* edge lights down both sides, green across the threshold, and an
+     approach line of amber bars running out past the end */
+  const px = -uz, pz = ux;                              // across the runway
+  for (let d = RWY_IN + 20; d <= RWY_OUT; d += 60)
+    for (const s of [-1, 1]) addLight(ux * d + px * s * (RWY_W / 2 + 4), 3, uz * d + pz * s * (RWY_W / 2 + 4), WHITE);
+  for (let k = -3; k <= 3; k++) addLight(ux * (RWY_OUT + 6) + px * k * 9, 3, uz * (RWY_OUT + 6) + pz * k * 9, GREEN);
+  for (let d = RWY_OUT + 60; d <= RWY_OUT + 60 + 9 * 30; d += 30) {
+    const bar = d === RWY_OUT + 60 + 5 * 30 ? 4 : 1;    // one crossbar part-way out
+    for (let k = -bar; k <= bar; k++) addLight(ux * d + px * k * 8, 4, uz * d + pz * k * 8, AMBER);
+  }
+}
+
+/* the ring: a raised gold band with a darker inner apron */
+const ringMat = new THREE.MeshStandardMaterial({ color: 0xd4af50, metalness: 0.75, roughness: 0.35,
+  emissive: 0x3a2a08, emissiveIntensity: 0.4 });
+const ringGeo = new THREE.RingGeometry(RING_R - RING_W / 2, RING_R + RING_W / 2, 256, 1);
+ringGeo.rotateX(-Math.PI / 2);
+const ring = new THREE.Mesh(ringGeo, ringMat);
+ring.position.y = 1.2;
+field.add(ring);
+const apronGeo = new THREE.CircleGeometry(RING_R - RING_W / 2, 128);
+apronGeo.rotateX(-Math.PI / 2);
+const apron = new THREE.Mesh(apronGeo, new THREE.MeshStandardMaterial({ color: 0x2b2d31, roughness: 0.92,
+  polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
+apron.position.y = 0.3;
+field.add(apron);
+for (let k = 0; k < 144; k++) {
+  const a = k / 144 * Math.PI * 2;
+  addLight(Math.cos(a) * (RING_R + RING_W / 2 + 6), 3, Math.sin(a) * (RING_R + RING_W / 2 + 6), AMBER);
+}
+
+/* the stands: one per craft in its own colour, and a spare */
+const STAND_COLS = [0x35e6ff, 0x7cff4f, 0xff2bd6, 0xff7a18, 0xffd23a, 0x9fb3c2];
+for (let i = 0; i < RUNWAYS; i++) {
+  const a = (i + 0.5) * Math.PI * 2 / RUNWAYS;
+  const x = Math.sin(a) * STAND_R, z = -Math.cos(a) * STAND_R;
+  const pad = new THREE.Mesh(new THREE.CylinderGeometry(42, 46, 3, 48),
+    new THREE.MeshStandardMaterial({ color: 0x3a3d42, roughness: 0.8 }));
+  pad.position.set(x, 1.5, z);
+  field.add(pad);
+  const edge = new THREE.Mesh(new THREE.TorusGeometry(44, 1.6, 6, 64),
+    new THREE.MeshBasicMaterial({ color: new THREE.Color(STAND_COLS[i]).multiplyScalar(2.2), toneMapped: false }));
+  edge.rotation.x = Math.PI / 2;
+  edge.position.set(x, 3.2, z);
+  field.add(edge);
+}
+
+/* the pyramid: dark stone, gold along its four edges, a beacon at the top */
+const pyGeo = new THREE.ConeGeometry(PY_HALF * Math.SQRT2, PY_H, 4, 1);
+pyGeo.rotateY(Math.PI / 4);                              // faces square to the compass
+const pyramid = new THREE.Mesh(pyGeo, new THREE.MeshStandardMaterial({ color: 0x1c1a18, roughness: 0.55,
+  metalness: 0.15, flatShading: true }));
+pyramid.position.y = PY_H / 2;
+field.add(pyramid);
+{
+  const apex = new THREE.Vector3(0, PY_H, 0), pts = [];
+  for (const [sx, sz] of [[1, 1], [1, -1], [-1, -1], [-1, 1]]) pts.push(apex, new THREE.Vector3(sx * PY_HALF, 0.5, sz * PY_HALF));
+  for (const [a, b] of [[[1, 1], [1, -1]], [[1, -1], [-1, -1]], [[-1, -1], [-1, 1]], [[-1, 1], [1, 1]]])
+    pts.push(new THREE.Vector3(a[0] * PY_HALF, 0.5, a[1] * PY_HALF), new THREE.Vector3(b[0] * PY_HALF, 0.5, b[1] * PY_HALF));
+  field.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.LineBasicMaterial({ color: new THREE.Color(0xffd070).multiplyScalar(1.6), toneMapped: false })));
+}
+const beacon = new THREE.Mesh(new THREE.SphereGeometry(6, 16, 12),
+  new THREE.MeshBasicMaterial({ color: new THREE.Color(4, 3.2, 1.6), toneMapped: false }));
+beacon.position.y = PY_H + 4;
+field.add(beacon);
+
+lights.count = lightCount;
+lights.instanceMatrix.needsUpdate = true;
+lights.instanceColor.needsUpdate = true;
+field.add(lights);
+console.log('[moon-racer] landing zone: ' + lightCount + ' field lights');
+
+/* ---------------------------------------------------------------- stars */
+const stars = (() => {
+  const N = 2500, p = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    const u = Math.random() * 2 - 1, a = Math.random() * Math.PI * 2, s = Math.sqrt(1 - u * u);
+    const r = 30000;
+    p[i * 3] = Math.cos(a) * s * r; p[i * 3 + 1] = Math.abs(u) * r * 0.9 + 400; p[i * 3 + 2] = Math.sin(a) * s * r;
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+  return new THREE.Points(g, new THREE.PointsMaterial({ color: 0xdfe8f2, size: 1.6, sizeAttenuation: false, fog: false }));
+})();
+scene.add(stars);
+
+/* -------------------------------------------------------------- the glow */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.7, 0.4, 0.85);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+let glowOn = true;
+try { glowOn = localStorage.getItem('moonracer.glow') !== 'off'; } catch (e) {}
+addEventListener('keydown', e => {
+  if ((e.key === 'g' || e.key === 'G') && !e.metaKey && !e.ctrlKey) {
+    glowOn = !glowOn;
+    try { localStorage.setItem('moonracer.glow', glowOn ? 'on' : 'off'); } catch (err) {}
+    console.log('[moon-racer] glow ' + (glowOn ? 'ON' : 'OFF'));
+  }
+});
+
+/* ------------------------------------------------------------ the world */
+const worldBtns = [...document.querySelectorAll('[data-world]')];
+function setWorld(key) {
+  const W = WORLDS[key];
+  buildGround(W);
+  scene.background = new THREE.Color(W.sky);
+  scene.fog = W.fog ? new THREE.Fog(W.fog[0], W.fog[1], W.fog[2]) : null;
+  stars.visible = W.stars;
+  sun.intensity = W.sun; sun.color.set(W.sunCol);
+  hemi.intensity = W.hemi;
+  worldBtns.forEach(b => b.setAttribute('aria-pressed', b.dataset.world === key ? 'true' : 'false'));
+  document.getElementById('where').textContent = 'landing zone · ' + W.name.toLowerCase() + ' · ' + W.g + ' · day ' + W.day;
+  try { localStorage.setItem('moonracer.world', key); } catch (e) {}
+}
+worldBtns.forEach(b => b.addEventListener('click', () => setWorld(b.dataset.world)));
+
+/* ------------------------------------------------------------- the views
+   Each one eases the eye and its target there, rather than cutting. */
+const VIEWS = {
+  over:     { pos: [0, 7800, 60],        at: [0, 0, 0] },
+  approach: { pos: [0, 380, -3300],      at: [0, 40, 0] },      // down runway 18, from the north
+  ring:     { pos: [470, 22, -520],      at: [0, 120, 0] },
+  edge:     { pos: [2600, -330, 3900],   at: [0, -400, 0] }     // on the land below, looking up the cliff
+};
+let tween = null;
+const viewBtns = [...document.querySelectorAll('[data-view]')];
+function setView(key) {
+  const v = VIEWS[key];
+  tween = { t0: performance.now(), dur: 1800,
+            fromP: camera.position.clone(), toP: new THREE.Vector3(...v.pos),
+            fromT: controls.target.clone(), toT: new THREE.Vector3(...v.at) };
+  viewBtns.forEach(b => b.setAttribute('aria-pressed', b.dataset.view === key ? 'true' : 'false'));
+}
+viewBtns.forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
+controls.addEventListener('start', () => { tween = null; viewBtns.forEach(b => b.setAttribute('aria-pressed', 'false')); });
+
+
+/* --------------------------------------------------------------- resize */
+function resize() {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  composer.setPixelRatio(renderer.getPixelRatio());
+  composer.setSize(innerWidth, innerHeight);
+}
+addEventListener('resize', resize);
+
+/* ---------------------------------------------------------------- start */
+let startWorld = 'mars';
+try { const s = localStorage.getItem('moonracer.world'); if (s && WORLDS[s]) startWorld = s; } catch (e) {}
+setWorld(startWorld);
+setView('over');
+
+let fpsFrames = 0, fpsFrom = performance.now(), fpsUntil = performance.now() + 20000;
+function frame(now) {
+  if (tween) {
+    const k = Math.min(1, (now - tween.t0) / tween.dur), e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    camera.position.lerpVectors(tween.fromP, tween.toP, e);
+    controls.target.lerpVectors(tween.fromT, tween.toT, e);
+    if (k >= 1) tween = null;
+  }
+  controls.update();
+  beacon.scale.setScalar(0.8 + 0.35 * (0.5 + 0.5 * Math.sin(now * 0.004)));   // the beacon breathes
+  if (glowOn) composer.render(); else renderer.render(scene, camera);
+  fpsFrames++;
+  if (now - fpsFrom >= 5000) {
+    if (now < fpsUntil) console.log('[moon-racer] ' + (fpsFrames * 1000 / (now - fpsFrom)).toFixed(1) + ' fps');
+    fpsFrames = 0; fpsFrom = now;
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body></html>

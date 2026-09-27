@@ -33,7 +33,10 @@
 <title>Moon Racer</title>
 <meta name="description" content="Amenti, GannLab, Treasure Chess, Amenti.live, and one unannounced.">
 <script type="importmap">
-{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
 </script>
 <style>
 :root{--ink:#f2efe6;--dim:#9fb3c2;--gold:#d4af50;--brass:#ffd070;--oak:#2a1d12;
@@ -55,6 +58,12 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
   transition:background .25s,border-color .25s,transform .2s}
 #views .dot:hover{background:rgba(255,255,255,.7);transform:scale(1.25)}
 #views .dot[aria-pressed="true"]{background:var(--brass);border-color:var(--gold)}
+#glow{margin-left:6px;padding:0 6px;height:13px;line-height:11px;font:10px/11px ui-monospace,Menlo,Consolas,monospace;
+  letter-spacing:.14em;color:rgba(20,30,38,.7);background:rgba(255,255,255,.32);border:1px solid rgba(20,30,38,.5);
+  border-radius:7px;cursor:pointer;transition:background .25s,color .25s,border-color .25s}
+#glow:hover{background:rgba(255,255,255,.7)}
+#glow[aria-pressed="true"]{background:var(--brass);border-color:var(--gold);color:#2a1d12}
+#glow:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
 #views .dot:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
 #share{position:fixed;left:20px;bottom:calc(52px + env(safe-area-inset-bottom,0px));z-index:6;
   display:flex;align-items:flex-end;gap:12px}
@@ -178,6 +187,7 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
   <button class="dot" data-view="0" aria-label="View one" title="The fleet"></button>
   <button class="dot" data-view="1" aria-label="View two" title="View two"></button>
   <button class="dot" data-view="2" aria-label="View three" title="View three"></button>
+  <button id="glow" type="button" aria-pressed="true" title="Glow (G)">glow</button>
 </div>
 <div id="stamp"></div>
 
@@ -233,6 +243,10 @@ canvas{display:block;position:fixed;inset:0;touch-action:none}
 
 <script type="module">
 import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 /* ================================================================ the four */
 const PROJECTS = [
@@ -1228,6 +1242,29 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
    clipping. */
 renderer.toneMapping = THREE.ReinhardToneMapping;
 document.body.appendChild(renderer.domElement);
+
+/* ------------------------------------------------------------- the glow
+   Real bloom rather than additive sprites alone: whatever is genuinely
+   hot — the plasma cores, the sun, the ignition rings, the jump flash —
+   bleeds light into the dark around it. The threshold is set high so the
+   daylight scene (sails, cloud, the glitter on the water) is left alone
+   and only the brightest things glow. The bloom runs on the scene before
+   tone mapping; OutputPass then applies the same Reinhard curve and
+   exposure the renderer used on its own, so switching the glow off and
+   on changes the glow and nothing else.
+
+   It costs frame rate, so it is a switch: the "glow" button by the view
+   dots, or G. The choice is remembered on this machine. */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(viewport().w, viewport().h),
+  0.55,     // strength
+  0.35,     // radius
+  0.82);    // threshold: only what is really bright
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+let glowOn = true;
+try { glowOn = localStorage.getItem('moonracer.glow') !== 'off'; } catch (e) {}
 
 const hemi = new THREE.HemisphereLight(0xdfefff, 0x3a5668, 1.2);
 scene.add(hemi);
@@ -3201,6 +3238,8 @@ function resize() {
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
   renderer.setSize(w, h, false);
+  composer.setPixelRatio(renderer.getPixelRatio());
+  composer.setSize(w, h);
   fitCamera();
 }
 addEventListener('resize', resize);
@@ -3874,6 +3913,34 @@ let watch = 0;             // how much the eye is on the patrol
 let farRelease = 0;        // and how much of that it has let go of sideways
 const watchAt = new THREE.Vector3(0, 10, 0);
 let lastW = 0, lastH = 0, lastSky = -1, skyBand = [230, 223, 201], drama = 0;
+/* the glow switch, and a frame-rate reading in the console for twenty
+   seconds after the page loads and after every switch, so the cost of the
+   glow can be seen on this machine rather than guessed at */
+const glowBtn = document.getElementById('glow');
+function setGlow(on) {
+  glowOn = on;
+  try { localStorage.setItem('moonracer.glow', on ? 'on' : 'off'); } catch (e) {}
+  glowBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  fpsUntil = performance.now() + 20000;
+  console.log('[moon-racer] glow ' + (on ? 'ON' : 'OFF'));
+}
+let fpsUntil = performance.now() + 20000, fpsFrames = 0, fpsFrom = performance.now();
+function meterFps() {
+  fpsFrames++;
+  const now = performance.now();
+  if (now - fpsFrom >= 5000) {
+    if (now < fpsUntil)
+      console.log('[moon-racer] ' + (fpsFrames * 1000 / (now - fpsFrom)).toFixed(1) + ' fps · glow ' + (glowOn ? 'on' : 'off'));
+    fpsFrames = 0; fpsFrom = now;
+  }
+}
+glowBtn.addEventListener('click', () => setGlow(!glowOn));
+addEventListener('keydown', e => {
+  if ((e.key === 'g' || e.key === 'G') && !e.metaKey && !e.ctrlKey && !/input|textarea/i.test(e.target.tagName))
+    setGlow(!glowOn);
+});
+glowBtn.setAttribute('aria-pressed', glowOn ? 'true' : 'false');
+
 function frame() {
   const t = clock.getElapsedTime();
 
@@ -4926,7 +4993,8 @@ function updateDrive(s, ph, t, thrust, warm) {
 
   if (hudFrame++ % 20 === 0) { refreshHud(); paintTip(); }   // the sky moves; so do the answers
 
-  renderer.render(scene, camera);
+  if (glowOn) composer.render(); else renderer.render(scene, camera);
+  meterFps();
   requestAnimationFrame(frame);
 }
 frame();
