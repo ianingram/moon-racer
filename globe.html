@@ -4,8 +4,9 @@
    ==========================================================================
    MOON RACER — the globe, and leg one: Giza to Hells Canyon
    ==========================================================================
-   The Earth from NASA's Blue Marble (earth-bluemarble.jpg, beside this page
-   in the repo), lit by the real Sun for this moment. The race starts at
+   The Earth as a dark silhouette lit by the real Sun for this moment, the
+   lane and the sites on it; NASA's Blue Marble (earth-bluemarble.jpg,
+   beside this page in the repo) on request. The race starts at
    Giza. Leg one goes to the head of Hells Canyon, 11,041 km away — 99° round
    the planet, so far that it can never be seen from above Giza at any
    height.
@@ -44,6 +45,11 @@ canvas#gl{display:block;position:fixed;inset:0;touch-action:none}
 #title{left:20px;top:calc(16px + env(safe-area-inset-top,0px))}
 #title .a{font-size:14px;letter-spacing:.34em;color:var(--brass)}
 #title .b{font-size:10.5px;letter-spacing:.2em;color:var(--dim)}
+#look{margin-top:10px;font:10px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.2em;padding:7px 10px;cursor:pointer;
+  color:var(--dim);background:transparent;border:1px solid rgba(159,179,194,.35)}
+#look:hover{color:var(--ink);border-color:var(--brass)}
+#look[aria-pressed="true"]{color:#1c140b;background:var(--gold);border-color:var(--gold)}
+#look:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 #leg{left:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));width:360px;display:flex;flex-direction:column;gap:12px;
   padding:16px 18px;background:rgba(8,12,18,.7);border:1px solid rgba(232,223,200,.22)}
 #leg .k{font-size:10px;letter-spacing:.24em;color:var(--dim)}
@@ -64,10 +70,15 @@ canvas#gl{display:block;position:fixed;inset:0;touch-action:none}
 .tag.site{color:var(--brass)}
 #hint{right:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));font-size:10.5px;letter-spacing:.16em;color:var(--dim)}
 #nogl{display:none;padding:40px;max-width:640px}
-@media (max-width:640px){ #leg{right:20px;width:auto} #hint{display:none} }
+@media (max-width:760px){
+  #leg{left:12px;right:12px;width:auto;padding:12px 14px;gap:8px}
+  #leg .route{font-size:13px} #leg .facts{display:none}
+  #tele{right:12px} #tele .row{font-size:9.5px;letter-spacing:.14em} #sight{font-size:10px;letter-spacing:.16em}
+  #title{left:12px} #hint{display:none} .tag{font-size:9.5px} }
 </style></head><body>
 
-<div class="hud" id="title"><div class="a">MOON RACER</div><div class="b">THE GLOBE · LEG ONE</div></div>
+<div class="hud" id="title"><div class="a">MOON RACER</div><div class="b">THE GLOBE · LEG ONE</div>
+  <button type="button" id="look" aria-pressed="false" title="Imagery (I)">IMAGERY</button></div>
 <div class="hud" id="tele">
   <div class="row">ALTITUDE <b id="alt">0 km</b></div>
   <div class="row">SPEED <b id="spd">0.00 c</b></div>
@@ -84,7 +95,7 @@ canvas#gl{display:block;position:fixed;inset:0;touch-action:none}
   <button type="button" id="launch">LAUNCH</button>
   <a class="go" id="go" href="hells-canyon.html">FLY STAGE ONE →</a>
 </div>
-<div class="hud" id="hint">drag to turn · scroll to zoom · G glow</div>
+<div class="hud" id="hint">drag to turn · scroll to zoom · I imagery · G glow</div>
 <div id="nogl"><h1 style="font-weight:400;letter-spacing:.3em;color:#ffd070">MOON RACER</h1><p>The globe needs WebGL, which this browser has turned off.</p></div>
 
 <script type="module">
@@ -160,22 +171,46 @@ scene.add(new THREE.AmbientLight(0x6f86a8, 0.12));
 function placeSun() { const [la, lo] = subsolar(new Date()); sun.position.copy(toVec(la, lo, 1000)); }
 placeSun();
 
-/* PREVIEWS. Opened anywhere but the site itself (the preview pane beside
-   the chat, a file on the desktop), the picture beside this page is not
-   there, so the live site's copy is used instead. */
+/* THE DARK LOOK. The Earth as a dark slate silhouette: lit by the real
+   Sun, with the blue rim of the air, and nothing on it but the lane and
+   the sites, so the route is what you see. This is the default.
+   IMAGERY (the button, or I) wraps it in NASA's Blue Marble instead. The
+   picture is only fetched the first time it is asked for; the choice is
+   remembered. Opened anywhere but the site itself (the preview pane, a
+   file on the desktop), the live site's copy is used. */
 const LIVE = 'https://ianingram.github.io/moon-racer/';
-const earthTex = new THREE.TextureLoader().load('earth-bluemarble.jpg', () => console.log('[moon-racer] Blue Marble loaded'),
-  undefined, () => {
-    console.log('[moon-racer] earth-bluemarble.jpg not beside this page — using the live site\'s copy');
-    new THREE.TextureLoader().load(LIVE + 'earth-bluemarble.jpg', t => { earth.material.map = t; t.colorSpace = THREE.SRGBColorSpace;
-      t.anisotropy = renderer.capabilities.getMaxAnisotropy(); earth.material.needsUpdate = true; },
-      undefined, () => console.warn('[moon-racer] earth-bluemarble.jpg not found here or on the live site'));
-  });
-earthTex.colorSpace = THREE.SRGBColorSpace;
-earthTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-const earth = new THREE.Mesh(new THREE.SphereGeometry(R, 128, 96),
-  new THREE.MeshPhongMaterial({ map: earthTex, specular: 0x223344, shininess: 12 }));
+const DARK = { color: new THREE.Color(0x151b24), specular: new THREE.Color(0x3a4a5e), shininess: 18 };
+const earthMat = new THREE.MeshPhongMaterial({ color: DARK.color, specular: DARK.specular, shininess: DARK.shininess });
+const earth = new THREE.Mesh(new THREE.SphereGeometry(R, 128, 96), earthMat);
 scene.add(earth);
+let earthTex = null, imagery = false;
+function useTex(t) {
+  t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  earthTex = t; if (imagery) applyLook();
+}
+function loadImagery() {
+  new THREE.TextureLoader().load('earth-bluemarble.jpg', t => { console.log('[moon-racer] Blue Marble loaded'); useTex(t); }, undefined, () => {
+    console.log('[moon-racer] earth-bluemarble.jpg not beside this page — using the live site\'s copy');
+    new THREE.TextureLoader().load(LIVE + 'earth-bluemarble.jpg', useTex, undefined,
+      () => console.warn('[moon-racer] earth-bluemarble.jpg not found here or on the live site'));
+  });
+}
+function applyLook() {
+  if (imagery && earthTex) { earthMat.map = earthTex; earthMat.color.set(0xffffff); earthMat.specular.set(0x223344); earthMat.shininess = 12; }
+  else { earthMat.map = null; earthMat.color.copy(DARK.color); earthMat.specular.copy(DARK.specular); earthMat.shininess = DARK.shininess; }
+  earthMat.needsUpdate = true;
+  const btn = document.getElementById('look');
+  if (btn) btn.setAttribute('aria-pressed', imagery ? 'true' : 'false');
+}
+function setImagery(on) {
+  imagery = on;
+  try { localStorage.setItem('moonracer.globe.imagery', on ? 'on' : 'off'); } catch (e) {}
+  if (on && !earthTex) loadImagery();
+  applyLook();
+}
+try { imagery = localStorage.getItem('moonracer.globe.imagery') === 'on'; } catch (e) {}
+if (imagery) loadImagery();
+applyLook();
 
 /* the air: a thin blue rim, brightest edge-on */
 const atmo = new THREE.Mesh(new THREE.SphereGeometry(R * 1.025, 96, 64), new THREE.ShaderMaterial({
@@ -302,7 +337,9 @@ composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight),
 composer.addPass(new OutputPass());
 let glowOn = true;
 try { glowOn = localStorage.getItem('moonracer.glow') !== 'off'; } catch (e) {}
+document.getElementById('look').addEventListener('click', () => setImagery(!imagery));
 addEventListener('keydown', e => {
+  if ((e.key === 'i' || e.key === 'I') && !e.metaKey && !e.ctrlKey) setImagery(!imagery);
   if ((e.key === 'g' || e.key === 'G') && !e.metaKey && !e.ctrlKey) {
     glowOn = !glowOn; try { localStorage.setItem('moonracer.glow', glowOn ? 'on' : 'off'); } catch (err) {}
   }
