@@ -157,7 +157,17 @@ img.onload = () => {
   try { px = x.getImageData(0, 0, img.width, img.height).data; } catch (e) { console.warn('[moon-racer] cannot read the map pixels here (open it from GitHub Pages)'); }
   classify(); buildCards(); resize(); start();
 };
-img.onerror = () => console.warn('[moon-racer] earth-bluemarble.jpg missing — is it in the repo beside this page?');
+/* PREVIEWS. Opened anywhere but the site itself — the preview pane beside
+   the chat, a file on the desktop — the picture beside this page is not
+   there, so it is fetched from the live site instead. GitHub Pages allows
+   that, and crossOrigin keeps the pixels readable. */
+const LIVE = 'https://ianingram.github.io/moon-racer/';
+img.onerror = () => {
+  if (img.dataset.tried) { console.warn('[moon-racer] earth-bluemarble.jpg not found here or on the live site'); return; }
+  img.dataset.tried = '1';
+  console.log('[moon-racer] earth-bluemarble.jpg not beside this page — using the live site\'s copy');
+  img.crossOrigin = 'anonymous'; img.src = LIVE + 'earth-bluemarble.jpg';
+};
 img.src = 'earth-bluemarble.jpg';
 
 /* WHAT IS UNDER EACH STEP. Deep blue is sea, near-white is ice, the rest is

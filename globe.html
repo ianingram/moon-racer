@@ -160,8 +160,17 @@ scene.add(new THREE.AmbientLight(0x6f86a8, 0.12));
 function placeSun() { const [la, lo] = subsolar(new Date()); sun.position.copy(toVec(la, lo, 1000)); }
 placeSun();
 
+/* PREVIEWS. Opened anywhere but the site itself (the preview pane beside
+   the chat, a file on the desktop), the picture beside this page is not
+   there, so the live site's copy is used instead. */
+const LIVE = 'https://ianingram.github.io/moon-racer/';
 const earthTex = new THREE.TextureLoader().load('earth-bluemarble.jpg', () => console.log('[moon-racer] Blue Marble loaded'),
-  undefined, () => console.warn('[moon-racer] earth-bluemarble.jpg missing — is it in the repo beside this page?'));
+  undefined, () => {
+    console.log('[moon-racer] earth-bluemarble.jpg not beside this page — using the live site\'s copy');
+    new THREE.TextureLoader().load(LIVE + 'earth-bluemarble.jpg', t => { earth.material.map = t; t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = renderer.capabilities.getMaxAnisotropy(); earth.material.needsUpdate = true; },
+      undefined, () => console.warn('[moon-racer] earth-bluemarble.jpg not found here or on the live site'));
+  });
 earthTex.colorSpace = THREE.SRGBColorSpace;
 earthTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
 const earth = new THREE.Mesh(new THREE.SphereGeometry(R, 128, 96),
