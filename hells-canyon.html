@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<!--
+   REPO: moon-racer/hells-canyon.html
+   ==========================================================================
+   MOON RACER — stage one: the Snake River through Hells Canyon
+   ==========================================================================
+   The first flyable stage. You fly X down the real course of the Snake,
+   from Hells Canyon Dam north to the Grande Ronde, through gates on the
+   river, against the clock.
+
+   THE ROUTE is real: 36 points of the river's course (Natural Earth, public
+   domain), typed into this file.
+   THE CANYON is real too. Two files beside this one in the repo carry it —
+   the stage pack — and nothing comes from anywhere else:
+     hells-canyon-height.png  the ground's height, ~27 m apart, from the
+                              open terrain tiles (NASA SRTM and others).
+                              Encoded, not a picture: red is the high byte
+                              and green the low byte of (metres + 100).
+     hells-canyon-image.jpg   USGS aerial imagery (public domain) of the
+                              same ground, draped over it.
+   Both cover 45.13–46.23 N, 117.17–116.24 W, and PACK below says exactly
+   which Web-Mercator pixels at zoom 12. The river line from Natural Earth
+   is a little generalised, so on loading it is walked down into the true
+   bottom of the canyon, and the water sits there. One unit is about 4.85 m,
+   across and up alike, so the canyon keeps its true shape: the Seven
+   Devils on the Idaho side stand about 2.4 km over the water.
+
+   THE CRAFT drinks air and water, and it runs hot:
+     FUEL  fills fast skimming any water, steadily inside a dense cloud, and
+           barely at all from the open air. Thrust and speed burn it. Empty,
+           the engines stop and the craft glides and sinks.
+     HEAT  rises with speed squared and with the thickness of the air.
+           Down in the canyon the air is thick and warm: cruise and you
+           hold, push and you cook. High up the air is thin and cold, and
+           the same speed costs almost nothing. Skimming water cools the
+           engines too. At full heat they cut out until they cool.
+   So the stage is a rhythm: low to drink and to take the gates, high to
+   run fast and cool, and down again before the tank is dry.
+
+   Keys: ← → or A D turn · ↑ ↓ or W S climb and dive · E / Q throttle up
+   and down · R restart · G glow.
+   ==========================================================================
+-->
+<html lang="en-GB"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moon Racer — Hells Canyon</title>
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<style>
+:root{--ink:#f2efe6;--dim:#9fb3c2;--gold:#d4af50;--brass:#ffd070;--oak:#2a1d12;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:inherit}
+html,body{height:100%;margin:0;background:#9cc6de;overflow:hidden;
+  font:14px/1.6 ui-monospace,Menlo,Consolas,monospace;color:var(--ink)}
+canvas#gl{display:block;position:fixed;inset:0}
+.hud{position:fixed;z-index:5;text-shadow:0 1px 3px rgba(0,0,0,.55)}
+#title{left:20px;top:calc(16px + env(safe-area-inset-top,0px))}
+#title .a{font-size:14px;letter-spacing:.34em;color:var(--brass)}
+#title .b{font-size:10.5px;letter-spacing:.2em;color:var(--ink);opacity:.85}
+#clock{right:20px;top:calc(16px + env(safe-area-inset-top,0px));text-align:right}
+#clock .t{font-size:30px;letter-spacing:.06em}
+#clock .g{font-size:11px;letter-spacing:.2em;opacity:.85}
+#gauges{left:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;gap:18px;align-items:flex-end;
+  padding:12px 16px;background:rgba(8,12,18,.55);border:1px solid rgba(232,223,200,.22);text-shadow:none}
+.gauge{display:flex;flex-direction:column;gap:6px;width:150px}
+.gauge .l{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.22em;color:var(--dim)}
+.gauge .l b{font-weight:400;color:var(--ink)}
+.bar{height:6px;background:rgba(159,179,194,.2)}
+.bar i{display:block;height:100%;width:50%;background:var(--ink);transition:background .2s}
+.read{display:flex;flex-direction:column;gap:2px;min-width:92px}
+.read .l{font-size:10px;letter-spacing:.22em;color:var(--dim)}
+.read .v{font-size:20px}
+#msg{left:50%;top:26%;transform:translateX(-50%);font-size:16px;letter-spacing:.3em;color:var(--brass);
+  text-align:center;opacity:0;transition:opacity .3s;white-space:nowrap}
+#msg.on{opacity:1}
+#map{right:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));background:rgba(8,12,18,.55);
+  border:1px solid rgba(232,223,200,.22)}
+#keys{left:50%;top:calc(18px + env(safe-area-inset-top,0px));transform:translateX(-50%);font-size:10px;
+  letter-spacing:.16em;color:var(--ink);opacity:.8;text-align:center}
+#end{position:fixed;inset:0;z-index:9;display:none;align-items:center;justify-content:center;background:rgba(5,9,14,.55)}
+#end .card{padding:26px 30px;background:rgba(8,12,18,.88);border:1px solid rgba(255,208,112,.5);min-width:320px;
+  display:flex;flex-direction:column;gap:10px}
+#end h2{margin:0;font-weight:400;font-size:13px;letter-spacing:.3em;color:var(--brass)}
+#end .big{font-size:34px}
+#end .row{display:flex;justify-content:space-between;font-size:12px;letter-spacing:.12em;color:var(--dim)}
+#end .row b{font-weight:400;color:var(--ink)}
+#end button{margin-top:8px;font:12px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.2em;min-height:42px;
+  background:var(--gold);color:#1c140b;border:1px solid var(--gold);cursor:pointer}
+#nogl{display:none;padding:40px;max-width:640px;color:#1c140b}
+@media (max-width:760px){ #map{display:none} #keys{display:none} .gauge{width:110px} }
+</style></head><body>
+
+<div class="hud" id="title"><div class="a">MOON RACER</div><div class="b">STAGE ONE · SNAKE RIVER · HELLS CANYON</div></div>
+<div class="hud" id="clock"><div class="t" id="time">0:00.0</div><div class="g" id="gates">GATES 0 / 0</div><div class="g" id="best"></div></div>
+<div class="hud" id="msg"></div>
+<div class="hud" id="gauges">
+  <div class="gauge"><div class="l">FUEL <b id="fuelTxt"></b></div><div class="bar"><i id="fuelBar"></i></div></div>
+  <div class="gauge"><div class="l">HEAT <b id="heatTxt"></b></div><div class="bar"><i id="heatBar"></i></div></div>
+  <div class="read"><span class="l">SPEED</span><span class="v" id="spd">0.00 c</span></div>
+  <div class="read"><span class="l">ABOVE WATER</span><span class="v" id="alt">0 m</span></div>
+</div>
+<canvas class="hud" id="map" width="170" height="240" aria-label="Route map"></canvas>
+<div class="hud" id="keys">← → TURN · ↑ ↓ CLIMB / DIVE · E / Q THROTTLE · R RESTART · G GLOW</div>
+<div id="end" role="dialog" aria-label="Stage result"><div class="card">
+  <h2>GRANDE RONDE · FINISH</h2>
+  <div class="big" id="endTime">0:00.0</div>
+  <div class="row">GATES <b id="endGates"></b></div>
+  <div class="row">MISSED GATES <b id="endPen"></b></div>
+  <div class="row">BEST <b id="endBest"></b></div>
+  <button type="button" id="again">FLY IT AGAIN · R</button>
+</div></div>
+<div id="nogl"><h1 style="font-weight:400;letter-spacing:.3em">MOON RACER</h1><p>This stage needs WebGL, which this browser has turned off.</p></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+if (!(() => { try { const c = document.createElement('canvas');
+       return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl'))); }
+     catch (e) { return false; } })()) {
+  document.getElementById('nogl').style.display = 'block';
+  document.querySelectorAll('.hud').forEach(e => e.style.display = 'none');
+  throw new Error('no WebGL');
+}
+
+/* ================================================================ the river
+   Hells Canyon Dam to the Grande Ronde, south to north, [lat, lon]. */
+const SNAKE = [[45.2512,-116.6791], [45.2683,-116.6659], [45.2846,-116.6562], [45.3262,-116.6531], [45.3474,-116.6492], [45.3655,-116.6363], [45.3946,-116.6016], [45.4280,-116.5868], [45.4709,-116.5392], [45.4808,-116.5354], [45.5019,-116.5308], [45.5355,-116.5120], [45.5423,-116.5063], [45.5664,-116.4767], [45.5819,-116.4631], [45.6007,-116.4551], [45.6218,-116.4560], [45.6424,-116.4637], [45.6909,-116.4988], [45.7318,-116.5173], [45.7515,-116.5302], [45.7623,-116.5429], [45.7720,-116.5575], [45.7779,-116.5995], [45.8035,-116.6575], [45.8204,-116.6782], [45.8266,-116.6878], [45.8379,-116.7595], [45.8508,-116.7698], [45.8664,-116.7790], [45.9097,-116.8387], [45.9660,-116.8680], [45.9969,-116.8766], [46.0463,-116.9024], [46.0941,-116.9552], [46.1047,-116.9607]];
+/* the named gates: real places on the river */
+const PLACES = [
+  { name: 'PITTSBURG LANDING', lat: 45.635, lon: -116.472 },
+  { name: 'IMNAHA RIVER',      lat: 45.817, lon: -116.765 },
+  { name: 'SALMON RIVER',      lat: 45.858, lon: -116.782 },
+  { name: 'GRANDE RONDE',      lat: 46.080, lon: -116.940, finish: true }
+];
+
+/* ================================================================== scale */
+const KM = 1000 / 4.85;          // units per kilometre: one unit ≈ 4.85 m
+const LAT0 = 45.25, LON0 = -116.68, COS0 = Math.cos(45.7 * Math.PI / 180);
+const toXZ = (lat, lon) => new THREE.Vector3((lon - LON0) * 111.32 * COS0 * KM, 0, -(lat - LAT0) * 110.57 * KM);
+const STEP = 20;                 // units between rows along the river
+const RIVER_W = 36;              // about 175 m of water
+const M_PER_UNIT = 4.85;         // metres in a unit, across and up
+const HALF = 2700;               // how far the land runs either side
+
+/* ------------------------------------------------------------- noise */
+function hash(x, y) { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); }
+function vnoise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+function fbm(x, y, o) { let s = 0, a = 0.5, f = 1; for (let i = 0; i < o; i++) { s += a * vnoise(x * f, y * f); f *= 2.03; a *= 0.5; } return s; }
+
+/* ============================================================ the course
+   The river as a smooth curve, sampled every STEP units. Round it runs a
+   much smoother AXIS; the land is laid out across the axis, so its rows
+   never fold on the tight bends, and the river wanders within it. Every
+   row stores where the river sits across it (OFF). */
+const riverCurve = new THREE.CatmullRomCurve3(SNAKE.map(([la, lo]) => toXZ(la, lo)), false, 'centripetal');
+const LEN = riverCurve.getLength();
+const ROWS = Math.floor(LEN / STEP);
+const R = riverCurve.getSpacedPoints(ROWS - 1);
+function smoothPts(src, k) {
+  const out = [];
+  for (let i = 0; i < src.length; i++) {
+    const a = Math.max(0, i - k), b = Math.min(src.length - 1, i + k), v = new THREE.Vector3();
+    for (let j = a; j <= b; j++) v.add(src[j]);
+    out.push(v.multiplyScalar(1 / (b - a + 1)));
+  }
+  return out;
+}
+const A = smoothPts(smoothPts(R, 70), 70);
+const T = [], N = [], OFF = [];
+for (let i = 0; i < ROWS; i++) {
+  const t = A[Math.min(ROWS - 1, i + 1)].clone().sub(A[Math.max(0, i - 1)]).normalize();
+  T.push(t); N.push(new THREE.Vector3(-t.z, 0, t.x));      // N points to the right bank (east, going north)
+  OFF.push(R[i].clone().sub(A[i]).dot(N[i]));
+}
+/* the river line the whole stage uses: water, gates, collision */
+const riverAt = (i) => A[i].clone().addScaledVector(N[i], OFF[i]);
+
+/* NO FOLDS. Even the smooth axis bends tighter than the land is wide, and
+   on the inside of a bend rows laid straight across would cross each
+   other. So on the inside of each bend the far land is drawn in: beyond
+   60% of the bend's radius, distance across is eased towards 85% of it
+   and never past. Near the river nothing changes. squeeze() places a
+   point; unsqueeze() reads one back, so collision agrees with the land. */
+const BEND = [], INSIDE = [];
+{
+  const raw = [];
+  for (let i = 0; i < ROWS; i++) {
+    const a = T[Math.max(0, i - 2)], b = T[Math.min(ROWS - 1, i + 2)];
+    const turn = Math.acos(Math.min(1, a.dot(b)));
+    raw.push(turn > 1e-6 ? (4 * STEP) / turn : 1e9);
+    INSIDE.push(Math.sign(b.clone().sub(a).dot(N[i])) || 1);
+  }
+  for (let i = 0; i < ROWS; i++) {           // the tightest bend nearby governs
+    let m = 1e9; for (let j = Math.max(0, i - 50); j <= Math.min(ROWS - 1, i + 50); j++) m = Math.min(m, raw[j]);
+    BEND.push(m);
+  }
+  let maxOff = 0; for (const o of OFF) maxOff = Math.max(maxOff, Math.abs(o));
+  console.log('[moon-racer] Hells Canyon: ' + (LEN / KM).toFixed(0) + ' km of river as ' + ROWS +
+    ' rows; tightest bend ' + Math.min(...BEND).toFixed(0) + ' units; river strays ' + maxOff.toFixed(0) + ' from the axis');
+}
+function squeeze(i, L) {
+  if (L * INSIDE[i] <= 0) return L;
+  const R = BEND[i], a = 0.6 * R, span = 0.25 * R, x = Math.abs(L);
+  return x <= a ? L : Math.sign(L) * (a + span * Math.tanh((x - a) / span));
+}
+function unsqueeze(i, L) {
+  if (L * INSIDE[i] <= 0) return L;
+  const R = BEND[i], a = 0.6 * R, span = 0.25 * R, x = Math.abs(L);
+  if (x <= a) return L;
+  const k = Math.min(0.999999, (x - a) / span);
+  return Math.sign(L) * (a + span * Math.atanh(k));
+}
+
+/* ============================================================ the pack
+   Load the stage pack, decode the heights. Same origin as the page, so
+   the canvas can read them back. */
+const PACK = { z: 12, x0: 183005, y0: 372076, w: 2710, h: 4587,
+               height: 'hells-canyon-height.png', image: 'hells-canyon-image.jpg' };
+const loadingEl = document.getElementById('msg');
+loadingEl.textContent = 'LOADING THE CANYON'; loadingEl.classList.add('on');
+function loadImg(src) {
+  return new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im);
+    im.onerror = () => no(new Error('could not load ' + src + ' — is it in the repo beside this page?')); im.src = src; });
+}
+const [heightImg, photoImg] = await Promise.all([loadImg(PACK.height), loadImg(PACK.image)]);
+const DEM = (() => {
+  const c = document.createElement('canvas'); c.width = PACK.w; c.height = PACK.h;
+  const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(heightImg, 0, 0);
+  const px = x.getImageData(0, 0, PACK.w, PACK.h).data, out = new Uint16Array(PACK.w * PACK.h);
+  for (let k = 0, q = 0; k < out.length; k++, q += 4) out[k] = px[q] * 256 + px[q + 1];
+  return out;                                        // metres + 100
+})();
+console.log('[moon-racer] stage pack: ' + PACK.w + '×' + PACK.h + ' heights loaded');
+
+/* world units → the pack's pixels, and the height there in metres */
+const WORLD = 2 ** PACK.z * 256;
+function packXY(p) {
+  const lon = LON0 + p.x / (111.32 * COS0 * KM), lat = LAT0 - p.z / (110.57 * KM);
+  return [(lon + 180) / 360 * WORLD - PACK.x0,
+          (1 - Math.asinh(Math.tan(lat * Math.PI / 180)) / Math.PI) / 2 * WORLD - PACK.y0];
+}
+function demAt(p) {
+  let [gx, gy] = packXY(p);
+  gx = Math.min(PACK.w - 1.001, Math.max(0, gx)); gy = Math.min(PACK.h - 1.001, Math.max(0, gy));
+  const x0 = gx | 0, y0 = gy | 0, fx = gx - x0, fy = gy - y0, k = y0 * PACK.w + x0;
+  const a = DEM[k], b = DEM[k + 1], c = DEM[k + PACK.w], d = DEM[k + PACK.w + 1];
+  return (a + (b - a) * fx) * (1 - fy) + (c + (d - c) * fx) * fy - 100;
+}
+const worldAt = (i, L) => A[i].clone().addScaledVector(N[i], squeeze(i, L));
+
+/* WALK THE RIVER DOWN. Each row looks up to 450 units either side of the
+   Natural Earth line for the lowest ground, the choice is smoothed along
+   the river, and the line moves there. Then the water's level: the ground
+   at the river, smoothed, never rising as it flows north. Heights in the
+   stage are measured from that level, so the water stays at zero. */
+const RIVER_M = new Float32Array(ROWS);
+{
+  const shift = new Float32Array(ROWS);
+  for (let i = 0; i < ROWS; i++) {
+    let best = 0, bm = 1e9;
+    for (let du = -450; du <= 450; du += 10) {
+      const m = demAt(worldAt(i, OFF[i] + du)) + Math.abs(du) * 0.01;   // a nudge towards the charted line
+      if (m < bm) { bm = m; best = du; }
+    }
+    shift[i] = best;
+  }
+  const sm = new Float32Array(ROWS);
+  for (let i = 0; i < ROWS; i++) {
+    let t = 0, n = 0; for (let j = Math.max(0, i - 8); j <= Math.min(ROWS - 1, i + 8); j++) { t += shift[j]; n++; }
+    sm[i] = t / n;
+  }
+  for (let i = 0; i < ROWS; i++) OFF[i] += sm[i];
+  for (let i = 0; i < ROWS; i++) {
+    let m = 1e9; for (let du = -12; du <= 12; du += 4) m = Math.min(m, demAt(worldAt(i, OFF[i] + du)));
+    RIVER_M[i] = m;
+  }
+  const tmp = RIVER_M.slice();
+  for (let i = 0; i < ROWS; i++) {
+    let t = 0, n = 0; for (let j = Math.max(0, i - 25); j <= Math.min(ROWS - 1, i + 25); j++) { t += tmp[j]; n++; }
+    RIVER_M[i] = t / n;
+  }
+  for (let i = 1; i < ROWS; i++) RIVER_M[i] = Math.min(RIVER_M[i], RIVER_M[i - 1]);
+  console.log('[moon-racer] river walked to the canyon floor; water ' + RIVER_M[0].toFixed(0) + ' m at the dam, ' +
+    RIVER_M[ROWS - 1].toFixed(0) + ' m at the end');
+}
+
+/* ------------------------------------------------------ the canyon's shape
+   Now simply the real ground, measured up from the water, with a bed under
+   the river and banks that never dip below it. */
+function height(i, u) {
+  const x = Math.abs(u) - RIVER_W / 2;
+  if (x < 0) return -8;
+  const y = (demAt(worldAt(i, OFF[i] + u)) - RIVER_M[i]) / M_PER_UNIT;
+  return Math.max(y, Math.min(3, x * 0.25));
+}
+
+/* ================================================================ render */
+const scene = new THREE.Scene();
+const SKY = new THREE.Color(0x9cc6de), SPACE = new THREE.Color(0x05070d);
+scene.background = SKY.clone();
+scene.fog = new THREE.Fog(0xb9d2de, 2600, 11000);
+const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 1, 30000);
+const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: Object.assign(document.createElement('canvas'), { id: 'gl' }) });
+document.body.prepend(renderer.domElement);
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ReinhardToneMapping;
+renderer.toneMappingExposure = 1.5;
+
+scene.add(new THREE.HemisphereLight(0xdfeefa, 0x5a4a3a, 0.75));
+const sun = new THREE.DirectionalLight(0xfff2dc, 1.7);
+sun.position.set(-3000, 4200, -1500);       // afternoon, from the south-west
+scene.add(sun);
+loadingEl.classList.remove('on');
+
+/* ------------------------------------------------------------- the land */
+const U = [];
+{ const side = []; let u = 0;
+  while (u < HALF) { u += u < 60 ? 6 : u < 300 ? 15 : u < 1000 ? 40 : 110; side.push(Math.min(u, HALF)); }
+  for (let k = side.length - 1; k >= 0; k--) U.push(-side[k]);
+  U.push(0); for (const s of side) U.push(s); }
+{
+  const cols = U.length, pos = new Float32Array(ROWS * cols * 3), uv = new Float32Array(ROWS * cols * 2);
+  const H = new Float32Array(ROWS * cols);
+  for (let i = 0; i < ROWS; i++) for (let j = 0; j < cols; j++) H[i * cols + j] = height(i, U[j]);
+  for (let i = 0; i < ROWS; i++) for (let j = 0; j < cols; j++) {
+    const u = U[j], p = A[i].clone().addScaledVector(N[i], squeeze(i, OFF[i] + u)), y = H[i * cols + j], k = (i * cols + j) * 3;
+    pos[k] = p.x; pos[k + 1] = y; pos[k + 2] = p.z;
+    const [gx, gy] = packXY(p), q = (i * cols + j) * 2;
+    uv[q] = gx / PACK.w; uv[q + 1] = 1 - gy / PACK.h;       // the photograph of this very spot
+  }
+  const idx = [];
+  for (let i = 0; i < ROWS - 1; i++) for (let j = 0; j < cols - 1; j++) {
+    const a = i * cols + j, b = a + 1, cc = a + cols, d = cc + 1;
+    idx.push(a, b, cc, b, d, cc);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  const photo = new THREE.Texture(photoImg);
+  photo.colorSpace = THREE.SRGBColorSpace;
+  photo.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  photo.needsUpdate = true;
+  const land = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ map: photo, roughness: 1 }));
+  /* the rows run north, so a clockwise-from-above test is needed once */
+  const n = new THREE.Vector3(); g.attributes.normal && n.fromBufferAttribute(g.attributes.normal, Math.floor(ROWS / 2) * cols + Math.floor(cols / 2));
+  if (n.y < 0) { g.index.array.reverse(); g.computeVertexNormals(); }
+  scene.add(land);
+}
+
+/* ------------------------------------------------------------ the water */
+{
+  const W = RIVER_W / 2 + 5, pos = [], idx = [];
+  for (let i = 0; i < ROWS; i++) {
+    const c = riverAt(i);
+    pos.push(c.x - N[i].x * W, 0, c.z - N[i].z * W, c.x + N[i].x * W, 0, c.z + N[i].z * W);
+  }
+  for (let i = 0; i < ROWS - 1; i++) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx); g.computeVertexNormals();
+  if (g.attributes.normal.getY(0) < 0) { g.index.array.reverse(); g.computeVertexNormals(); }
+  scene.add(new THREE.Mesh(g, new THREE.MeshPhongMaterial({ color: 0x2c6472, specular: 0xbfe6ee, shininess: 80 })));
+}
+
+/* the dam across the canyon behind the start */
+{
+  const c = riverAt(2);
+  const dam = new THREE.Mesh(new THREE.BoxGeometry(900, 140, 26), new THREE.MeshStandardMaterial({ color: 0xbfbab0, roughness: 0.8 }));
+  dam.position.set(c.x, 50, c.z).addScaledVector(T[2], -20);
+  dam.lookAt(dam.position.clone().add(T[2]));
+  scene.add(dam);
+}
+
+/* ------------------------------------------------------------ the clouds
+   Dense and puffy over the canyon: fly into one to drink. Density is how
+   much it gives. */
+const clouds = [];
+{
+  const puff = new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0x6c7580, transparent: true, opacity: 0.93 });   // lit from within a little, so the shade sides stay white
+  const geo = new THREE.SphereGeometry(1, 14, 10);
+  for (let k = 0; k < 16; k++) {
+    const i = Math.floor((0.08 + 0.88 * (k + hash(k, 2)) / 16) * ROWS);
+    const c = riverAt(i).addScaledVector(N[i], (hash(k, 5) - 0.5) * 900);
+    const y = 420 + hash(k, 9) * 700, r = 110 + hash(k, 4) * 90, dens = 0.5 + hash(k, 7) * 0.5;
+    const g = new THREE.Group();
+    for (let p = 0; p < 9; p++) {
+      const s = new THREE.Mesh(geo, puff), rr = r * (0.45 + hash(k * 9 + p, 1) * 0.5);
+      s.scale.set(rr, rr * 0.8, rr);
+      s.position.set((hash(k * 9 + p, 2) - 0.5) * r * 1.4, (hash(k * 9 + p, 3) - 0.3) * r * 0.5, (hash(k * 9 + p, 4) - 0.5) * r * 1.4);
+      g.add(s);
+    }
+    g.position.set(c.x, y, c.z);
+    scene.add(g);
+    clouds.push({ at: g.position, r: r * 0.95, dens });
+  }
+}
+
+/* ------------------------------------------------------------- the gates
+   Gold rings over the water every 1.6 km or so, and at the named places. */
+const gates = [];
+{
+  const nearestRow = (lat, lon) => { const p = toXZ(lat, lon); let bi = 0, bd = 1e12;
+    for (let i = 0; i < ROWS; i++) { const d = riverAt(i).distanceToSquared(p); if (d < bd) { bd = d; bi = i; } } return bi; };
+  const named = PLACES.map(p => ({ i: nearestRow(p.lat, p.lon), name: p.name, finish: !!p.finish }));
+  const finishI = named.find(n => n.finish).i;
+  const list = [];
+  for (let i = 60; i < finishI - 40; i += 82) if (!named.some(n => Math.abs(n.i - i) < 45)) list.push({ i, name: '' });
+  for (const n of named) list.push(n);
+  list.sort((a, b) => a.i - b.i);
+  const gold = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.4, 1.8, 0.7), toneMapped: false });
+  const fin = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.8, 2.6, 1.2), toneMapped: false });
+  list.forEach((g, k) => {
+    const c = riverAt(g.i); c.y = 34;
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(40, 2.2, 8, 48), g.finish ? fin : gold);
+    ring.position.copy(c);
+    ring.lookAt(c.clone().add(T[g.i]));
+    scene.add(ring);
+    gates.push({ at: c, n: T[g.i].clone(), name: g.name, finish: g.finish, mesh: ring, done: false, k: k + 1 });
+  });
+}
+
+/* --------------------------------------------------------------- the craft
+   X, simply: dark hull, gold trim, a green sail. */
+const craft = new THREE.Group();
+{
+  const hull = new THREE.Mesh(new THREE.CylinderGeometry(1.9, 0.9, 12, 4, 1), new THREE.MeshStandardMaterial({ color: 0x1b1a1d, roughness: 0.5 }));
+  hull.rotation.x = Math.PI / 2; hull.rotation.y = Math.PI / 4; hull.scale.set(1.25, 1, 0.8);
+  craft.add(hull);
+  const trim = new THREE.Mesh(new THREE.BoxGeometry(3.3, 0.18, 10.5), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.95, 0.72, 0.3), toneMapped: false }));
+  trim.position.y = 0.9; craft.add(trim);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 7), new THREE.MeshStandardMaterial({ color: 0x2a1d12 }));
+  mast.position.set(0, 4.3, -0.5); craft.add(mast);
+  const sail = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 4.2), new THREE.MeshStandardMaterial({ color: 0x2b3a2b, emissive: 0x3aa02a,
+    emissiveIntensity: 0.5, side: THREE.DoubleSide }));
+  sail.position.set(0, 4.6, -0.4); craft.add(sail);
+}
+const glowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
+  const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.4, 'rgba(255,255,255,.35)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
+const plume = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffffff, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+plume.position.set(0, 0.2, 6.8); craft.add(plume);
+scene.add(craft);
+
+/* spray when skimming, vapour when the engines are hot */
+const SPRAY_N = 80, spray = [];
+for (let k = 0; k < SPRAY_N; k++) {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xe8f4f6, transparent: true, opacity: 0, depthWrite: false }));
+  s.visible = false; scene.add(s); spray.push({ s, born: -9, v: new THREE.Vector3() });
+}
+let sprayNext = 0;
+function puff(at, vel, col) {
+  const p = spray[sprayNext++ % SPRAY_N];
+  p.s.position.copy(at); p.v.copy(vel); p.born = clock; p.s.visible = true; p.s.material.color.set(col);
+}
+
+/* ---------------------------------------------------------------- the glow */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.6, 0.35, 0.86));
+composer.addPass(new OutputPass());
+let glowOn = true;
+try { glowOn = localStorage.getItem('moonracer.glow') !== 'off'; } catch (e) {}
+
+/* ================================================================ flight */
+const VMAX = 1400;               // units a second, all out, where the air allows
+const ATMO_H = 1200;             // the air thins by e every 1200 units (~6 km)
+const S = {};
+function reset() {
+  const i = 18, c = riverAt(i);
+  Object.assign(S, { pos: new THREE.Vector3(c.x, 10, c.z), yaw: Math.atan2(T[i].x, -T[i].z), pitch: 0, roll: 0,
+    v: 0, throttle: 0.22, fuel: 0.8, heat: 0.1, cut: 0, row: i, t: 0, started: false, count: 3,
+    gatesDone: 0, missed: 0, over: false, hitT: -9 });
+  gates.forEach(g => { g.done = false; g.mesh.visible = true; });
+  document.getElementById('end').style.display = 'none';
+}
+const keys = {};
+addEventListener('keydown', e => {
+  keys[e.key.toLowerCase()] = true;
+  if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(e.key.toLowerCase())) e.preventDefault();
+  if (e.key === 'r' || e.key === 'R') reset();
+  if (e.key === 'g' || e.key === 'G') { glowOn = !glowOn; try { localStorage.setItem('moonracer.glow', glowOn ? 'on' : 'off'); } catch (err) {}
+    console.log('[moon-racer] glow ' + (glowOn ? 'ON' : 'OFF')); }
+});
+addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+document.getElementById('again').addEventListener('click', reset);
+
+/* where the craft is over the land: row, and distance across from the river */
+function locate(p) {
+  let i = S.row;
+  for (let n = 0; n < 60; n++) {
+    const d = p.clone().sub(A[i]).dot(T[i]);
+    if (d > STEP / 2 && i < ROWS - 1) i++; else if (d < -STEP / 2 && i > 0) i--; else break;
+  }
+  S.row = i;
+  return { i, u: unsqueeze(i, p.clone().sub(A[i]).dot(N[i])) - OFF[i] };
+}
+
+const msgEl = document.getElementById('msg');
+let msgUntil = 0;
+function say(t, secs) { msgEl.textContent = t; msgEl.classList.add('on'); msgUntil = clock + (secs || 1.8); }
+
+let best = null; try { best = parseFloat(localStorage.getItem('moonracer.best.hells')) || null; } catch (e) {}
+const fmt = s => Math.floor(s / 60) + ':' + (s % 60).toFixed(1).padStart(4, '0');
+
+let clock = 0, last = performance.now();
+const fwd = new THREE.Vector3(), camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
+reset();
+camPos.copy(S.pos).add(new THREE.Vector3(0, 14, 40));
+
+function step(dt) {
+  /* the count-down */
+  if (!S.started) {
+    S.count -= dt;
+    if (S.count <= 0) { S.started = true; say('GO', 1); }
+    else say(String(Math.ceil(S.count)), 0.3);
+  }
+  const turn = (keys['arrowleft'] || keys['a'] ? 1 : 0) - (keys['arrowright'] || keys['d'] ? 1 : 0);
+  const climb = (keys['arrowup'] || keys['w'] ? 1 : 0) - (keys['arrowdown'] || keys['s'] ? 1 : 0);
+  if (keys['e']) S.throttle = Math.min(1, S.throttle + dt * 0.6);
+  if (keys['q']) S.throttle = Math.max(0, S.throttle - dt * 0.6);
+
+  const alt = S.pos.y;
+  const rho = Math.exp(-Math.max(0, alt) / ATMO_H);           // how thick the air is
+  const at = locate(S.pos);
+  const overWater = Math.abs(at.u) < RIVER_W / 2 + 2;
+  const skimming = overWater && alt < 16;
+  let inCloud = null;
+  for (const c of clouds) if (c.at.distanceTo(S.pos) < c.r) { inCloud = c; break; }
+
+  /* engines: they stop when the tank is dry, and cut out when they cook */
+  if (S.heat >= 1 && S.cut <= 0) { S.cut = 1; say('OVERHEAT — ENGINES CUT', 2.2); }
+  if (S.cut > 0 && S.heat < 0.55) { S.cut = 0; say('ENGINES BACK', 1.2); }
+  const power = S.started && S.cut <= 0 && S.fuel > 0 ? S.throttle : 0;
+
+  /* speed eases to what the throttle asks; drag bleeds it in thick air */
+  const want = power * VMAX;
+  if (S.v < want) S.v += (want - S.v) * Math.min(1, dt * 0.55);
+  else S.v -= (S.v - want) * Math.min(1, dt * (0.25 + 0.6 * rho));
+
+  /* heat: speed squared times the air, against cooling that grows as the
+     air thins and colds; water under the hull cools it as well */
+  const gain = 0.25 * Math.pow(S.v / 400, 2) * rho;
+  const cool = S.heat * (0.12 + 0.6 * (1 - rho) + (skimming ? 0.25 : 0));
+  S.heat = Math.max(0, S.heat + (gain - cool) * dt);
+
+  /* fuel: thrust and speed burn it; water, cloud and damp air give it */
+  const burn = S.started ? (0.004 + power * 0.018 + (S.v / VMAX) * 0.01) : 0;
+  const drink = (skimming ? 0.3 : 0) + (inCloud ? 0.15 * inCloud.dens : 0) + rho * 0.003;
+  S.fuel = Math.min(1, Math.max(0, S.fuel + (drink - burn) * dt));
+  if (skimming && S.fuel < 0.999 && Math.random() < 0.6) {
+    puff(S.pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, -1, 0)).addScaledVector(fwd, -5),
+         new THREE.Vector3((Math.random() - 0.5) * 6, 6 + Math.random() * 8, 0).addScaledVector(fwd, -S.v * 0.2), 0xe8f4f6);
+  }
+
+  /* steering */
+  S.yaw -= turn * dt * (1.15 - 0.4 * Math.min(1, S.v / 900));   // yaw runs clockwise from north, so left takes it down
+  S.pitch += (climb * 0.55 - S.pitch) * Math.min(1, dt * 2.5);
+  S.roll += (turn * 0.55 - S.roll) * Math.min(1, dt * 3);     // bank into the turn
+  fwd.set(Math.sin(S.yaw) * Math.cos(S.pitch), Math.sin(S.pitch), -Math.cos(S.yaw) * Math.cos(S.pitch));
+  S.pos.addScaledVector(fwd, S.v * dt);
+  if (S.v < 70) S.pos.y -= (70 - S.v) * 0.35 * dt;           // too slow to hold the air
+  if (!S.started) { S.pos.y = 10; }
+
+  /* the ground and the water */
+  const at2 = locate(S.pos);
+  const ground = Math.max(0, height(at2.i, at2.u));
+  if (S.pos.y < ground + 3) {
+    /* a wall at speed costs time and heat, and glances the craft back
+       towards the line of the river so it is never pinned; drifting onto
+       a slope slowly costs nothing */
+    if (ground > 1 && S.v > 40 && clock - S.hitT > 1.0) {
+      S.hitT = clock; S.v *= 0.4; S.heat = Math.min(1.2, S.heat + 0.15);
+      if (S.started && !S.over) { S.t += 2; say('WALL — +2 s', 1.4); }
+      const along = Math.atan2(T[at2.i].x, -T[at2.i].z);
+      let d = along - S.yaw; d = Math.atan2(Math.sin(d), Math.cos(d));
+      S.yaw += d * 0.6;
+      S.pos.addScaledVector(N[at2.i], -Math.sign(at2.u) * 8);
+    }
+    S.pos.y = ground + 3;
+    if (S.pitch < 0) S.pitch *= 0.3;
+  }
+  if (S.pos.y > 7000) S.pos.y = 7000;                         // the top of the stage
+  if (Math.abs(at2.u) > HALF - 200) {                          // the edge of the map
+    S.pos.addScaledVector(N[at2.i], -Math.sign(at2.u) * (Math.abs(at2.u) - (HALF - 200)));
+  }
+
+  /* the gates: crossing a gate's plane counts, through it or not */
+  if (S.started && !S.over) {
+    S.t += dt;
+    for (const g of gates) {
+      if (g.done) continue;
+      const d = S.pos.clone().sub(g.at).dot(g.n);
+      if (d > 0 && d < S.v * dt + 6) {
+        g.done = true;
+        const miss = S.pos.distanceTo(g.at) > 40;
+        if (miss) { S.missed++; S.t += 3; say('MISSED GATE ' + g.k + ' — +3 s', 1.6); g.mesh.visible = false; }
+        else { S.gatesDone++; g.mesh.visible = false; say(g.name ? 'GATE ' + g.k + ' · ' + g.name : 'GATE ' + g.k, 1.4); }
+        if (g.finish) finish();
+      } else if (d > 0 && !g.done && d < 400 && gates.indexOf(g) < gates.length - 1) {
+        /* flown past it well to the side: counts as missed */
+        const lateral = S.pos.clone().sub(g.at); lateral.addScaledVector(g.n, -d);
+        if (lateral.length() > 400) { g.done = true; S.missed++; S.t += 3; g.mesh.visible = false; say('MISSED GATE ' + g.k + ' — +3 s', 1.6); }
+      }
+    }
+  }
+
+  /* the look of it */
+  craft.position.copy(S.pos);
+  craft.rotation.set(0, 0, 0);
+  craft.rotateY(-S.yaw);
+  craft.rotateX(S.pitch);
+  craft.rotateZ(S.roll);
+  const h = Math.min(1, S.heat);
+  plume.material.color.setRGB(1.2 + 2.2 * h, 1.4 + 0.8 * (1 - h), 1.8 * (1 - h) + 0.3);
+  const ps = 2 + power * 6 + h * 4;
+  plume.scale.set(ps, ps, 1);
+  if (h > 0.75 && Math.random() < 0.5)                        // outgassing when hot
+    puff(S.pos.clone().addScaledVector(fwd, -7), fwd.clone().multiplyScalar(-S.v * 0.1).add(new THREE.Vector3(0, 4, 0)), 0xdfe6ea);
+
+  /* the sky darkens as the air goes */
+  scene.background.copy(SKY).lerp(SPACE, Math.min(1, Math.max(0, (alt - 800) / 5200)));
+  scene.fog.color.copy(scene.background);
+  scene.fog.far = 11000 + Math.max(0, alt - 600) * 6;
+
+  /* the chase view: behind and above, eased */
+  const back = new THREE.Vector3(Math.sin(S.yaw), 0, -Math.cos(S.yaw));
+  const want2 = S.pos.clone().addScaledVector(back, -34 - S.v * 0.012).add(new THREE.Vector3(0, 10 + S.v * 0.004, 0));
+  camPos.lerp(want2, Math.min(1, dt * 5));
+  const gAt = locate(camPos), gy = Math.max(0, height(gAt.i, gAt.u)) + 4;
+  if (camPos.y < gy) camPos.y = gy;
+  camLook.lerp(S.pos.clone().addScaledVector(fwd, 30), Math.min(1, dt * 8));
+  camera.position.copy(camPos);
+  camera.lookAt(camLook);
+
+  /* the HUD */
+  hud(rho, skimming, inCloud);
+}
+
+function finish() {
+  S.over = true;
+  const total = S.t;
+  if (best === null || total < best) { best = total; try { localStorage.setItem('moonracer.best.hells', String(best)); } catch (e) {} }
+  document.getElementById('endTime').textContent = fmt(total);
+  document.getElementById('endGates').textContent = S.gatesDone + ' / ' + gates.length;
+  document.getElementById('endPen').textContent = S.missed ? S.missed + ' · +' + (S.missed * 3) + ' s' : 'none';
+  document.getElementById('endBest').textContent = fmt(best);
+  document.getElementById('end').style.display = 'flex';
+  S.throttle = 0.2;
+  console.log('[moon-racer] Hells Canyon finished: ' + fmt(total) + ', missed ' + S.missed);
+}
+
+const fuelBar = document.getElementById('fuelBar'), heatBar = document.getElementById('heatBar');
+const mapC = document.getElementById('map'), mx = mapC.getContext('2d');
+let mapBox = null;
+function hud(rho, skimming, inCloud) {
+  fuelBar.style.width = (S.fuel * 100).toFixed(1) + '%';
+  fuelBar.style.background = S.fuel < 0.2 ? '#ff7a5c' : skimming || inCloud ? '#8fe6a8' : '#f2efe6';
+  document.getElementById('fuelTxt').textContent = skimming ? 'WATER' : inCloud ? 'CLOUD' : Math.round(S.fuel * 100) + '%';
+  const h = Math.min(1, S.heat);
+  heatBar.style.width = (h * 100).toFixed(1) + '%';
+  heatBar.style.background = S.cut > 0 ? '#ff5a3c' : h > 0.75 ? '#ffb347' : '#ffd070';
+  document.getElementById('heatTxt').textContent = S.cut > 0 ? 'CUT' : rho < 0.3 ? 'COLD AIR' : Math.round(h * 100) + '%';
+  document.getElementById('spd').textContent = (S.v / VMAX * 0.97).toFixed(2) + ' c';
+  document.getElementById('alt').textContent = S.pos.y * 4.85 >= 1000 ? (S.pos.y * 4.85 / 1000).toFixed(1) + ' km' : Math.round(S.pos.y * 4.85) + ' m';
+  document.getElementById('time').textContent = fmt(S.t);
+  document.getElementById('gates').textContent = 'GATES ' + S.gatesDone + ' / ' + gates.length;
+  document.getElementById('best').textContent = best !== null ? 'BEST ' + fmt(best) : '';
+  if (clock > msgUntil) msgEl.classList.remove('on');
+
+  /* the route map: the river, the gates, you */
+  if (!mapBox) {
+    let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
+    for (let i = 0; i < ROWS; i += 5) { const p = riverAt(i); x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.z); z1 = Math.max(z1, p.z); }
+    const s = Math.min((mapC.width - 24) / (x1 - x0), (mapC.height - 24) / (z1 - z0));
+    mapBox = { x0, z0, s, ox: (mapC.width - (x1 - x0) * s) / 2, oz: (mapC.height - (z1 - z0) * s) / 2 };
+  }
+  const M = p => [mapBox.ox + (p.x - mapBox.x0) * mapBox.s, mapBox.oz + (p.z - mapBox.z0) * mapBox.s];
+  mx.clearRect(0, 0, mapC.width, mapC.height);
+  mx.strokeStyle = 'rgba(143,196,216,.9)'; mx.lineWidth = 2; mx.beginPath();
+  for (let i = 0; i < ROWS; i += 5) { const [x, y] = M(riverAt(i)); i ? mx.lineTo(x, y) : mx.moveTo(x, y); }
+  mx.stroke();
+  for (const g of gates) { const [x, y] = M(g.at); mx.fillStyle = g.done ? 'rgba(159,179,194,.35)' : g.finish ? '#8fe6a8' : '#ffd070';
+    mx.fillRect(x - 2, y - 2, 4, 4); }
+  const [px, py] = M(S.pos); mx.fillStyle = '#7cff4f'; mx.beginPath(); mx.arc(px, py, 4, 0, Math.PI * 2); mx.fill();
+  mx.fillStyle = 'rgba(242,239,230,.7)'; mx.font = '9px ui-monospace, Menlo, monospace'; mx.fillText('N', mapC.width - 14, 14);
+}
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(innerWidth, innerHeight);
+});
+
+let fpsF = 0, fpsFrom = performance.now(), fpsUntil = performance.now() + 20000;
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now; clock += dt;
+  step(dt);
+  for (const p of spray) {
+    if (!p.s.visible) continue;
+    const age = clock - p.born;
+    if (age > 1.2) { p.s.visible = false; continue; }
+    p.s.position.addScaledVector(p.v, dt); p.v.y -= 9 * dt;
+    p.s.material.opacity = 0.55 * (1 - age / 1.2);
+    const sc = 2 + age * 7; p.s.scale.set(sc, sc, 1);
+  }
+  if (glowOn) composer.render(); else renderer.render(scene, camera);
+  fpsF++;
+  if (now - fpsFrom >= 5000) { if (now < fpsUntil) console.log('[moon-racer] ' + (fpsF * 1000 / (now - fpsFrom)).toFixed(1) + ' fps'); fpsF = 0; fpsFrom = now; }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body></html>
