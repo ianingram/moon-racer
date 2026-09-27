@@ -237,9 +237,23 @@ const PACK = { z: 12, x0: 183005, y0: 372076, w: 2710, h: 4587,
                height: 'hells-canyon-height.png', image: 'hells-canyon-image.jpg' };
 const loadingEl = document.getElementById('msg');
 loadingEl.textContent = 'LOADING THE CANYON'; loadingEl.classList.add('on');
+/* PREVIEWS. Opened anywhere but the site itself (the preview pane beside
+   the chat, a file on the desktop), the pack beside this page is not
+   there, so the live site's copy is used. GitHub Pages allows that, and
+   crossOrigin keeps the height pixels readable. */
+const LIVE = 'https://ianingram.github.io/moon-racer/';
 function loadImg(src) {
-  return new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im);
-    im.onerror = () => no(new Error('could not load ' + src + ' — is it in the repo beside this page?')); im.src = src; });
+  return new Promise((ok, no) => {
+    const im = new Image();
+    im.onload = () => ok(im);
+    im.onerror = () => {
+      if (im.dataset.tried) { no(new Error('could not load ' + src + ' here or from the live site')); return; }
+      im.dataset.tried = '1';
+      console.log('[moon-racer] ' + src + ' not beside this page — using the live site\'s copy');
+      im.crossOrigin = 'anonymous'; im.src = LIVE + src;
+    };
+    im.src = src;
+  });
 }
 const [heightImg, photoImg] = await Promise.all([loadImg(PACK.height), loadImg(PACK.image)]);
 const DEM = (() => {
@@ -438,7 +452,7 @@ const gates = [];
     ring.position.copy(c);
     ring.lookAt(c.clone().add(T[g.i]));
     scene.add(ring);
-    gates.push({ at: c, n: T[g.i].clone(), name: g.name, finish: g.finish, mesh: ring, done: false, k: k + 1 });
+    gates.push({ at: c, row: g.i, n: T[g.i].clone(), name: g.name, finish: g.finish, mesh: ring, done: false, k: k + 1 });
   });
 }
 
@@ -463,6 +477,79 @@ const glowTex = (() => { const c = document.createElement('canvas'); c.width = c
 const plume = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffffff, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
 plume.position.set(0, 0.2, 6.8); craft.add(plume);
 scene.add(craft);
+
+/* ============================================================ the pathfinder
+   A companion craft that goes ahead and traces the route: it lifts off
+   during the count-down and runs down the river through the middle of
+   every gate, always about 4 km in front, laying a line of light behind
+   it. So the way ahead is always drawn, bend by bend, in real time; the
+   trace fades out once you are past it. It never races you — it holds
+   its lead, and waits at the finish. */
+const LEAD_ROWS = 40;                            // ~800 units, ~3.9 km ahead
+const pathfinder = new THREE.Group();
+{
+  const body = new THREE.Mesh(new THREE.OctahedronGeometry(2.2, 0),
+    new THREE.MeshBasicMaterial({ color: new THREE.Color(2.6, 2.0, 0.8), toneMapped: false }));
+  body.scale.set(1, 0.6, 2.2); pathfinder.add(body);
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffd070, blending: THREE.AdditiveBlending,
+    depthWrite: false, toneMapped: false }));
+  halo.scale.set(18, 18, 1); pathfinder.add(halo);
+}
+scene.add(pathfinder);
+const TRACE_N = 600;                             // points in the trace, one per row it passes
+const tracePos = new Float32Array(TRACE_N * 3), traceCol = new Float32Array(TRACE_N * 3), traceRow = new Float32Array(TRACE_N);
+const traceGeo = new THREE.BufferGeometry();
+traceGeo.setAttribute('position', new THREE.BufferAttribute(tracePos, 3));
+traceGeo.setAttribute('color', new THREE.BufferAttribute(traceCol, 3));
+const traceLine = new THREE.Line(traceGeo, new THREE.LineBasicMaterial({ vertexColors: true, toneMapped: false,
+  transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+const traceDots = new THREE.Points(traceGeo, new THREE.PointsMaterial({ map: glowTex, size: 9, sizeAttenuation: false, vertexColors: true, toneMapped: false,   // same size near and far, so the far bends read
+  transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+traceLine.frustumCulled = traceDots.frustumCulled = false;   // the trace grows as it goes; its bounds are never current
+scene.add(traceLine, traceDots);
+const PF = { row: 0, laid: 0, n: 0, mode: 'lead', pos: new THREE.Vector3(), why: '', since: 0, calm: 0, lastRain: -99, lastRow: 0, rowSpeed: 0 };
+
+/* the way to water: a dashed line from the craft down to the nearest
+   river, and a ring on the water where it lands, shown while assisting */
+const toWater = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]),
+  new THREE.LineDashedMaterial({ color: new THREE.Color(0.6, 2.2, 2.6), dashSize: 6, gapSize: 5, toneMapped: false }));
+toWater.frustumCulled = false; toWater.visible = false; scene.add(toWater);
+const waterMark = new THREE.Mesh(new THREE.TorusGeometry(14, 1.2, 6, 40),
+  new THREE.MeshBasicMaterial({ color: new THREE.Color(0.6, 2.2, 2.6), toneMapped: false }));
+waterMark.rotation.x = Math.PI / 2; waterMark.visible = false; scene.add(waterMark);
+
+/* RAIN, called in by the pathfinder when the craft is short of fuel and
+   far from the river: a dark cloud that stops over the craft and rains
+   for fifteen seconds. Under it you drink as if from a thin cloud — and,
+   like any water through the intakes, it runs the engines warmer. */
+const RAIN_N = 700, RAIN_R = 150, RAIN_LIFE = 15;
+const rainGeo = new THREE.BufferGeometry(), rainPos = new Float32Array(RAIN_N * 6), rainSeed = new Float32Array(RAIN_N * 3);
+rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
+const rain = new THREE.LineSegments(rainGeo, new THREE.LineBasicMaterial({ color: 0xbfd6e6, transparent: true, opacity: 0.55 }));
+rain.frustumCulled = false; rain.visible = false; scene.add(rain);
+const rainCloud = new THREE.Group();
+{ const m = new THREE.MeshLambertMaterial({ color: 0x6d7682, emissive: 0x2a3038, transparent: true, opacity: 0.95 });
+  const g = new THREE.SphereGeometry(1, 14, 10);
+  for (let k = 0; k < 11; k++) { const s = new THREE.Mesh(g, m), r = 55 + hash(k, 21) * 45;
+    s.scale.set(r, r * 0.55, r); s.position.set((hash(k, 22) - 0.5) * 220, (hash(k, 23) - 0.5) * 30, (hash(k, 24) - 0.5) * 220); rainCloud.add(s); } }
+rainCloud.visible = false; scene.add(rainCloud);
+const RAIN = { on: false, at: new THREE.Vector3(), top: 0, until: 0 };
+for (let k = 0; k < RAIN_N; k++) { rainSeed[k * 3] = Math.random(); rainSeed[k * 3 + 1] = Math.random(); rainSeed[k * 3 + 2] = Math.random(); }
+function callRain(p) {
+  RAIN.on = true; RAIN.at.set(p.x, 0, p.z); RAIN.top = Math.max(p.y + 140, 260); RAIN.until = clock + RAIN_LIFE;
+  rainCloud.position.set(p.x, RAIN.top, p.z); rainCloud.visible = rain.visible = true;
+  PF.lastRain = clock;
+  say('PATHFINDER · CALLING IN RAIN', 2.4);
+  console.log('[moon-racer] pathfinder called rain at fuel ' + Math.round(S.fuel * 100) + '%');
+}
+function underRain(p) { return RAIN.on && Math.hypot(p.x - RAIN.at.x, p.z - RAIN.at.z) < RAIN_R && p.y < RAIN.top; }
+/* the flight line: the river, at gate height, smoothly between rows */
+function lineAt(r) {
+  const i = Math.max(0, Math.min(ROWS - 2, Math.floor(r))), f = r - i;
+  const p = riverAt(i).lerp(riverAt(i + 1), f);
+  p.y = 32;
+  return p;
+}
 
 /* spray when skimming, vapour when the engines are hot */
 const SPRAY_N = 80, spray = [];
@@ -494,6 +581,9 @@ function reset() {
     v: 0, throttle: 0.22, fuel: 0.8, heat: 0.1, cut: 0, row: i, t: 0, started: false, count: 3,
     gatesDone: 0, missed: 0, over: false, hitT: -9 });
   gates.forEach(g => { g.done = false; g.mesh.visible = true; });
+  PF.row = i; PF.laid = i; PF.n = 0; PF.mode = 'lead'; PF.since = 0; PF.calm = 0; PF.lastRow = i; PF.rowSpeed = 0;
+  PF.pos.copy(lineAt(i)); traceGeo.setDrawRange(0, 0);
+  RAIN.on = false; rain.visible = rainCloud.visible = false; toWater.visible = waterMark.visible = false;
   document.getElementById('end').style.display = 'none';
 }
 const keys = {};
@@ -568,14 +658,15 @@ function step(dt) {
      intake is — water fullest, cloud next, damp air least. In a vacuum
      (rho → 0) both go to nothing. Cooling grows as the air thins and
      colds. */
-  const rich = (skimming ? 1 : 0) + (inCloud ? 0.5 * inCloud.dens : 0) + 0.15 * rho;
+  const wet = underRain(S.pos);
+  const rich = (skimming ? 1 : 0) + (inCloud ? 0.5 * inCloud.dens : 0) + (wet ? 0.35 : 0) + 0.15 * rho;
   const gain = 0.25 * Math.pow(S.v / 400, 2) * rho + power * rich * 0.2 * rho;
   const cool = S.heat * (0.12 + 0.6 * (1 - rho));
   S.heat = Math.max(0, S.heat + (gain - cool) * dt);
 
   /* fuel: thrust and speed burn it; water, cloud and damp air give it */
   const burn = S.started ? (0.004 + power * 0.018 + (S.v / VMAX) * 0.01) : 0;
-  const drink = (skimming ? 0.3 : 0) + (inCloud ? 0.15 * inCloud.dens : 0) + rho * 0.003;
+  const drink = (skimming ? 0.3 : 0) + (inCloud ? 0.15 * inCloud.dens : 0) + (wet ? 0.1 : 0) + rho * 0.003;
   S.fuel = Math.min(1, Math.max(0, S.fuel + (drink - burn) * dt));
   if (skimming && S.fuel < 0.999 && Math.random() < 0.6) {
     puff(S.pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, -1, 0)).addScaledVector(fwd, -5),
@@ -630,6 +721,92 @@ function step(dt) {
         /* flown past it well to the side: counts as missed */
         const lateral = S.pos.clone().sub(g.at); lateral.addScaledVector(g.n, -d);
         if (lateral.length() > 400) { g.done = true; S.missed++; S.t += 3; g.mesh.visible = false; say('MISSED GATE ' + g.k + ' — +3 s', 1.6); }
+      }
+    }
+  }
+
+  /* ------------------------------------------------ the pathfinder
+     LEAD: locked to the craft's own pace down the river — it moves at the
+     craft's speed along the course, plus whatever closes the gap to its
+     lead — so slow down and it slows with you; stop and it waits.
+     ASSIST: when the craft is in trouble it turns back, comes alongside
+     and circles it, draws the way to the nearest water, and if the tank
+     is low and the river is far, calls in rain. When the trouble is over
+     it goes back on point. */
+  {
+    const finishRow = gates.length ? gates[gates.length - 1].row : ROWS - 1;
+    const rs = (S.row - PF.lastRow) / Math.max(dt, 1e-3);            // the craft's pace, in rows a second
+    PF.rowSpeed += (rs - PF.rowSpeed) * Math.min(1, dt * 2); PF.lastRow = S.row;
+
+    /* is the craft in trouble? */
+    const off = Math.abs(at2.u) > RIVER_W / 2 + 260 && S.pos.y < 900;
+    const back = S.v > 30 && fwd.clone().setY(0).normalize().dot(T[at2.i]) < -0.5;
+    const stalled = S.started && S.v < 40 && !S.over;
+    const why = S.cut === 2 ? 'ENGINES DOWN' : S.fuel < 0.18 ? 'LOW ON FUEL' : off ? 'OFF COURSE' : back ? 'WRONG WAY' : stalled ? 'STALLED' : '';
+    if (why && S.started && !S.over) { PF.since += dt; PF.calm = 0; } else { PF.since = 0; PF.calm += dt; }
+    if (PF.mode === 'lead' && PF.since > 1.5) {
+      PF.mode = 'assist'; PF.why = why;
+      say('PATHFINDER · COMING BACK · ' + why, 2.2);
+      console.log('[moon-racer] pathfinder assisting: ' + why);
+    }
+    if (PF.mode === 'assist' && PF.calm > 2) {
+      PF.mode = 'lead'; toWater.visible = waterMark.visible = false;
+      PF.row = Math.max(PF.row, S.row + 4);
+      say('PATHFINDER · BACK ON POINT', 1.6);
+    }
+
+    if (PF.mode === 'lead') {
+      const want = Math.min(finishRow + 20, S.row + LEAD_ROWS);
+      /* the craft's pace, plus a pull to close the gap; never backwards */
+      const rate = Math.max(0, PF.rowSpeed) + (want - PF.row) * 1.2;
+      PF.row = Math.min(ROWS - 2, Math.max(PF.row, PF.row + dt * Math.max(0, rate)));
+      while (PF.laid < Math.floor(PF.row)) {
+        PF.laid++;
+        if (PF.n >= TRACE_N) { tracePos.copyWithin(0, 3); traceRow.copyWithin(0, 1); PF.n = TRACE_N - 1; }
+        const q = lineAt(PF.laid);
+        tracePos.set([q.x, q.y, q.z], PF.n * 3); traceRow[PF.n] = PF.laid; PF.n++;
+      }
+      const target = lineAt(PF.row);
+      PF.pos.lerp(target, 1 - Math.exp(-dt * 3));
+    } else {
+      /* circle the craft, just above and to the side */
+      const ang = clock * 1.4, rad = 26;
+      const target = S.pos.clone().add(new THREE.Vector3(Math.cos(ang) * rad, 9, Math.sin(ang) * rad));
+      const step = Math.max(400, S.v * 1.6) * dt, gap = target.clone().sub(PF.pos);
+      PF.pos.add(gap.length() > step ? gap.setLength(step) : gap);
+      /* the way to water: the nearest river point */
+      const w = riverAt(at2.i); w.y = 0.6;
+      toWater.geometry.setFromPoints([S.pos.clone(), w]); toWater.computeLineDistances();
+      waterMark.position.copy(w); waterMark.scale.setScalar(1 + 0.25 * Math.sin(clock * 4));
+      toWater.visible = waterMark.visible = true;
+      /* rain, if the tank is low and the water far, at most every 30 s */
+      const farFromWater = Math.abs(at2.u) > RIVER_W / 2 + 120 || S.pos.y > 150;
+      if (S.fuel < 0.3 && farFromWater && !RAIN.on && clock - PF.lastRain > 30 && PF.pos.distanceTo(S.pos) < 60) callRain(S.pos);
+    }
+    for (let k = 0; k < PF.n; k++) {              // bright ahead of you, fading once passed
+      const d = traceRow[k] - S.row;
+      const f = d >= 0 ? 0.55 + 0.45 * Math.min(1, d / LEAD_ROWS) : Math.max(0, 1 + d / 12) * 0.55;
+      traceCol[k * 3] = 2.2 * f; traceCol[k * 3 + 1] = 1.65 * f; traceCol[k * 3 + 2] = 0.6 * f;
+    }
+    traceGeo.attributes.position.needsUpdate = true; traceGeo.attributes.color.needsUpdate = true;
+    traceGeo.setDrawRange(0, PF.n);
+    const ahead = PF.mode === 'lead' ? lineAt(Math.min(ROWS - 2, PF.row + 2)) : S.pos;
+    pathfinder.position.copy(PF.pos); pathfinder.position.y += Math.sin(clock * 2.2) * 1.2;
+    pathfinder.lookAt(ahead.x, pathfinder.position.y, ahead.z);
+
+    /* the rain itself */
+    if (RAIN.on) {
+      if (clock > RAIN.until) { RAIN.on = false; rain.visible = rainCloud.visible = false; }
+      else {
+        const fade = Math.min(1, (RAIN.until - clock) / 2);
+        rain.material.opacity = 0.55 * fade;
+        for (let k = 0; k < RAIN_N; k++) {
+          const a = rainSeed[k * 3] * Math.PI * 2, r = Math.sqrt(rainSeed[k * 3 + 1]) * RAIN_R;
+          const fall = (rainSeed[k * 3 + 2] + clock * 0.9) % 1;
+          const y = RAIN.top - fall * (RAIN.top + 10), x = RAIN.at.x + Math.cos(a) * r, z = RAIN.at.z + Math.sin(a) * r;
+          rainPos.set([x, y, z, x + 0.4, y - 9, z], k * 6);
+        }
+        rainGeo.attributes.position.needsUpdate = true;
       }
     }
   }
@@ -711,6 +888,7 @@ function hud(rho, skimming, inCloud) {
   mx.stroke();
   for (const g of gates) { const [x, y] = M(g.at); mx.fillStyle = g.done ? 'rgba(159,179,194,.35)' : g.finish ? '#8fe6a8' : '#ffd070';
     mx.fillRect(x - 2, y - 2, 4, 4); }
+  { const [gx, gy] = M(pathfinder.position); mx.fillStyle = '#ffd070'; mx.beginPath(); mx.arc(gx, gy, 3, 0, Math.PI * 2); mx.fill(); }
   const [px, py] = M(S.pos); mx.fillStyle = '#7cff4f'; mx.beginPath(); mx.arc(px, py, 4, 0, Math.PI * 2); mx.fill();
   mx.fillStyle = 'rgba(242,239,230,.7)'; mx.font = '9px ui-monospace, Menlo, monospace'; mx.fillText('N', mapC.width - 14, 14);
 }
