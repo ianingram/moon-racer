@@ -18,7 +18,9 @@
    the Greenland Sea and Hudson Bay before it comes down over the canyon.
 
    THE TRANSIT is yours to fly. E / Q throttle, ↑ ↓ (or W S) climb and
-   dive. The same rules as the canyon: heat comes from the air you tear
+   dive, SPACE vent. Heat leaves through the wake vortex, which needs air:
+   the tick on the heat bar shows where it will settle; in the vacuum
+   almost nothing is shed, so heat you carry up comes back down with you. The same rules as the canyon: heat comes from the air you tear
    through — speed squared times its thickness — so climb out of Giza
    gently, open up once the air is gone, and shed speed before you come
    back down into it. In the vacuum nothing burns, and the cold carries
@@ -75,7 +77,9 @@ canvas#gl{display:block;position:fixed;inset:0;touch-action:none}
 #tele .row b{font-weight:400;color:var(--ink)}
 #sight{font-size:12px;letter-spacing:.24em;color:var(--dim)}
 #tele .bar{align-self:flex-end;width:150px;height:5px;background:rgba(159,179,194,.2);margin:-1px 0 3px}
+#tele .bar{position:relative}
 #tele .bar i{display:block;height:100%;width:50%;background:var(--ink)}
+#tele .bar s{position:absolute;top:-4px;width:2px;height:13px;background:#8fe6a8;left:0}
 #msg{position:fixed;z-index:6;left:50%;top:24%;transform:translateX(-50%);font-size:14px;letter-spacing:.3em;color:var(--brass);
   text-shadow:0 1px 4px rgba(0,0,0,.9);opacity:0;transition:opacity .3s;white-space:nowrap}
 #msg.on{opacity:1}
@@ -98,7 +102,8 @@ canvas#gl{display:block;position:fixed;inset:0;touch-action:none}
 <div class="hud" id="tele">
   <div class="row">RACE <b id="clock">0:00.0</b></div>
   <div class="row">FUEL <b id="fuelT">100%</b></div><div class="bar"><i id="fuelB"></i></div>
-  <div class="row">HEAT <b id="heatT">10%</b></div><div class="bar"><i id="heatB"></i></div>
+  <div class="row">HEAT <b id="heatT">10%</b></div><div class="bar"><i id="heatB"></i><s id="heatE"></s></div>
+  <div class="row">COLD CORE <b id="coldT">0%</b></div><div class="bar"><i id="coldB" style="background:#6fb7e6"></i></div>
   <div class="row">THROTTLE <b id="thr">0%</b></div>
   <div class="row">ALTITUDE <b id="alt">0 km</b></div>
   <div class="row">SPEED <b id="spd">0.00 c</b></div>
@@ -112,7 +117,7 @@ canvas#gl{display:block;position:fixed;inset:0;touch-action:none}
   <div class="route">GIZA → HELLS CANYON</div>
   <div class="facts">11,041 km · 99° round the Earth · lane tilted 70.8°<br>
     over Poland, the Greenland Sea and Hudson Bay · 2,000 km up</div>
-  <div class="keys" id="keys">E / Q THROTTLE · ↑ ↓ CLIMB / DIVE<br>climb gently · open up in the vacuum · slow before you come down</div>
+  <div class="keys" id="keys">E / Q THROTTLE · ↑ ↓ CLIMB / DIVE · SPACE VENT<br>climb gently · open up in the vacuum · slow before you come down</div>
   <button type="button" id="launch">LAUNCH</button>
   <a class="go" id="go" href="hells-canyon.html">FLY STAGE ONE →</a>
 </div>
@@ -348,7 +353,7 @@ let trailN = 0;
 const VMAX = 420;                     // km/s, all out, in the lane
 const SCALE_H = 8.5;                  // the air thins by e every 8.5 km
 const ARRIVE_KM = 40, OVERSHOOT_KM = 300;
-const F = { flying: false, arc: 0, h: 0, v: 0, throttle: 0.15, fuel: 1, heat: 0.1, cut: 0, t: 0, done: false };
+const F = { flying: false, arc: 0, h: 0, v: 0, throttle: 0.15, fuel: 1, heat: 0.1, cold: 0, ice: 0, cut: 0, t: 0, done: false };
 
 /* THE RACE, handed between pages */
 const RACE_KEY = 'moonracer.race';
@@ -389,7 +394,9 @@ function fly(dt) {
   else if (F.heat >= 1 && F.cut <= 0) { F.cut = 1; say('OVERHEAT — ENGINES CUT', 2.2); }
   if (F.cut === 1 && F.heat < 0.55) { F.cut = 0; say('ENGINES BACK', 1.2); }
   if (F.cut === 2 && F.heat < 0.3) { F.cut = 0; say('ENGINES RESTORED', 1.4); }
-  const power = F.cut <= 0 && F.fuel > 0 ? F.throttle : 0;
+  if (F.ice >= 1 && F.cut !== 3) { F.cut = 3; say('ICED — INTAKES CHOKED', 2.6); }
+  if (F.cut === 3 && F.ice < 0.4) { F.cut = 0; say('ICE CLEARED', 1.4); }
+  const power = F.cut <= 0 && F.fuel > 0 ? F.throttle * (1 - 0.6 * Math.min(1, F.ice)) : 0;
 
   /* below the lane, held to 60%; in it, everything */
   const vcap = VMAX * (0.6 + 0.4 * Math.min(1, Math.max(0, (F.h - 1200) / 700)));
@@ -412,8 +419,25 @@ function fly(dt) {
 
   /* heat and fuel, the canyon's rules in kilometres */
   const gain = 0.25 * Math.pow(F.v / 16, 2) * rho + power * 0.15 * rho * 0.2;   // ~13 km/s holds at sea level
-  const cool = F.heat * (0.12 + 0.6 * (1 - rho));
-  F.heat = Math.max(0, F.heat + (gain - cool) * dt);
+  /* THE VORTEX sheds it: in proportion to the air, better the colder it
+     is (colder with height to the tropopause, 11 km); only a trickle of
+     radiation in the vacuum, so heat carried up is kept. SPACE vents:
+     three times the shedding, and drag in whatever air there is. */
+  const venting = !!keys[' '];
+  const coldAir = Math.min(1, F.h / 11);
+  const shedRate = (0.02 + 0.14 * rho * (1 + 1.5 * coldAir)) * (venting ? 3 : 1);
+  F.heat = Math.max(0, F.heat + (gain - F.heat * shedRate) * dt);
+  F.heatEq = gain / shedRate; F.venting = venting;
+  /* the cold core and ice, as in the canyon: venting banks cold (it needs
+     air to spin); stopped, the cold soaks up heat; past two-thirds, ice
+     forms — fast in the wet air near the ground, slowly higher; heat melts
+     it, and in the vacuum it sublimes away */
+  if (venting) F.cold = Math.min(1, F.cold + dt * 0.12 * rho * (1 + coldAir));   // ~8 s to full at sea level
+  else if (F.cold > 0 && F.heat > 0) { const soak = Math.min(F.heat, F.cold) * 0.6 * dt; F.heat -= soak; F.cold -= soak * 0.8; }
+  F.cold = Math.max(0, F.cold - (0.015 + (power > 0 ? 0 : 0.08)) * dt);   // with the engines stopped the vortex dies and the core warms
+  if (F.cold > 0.66) F.ice = Math.min(1.1, F.ice + dt * (F.cold - 0.66) * 1.4 * (0.3 + 1.2 * Math.exp(-F.h / 2)));
+  F.ice = Math.max(0, F.ice - dt * (0.05 + F.heat * 0.25 + (rho < 0.01 ? 0.05 : 0)));
+  if (venting) F.v -= F.v * Math.min(1, dt * 0.45 * rho);
   const burn = 0.002 + power * 0.012 + (F.v / VMAX) * 0.006;
   F.fuel = Math.min(1, Math.max(0, F.fuel + (rho * 0.003 - burn) * dt));
   if (F.fuel <= 0 && !F.dry) { F.dry = true; say('TANK DRY · COASTING', 2.2); }
@@ -437,7 +461,7 @@ function arrive() {
   goLink.style.display = 'flex';
   document.getElementById('keys').style.display = 'none';
   say('HELLS CANYON · ARRIVED', 2.6);
-  if (race) writeRace(Object.assign({}, race, { at: 'hells-canyon', t: total, fuel: F.fuel, heat: Math.min(1, F.heat), laneT: F.t }));
+  if (race) writeRace(Object.assign({}, race, { at: 'hells-canyon', t: total, fuel: F.fuel, heat: Math.min(1, F.heat), cold: F.cold, ice: F.ice, laneT: F.t }));
   controls.target.set(0, 0, 0); camera.up.set(0, 1, 0);
   console.log('[moon-racer] arrived at Hells Canyon Dam: lane ' + F.t.toFixed(1) + ' s, fuel ' + Math.round(F.fuel * 100) + '%');
 }
@@ -479,9 +503,13 @@ function hud(pos, speed) {
   $('fuelT').textContent = Math.round(F.fuel * 100) + '%';
   const hh = Math.min(1, F.heat);
   $('heatB').style.width = (hh * 100).toFixed(1) + '%';
-  $('heatB').style.background = F.cut === 2 ? '#c0392b' : F.cut ? '#ff5a3c' : hh > 0.75 ? '#ffb347' : '#ffd070';
-  $('heatT').textContent = F.cut === 2 ? 'BROKEN' : F.cut ? 'CUT' : Math.round(hh * 100) + '%';
+  $('heatB').style.background = F.cut === 2 ? '#c0392b' : F.cut === 1 ? '#ff5a3c' : hh > 0.75 ? '#ffb347' : '#ffd070';
+  $('heatT').textContent = F.cut === 2 ? 'BROKEN' : F.cut === 1 ? 'CUT' : F.venting && F.flying ? 'VENTING' : Math.round(hh * 100) + '%';
+  $('heatE').style.left = Math.min(100, (F.heatEq || 0) * 100).toFixed(1) + '%';
   $('thr').textContent = Math.round(F.throttle * 100) + '%';
+  $('coldB').style.width = (F.cold * 100).toFixed(1) + '%';
+  $('coldB').style.background = F.ice > 0.05 ? '#f2f7ff' : F.cold > 0.66 ? '#bfe6ff' : '#6fb7e6';
+  $('coldT').textContent = F.cut === 3 ? 'ICED' : F.ice > 0.05 ? 'ICE ' + Math.round(F.ice * 100) + '%' : Math.round(F.cold * 100) + '%';
   if (clockS > msgUntil) msgEl.classList.remove('on');
   const altKm = (pos.length() - R) / KM;
   $('alt').textContent = altKm < 1 ? '0 km' : Math.round(altKm).toLocaleString('en-GB') + ' km';

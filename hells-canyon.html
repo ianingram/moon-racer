@@ -36,14 +36,32 @@
            squared and the thickness of the air, and again with throttle
            times how rich the intake is: skimming water fills the tank
            fastest and runs hottest. In a vacuum there is nothing round the
-           craft to burn or rip apart, so none of this happens: high and
-           thin, the same speed costs almost nothing, and the cold carries
-           the heat away. At full heat the engines cut out until they cool;
-           push past that and they break down, and take much longer.
+           craft to burn or rip apart, so none of this happens.
+     THE VORTEX is how heat leaves. The craft sheds it into its own wake
+           vortex: the low-pressure core cools by expansion, the
+           high-pressure ring carries the heat out and away. So shedding
+           needs air — the more of it, and the colder, the better — and in
+           a vacuum only a slow glow of radiation is left: heat you carry
+           up, you keep. It is predictable: at any speed and height the
+           heat settles at one level, and the tick on the heat bar shows
+           where. Hold SPACE to VENT: the vortex is spun up hard and sheds
+           three times as fast, at the cost of speed to its drag; low over
+           water it throws the swirl onto the river.
+     THE COLD CORE, like a vortex tube: spun up, the vortex throws its hot
+           rim off and its core goes colder the longer and harder it spins.
+           Venting banks that cold (faster in thick, cold air); stop, and the
+           banked cold soaks up engine heat until spent.
+     ICE is the other edge. Drive the core past two-thirds and ice forms on
+           the intakes and hull — fast in wet air (river spray, cloud,
+           rain), slowly in dry. It weighs you down and starves the
+           intakes; full ice chokes them and the engines stop until it
+           melts. Heat melts it.
+           At full heat the engines cut out until they cool; push past
+           that and they break down, and take much longer.
    So the stage is a rhythm: low to drink and to take the gates, high to
    run fast and cool, and down again before the tank is dry.
 
-   Keys: ← → or A D turn · ↑ ↓ or W S climb and dive · E / Q throttle up
+   Keys: ← → or A D turn · ↑ ↓ or W S climb and dive · SPACE vent · E / Q throttle up
    and down · R restart · G glow.
    ==========================================================================
 -->
@@ -76,7 +94,9 @@ canvas#gl{display:block;position:fixed;inset:0}
 .gauge .l{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.22em;color:var(--dim)}
 .gauge .l b{font-weight:400;color:var(--ink)}
 .bar{height:6px;background:rgba(159,179,194,.2)}
+.bar{position:relative}
 .bar i{display:block;height:100%;width:50%;background:var(--ink);transition:background .2s}
+.bar s{position:absolute;top:-4px;width:2px;height:14px;background:#8fe6a8;left:0;transition:left .3s}
 .read{display:flex;flex-direction:column;gap:2px;min-width:92px}
 .read .l{font-size:10px;letter-spacing:.22em;color:var(--dim)}
 .read .v{font-size:20px}
@@ -105,12 +125,13 @@ canvas#gl{display:block;position:fixed;inset:0}
 <div class="hud" id="msg"></div>
 <div class="hud" id="gauges">
   <div class="gauge"><div class="l">FUEL <b id="fuelTxt"></b></div><div class="bar"><i id="fuelBar"></i></div></div>
-  <div class="gauge"><div class="l">HEAT <b id="heatTxt"></b></div><div class="bar"><i id="heatBar"></i></div></div>
+  <div class="gauge"><div class="l">HEAT <b id="heatTxt"></b></div><div class="bar"><i id="heatBar"></i><s id="heatEq"></s></div></div>
+  <div class="gauge"><div class="l">COLD CORE <b id="coldTxt"></b></div><div class="bar"><i id="coldBar"></i><s id="iceBar" style="background:#f2f7ff"></s></div></div>
   <div class="read"><span class="l">SPEED</span><span class="v" id="spd">0.00 c</span></div>
   <div class="read"><span class="l">ABOVE WATER</span><span class="v" id="alt">0 m</span></div>
 </div>
 <canvas class="hud" id="map" width="170" height="240" aria-label="Route map"></canvas>
-<div class="hud" id="keys">← → TURN · ↑ ↓ CLIMB / DIVE · E / Q THROTTLE · R RESTART · G GLOW</div>
+<div class="hud" id="keys">← → TURN · ↑ ↓ CLIMB / DIVE · SPACE VENT · E / Q THROTTLE · R RESTART · G GLOW</div>
 <div id="end" role="dialog" aria-label="Stage result"><div class="card">
   <h2>GRANDE RONDE · FINISH</h2>
   <div class="big" id="endTime">0:00.0</div>
@@ -462,6 +483,7 @@ const gates = [];
 const craft = new THREE.Group();
 {
   const hull = new THREE.Mesh(new THREE.CylinderGeometry(1.9, 0.9, 12, 4, 1), new THREE.MeshStandardMaterial({ color: 0x1b1a1d, roughness: 0.5 }));
+  hull.name = 'hull';
   hull.rotation.x = Math.PI / 2; hull.rotation.y = Math.PI / 4; hull.scale.set(1.25, 1, 0.8);
   craft.add(hull);
   const trim = new THREE.Mesh(new THREE.BoxGeometry(3.3, 0.18, 10.5), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.95, 0.72, 0.3), toneMapped: false }));
@@ -478,6 +500,31 @@ const glowTex = (() => { const c = document.createElement('canvas'); c.width = c
 const plume = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffffff, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
 plume.position.set(0, 0.2, 6.8); craft.add(plume);
 scene.add(craft);
+
+/* the wake vortex, seen when venting: two counter-rotating spirals behind
+   the craft (the home scene's vortex, turned to face the way it flies),
+   and the same swirl thrown flat onto the river when it is low over it */
+const spiralTex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
+  x.translate(128, 128); x.lineCap = 'round';
+  for (let arm = 0; arm < 3; arm++) {
+    x.beginPath();
+    for (let k = 0; k <= 120; k++) { const f = k / 120, a = arm * 2.094 + f * 7.5, r = 8 + f * 112;
+      k ? x.lineTo(Math.cos(a) * r, Math.sin(a) * r) : x.moveTo(Math.cos(a) * r, Math.sin(a) * r); }
+    x.strokeStyle = 'rgba(235,245,255,0.9)'; x.lineWidth = 7; x.stroke();
+  }
+  return new THREE.CanvasTexture(c);
+})();
+const WAKE = [0, 1].map(i => {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: spiralTex, transparent: true,
+    depthWrite: false, opacity: 0, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
+  m.userData = { spin: i ? -5 : 7, size: i ? 26 : 18, back: i ? 16 : 11 };
+  scene.add(m); return m;
+});
+const riverSwirl = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: spiralTex, transparent: true,
+  depthWrite: false, opacity: 0, blending: THREE.AdditiveBlending }));
+riverSwirl.rotation.x = -Math.PI / 2; scene.add(riverSwirl);
+let wakeLevel = 0;
 
 /* ============================================================ the pathfinder
    A companion craft that goes ahead and traces the route: it lifts off
@@ -587,7 +634,7 @@ const raceT0 = race ? race.t : 0;
 function reset() {
   const i = 18, c = riverAt(i);
   Object.assign(S, { pos: new THREE.Vector3(c.x, 10, c.z), yaw: Math.atan2(T[i].x, -T[i].z), pitch: 0, roll: 0,
-    v: 0, throttle: 0.22, fuel: race ? race.fuel : 0.8, heat: race ? race.heat : 0.1, cut: 0, row: i, t: 0, started: false, count: 3,
+    v: 0, throttle: 0.22, fuel: race ? race.fuel : 0.8, heat: race ? race.heat : 0.1, cold: race && race.cold || 0, ice: race && race.ice || 0, cut: 0, row: i, t: 0, started: false, count: 3,
     gatesDone: 0, missed: 0, over: false, hitT: -9 });
   gates.forEach(g => { g.done = false; g.mesh.visible = true; });
   PF.row = i; PF.laid = i; PF.n = 0; PF.mode = 'lead'; PF.since = 0; PF.calm = 0; PF.lastRow = i; PF.rowSpeed = 0;
@@ -655,12 +702,18 @@ function step(dt) {
   else if (S.heat >= 1 && S.cut <= 0) { S.cut = 1; say('OVERHEAT — ENGINES CUT', 2.2); }
   if (S.cut === 1 && S.heat < 0.55) { S.cut = 0; say('ENGINES BACK', 1.2); }
   if (S.cut === 2 && S.heat < 0.3) { S.cut = 0; say('ENGINES RESTORED', 1.4); }
-  const power = S.started && S.cut <= 0 && S.fuel > 0 ? S.throttle : 0;
+  /* ice: the other edge. Choked intakes stop the engines like heat does */
+  if (S.ice >= 1 && S.cut !== 3) { S.cut = 3; say('ICED — INTAKES CHOKED', 2.6); console.log('[moon-racer] intakes iced'); }
+  if (S.cut === 3 && S.ice < 0.4) { S.cut = 0; say('ICE CLEARED', 1.4); }
+  /* ice on the intakes starves them: up to 60% of the power gone */
+  const power = S.started && S.cut <= 0 && S.fuel > 0 ? S.throttle * (1 - 0.6 * Math.min(1, S.ice)) : 0;
 
   /* speed eases to what the throttle asks; drag bleeds it in thick air */
   const want = power * VMAX;
+  const venting = !!keys[' '] && S.started;
   if (S.v < want) S.v += (want - S.v) * Math.min(1, dt * 0.55);
   else S.v -= (S.v - want) * Math.min(1, dt * (0.25 + 0.6 * rho));
+  if (venting) S.v -= S.v * Math.min(1, dt * 0.45 * rho);     // the spun-up vortex drags, in proportion to the air it grips
 
   /* heat: the molecules round the craft, burnt and torn apart. Speed
      squared times the air's thickness; then throttle times how rich the
@@ -670,8 +723,33 @@ function step(dt) {
   const wet = underRain(S.pos);
   const rich = (skimming ? 1 : 0) + (inCloud ? 0.5 * inCloud.dens : 0) + (wet ? 0.35 : 0) + 0.15 * rho;
   const gain = 0.25 * Math.pow(S.v / 400, 2) * rho + power * rich * 0.2 * rho;
-  const cool = S.heat * (0.12 + 0.6 * (1 - rho));
-  S.heat = Math.max(0, S.heat + (gain - cool) * dt);
+  /* the vortex sheds it: in proportion to the air (rho) and better the
+     colder that air is; a trickle of radiation always. Venting spins it
+     up three times as hard. Where heat will settle = gain / shed rate. */
+  const coldAir = Math.min(1, S.pos.y * 4.85 / 11000);               // colder with height, to the tropopause
+  const shedRate = (0.02 + 0.14 * rho * (1 + 1.5 * coldAir)) * (venting ? 3 : 1);
+  S.heat = Math.max(0, S.heat + (gain - S.heat * shedRate) * dt);
+  S.heatEq = gain / shedRate; S.venting = venting;
+
+  /* THE COLD CORE. Like a vortex tube, the spun-up vortex splits the air:
+     the rim goes hot and is thrown off, the core goes cold — and the harder
+     and longer it spins, the colder it gets. Venting charges it, faster in
+     thicker and colder air (it needs air to spin). Stop venting and the
+     banked cold soaks up heat until it is spent. It warms slowly on its
+     own. */
+  if (venting) S.cold = Math.min(1, S.cold + dt * 0.12 * rho * (1 + coldAir));   // ~8 s to full at sea level
+  else if (S.cold > 0 && S.heat > 0) {
+    const soak = Math.min(S.heat, S.cold) * 0.6 * dt;
+    S.heat -= soak; S.cold -= soak * 0.8;
+  }
+  S.cold = Math.max(0, S.cold - (0.015 + (power > 0 ? 0 : 0.08)) * dt);   // with the engines stopped the vortex dies and the core warms
+  /* ICE. Drive the core past two-thirds and ice forms on the intakes and
+     hull — fast in wet air (spray off the river, cloud, rain), slowly in
+     dry. It weighs the craft down and starves the intakes. Heat melts it;
+     easing off the vent and leaving the wet air stops it growing. */
+  const wetAir = skimming || inCloud || wet ? 1.5 : 0.3 * rho;
+  if (S.cold > 0.66) S.ice = Math.min(1.1, S.ice + dt * (S.cold - 0.66) * 1.4 * wetAir);
+  S.ice = Math.max(0, S.ice - dt * (0.05 + S.heat * 0.25));
 
   /* fuel: thrust and speed burn it; water, cloud and damp air give it */
   const burn = S.started ? (0.004 + power * 0.018 + (S.v / VMAX) * 0.01) : 0;
@@ -689,6 +767,7 @@ function step(dt) {
   fwd.set(Math.sin(S.yaw) * Math.cos(S.pitch), Math.sin(S.pitch), -Math.cos(S.yaw) * Math.cos(S.pitch));
   S.pos.addScaledVector(fwd, S.v * dt);
   if (S.v < 70) S.pos.y -= (70 - S.v) * 0.35 * dt;           // too slow to hold the air
+  if (S.ice > 0.05) S.pos.y -= S.ice * 6 * dt;                // and ice is weight
   if (!S.started) { S.pos.y = 10; }
 
   /* the ground and the water */
@@ -751,7 +830,7 @@ function step(dt) {
     const off = Math.abs(at2.u) > RIVER_W / 2 + 260 && S.pos.y < 900;
     const back = S.v > 30 && fwd.clone().setY(0).normalize().dot(T[at2.i]) < -0.5;
     const stalled = S.started && S.t > 5 && S.v < 40 && !S.over;          // not in the first seconds off the line
-    const why = S.cut === 2 ? 'ENGINES DOWN' : S.fuel < 0.18 ? 'LOW ON FUEL' : off ? 'OFF COURSE' : back ? 'WRONG WAY' : stalled ? 'STALLED' : '';
+    const why = S.cut === 2 ? 'ENGINES DOWN' : S.cut === 3 ? 'ICED UP' : S.fuel < 0.18 ? 'LOW ON FUEL' : off ? 'OFF COURSE' : back ? 'WRONG WAY' : stalled ? 'STALLED' : '';
     if (why && S.started && !S.over) { PF.since += dt; PF.calm = 0; } else { PF.since = 0; PF.calm += dt; }
     if (PF.mode === 'lead' && PF.since > 1.5) {
       PF.mode = 'assist'; PF.why = why;
@@ -820,6 +899,27 @@ function step(dt) {
     }
   }
 
+  /* the wake vortex: spun up while venting, fading after; it needs air */
+  wakeLevel += ((S.venting ? 1 : 0) - wakeLevel) * Math.min(1, dt * 4);
+  const airFor = Math.exp(-Math.max(0, S.pos.y) / ATMO_H);
+  WAKE.forEach(m => {
+    m.position.copy(S.pos).addScaledVector(fwd, -m.userData.back);
+    m.lookAt(S.pos.clone().addScaledVector(fwd, -m.userData.back - 10));
+    m.rotateZ(clock * m.userData.spin);
+    m.scale.setScalar(m.userData.size * (0.7 + 0.3 * wakeLevel));
+    m.material.opacity = 0.34 * wakeLevel * airFor;
+  });
+  const lowOver = Math.max(0, 1 - S.pos.y / 40) * (Math.abs(at2.u) < RIVER_W ? 1 : 0.35);
+  riverSwirl.position.set(S.pos.x, 0.8, S.pos.z);
+  riverSwirl.rotation.z = -clock * 3;
+  riverSwirl.scale.setScalar(40 + 30 * wakeLevel);
+  riverSwirl.material.opacity = 0.3 * wakeLevel * lowOver;
+
+  /* frost: the hull whitens with ice; the wake spirals go blue as the core colds */
+  { const hm = craft.getObjectByName('hull').material, ic = Math.min(1, S.ice);
+    hm.color.setRGB(0.105 + 0.75 * ic, 0.1 + 0.78 * ic, 0.114 + 0.82 * ic); hm.roughness = 0.5 + 0.4 * ic; }
+  WAKE.forEach(m => m.material.color.setRGB(1 - 0.45 * S.cold, 1 - 0.2 * S.cold, 1));
+
   /* the look of it */
   craft.position.copy(S.pos);
   craft.rotation.set(0, 0, 0);
@@ -879,8 +979,16 @@ function hud(rho, skimming, inCloud) {
   document.getElementById('fuelTxt').textContent = skimming ? 'WATER' : inCloud ? 'CLOUD' : Math.round(S.fuel * 100) + '%';
   const h = Math.min(1, S.heat);
   heatBar.style.width = (h * 100).toFixed(1) + '%';
-  heatBar.style.background = S.cut === 2 ? '#c0392b' : S.cut > 0 ? '#ff5a3c' : h > 0.75 ? '#ffb347' : '#ffd070';
-  document.getElementById('heatTxt').textContent = S.cut === 2 ? 'BROKEN' : S.cut > 0 ? 'CUT' : rho < 0.3 ? 'COLD AIR' : Math.round(h * 100) + '%';
+  document.getElementById('heatEq').style.left = Math.min(100, (S.heatEq || 0) * 100).toFixed(1) + '%';
+  heatBar.style.background = S.cut === 2 ? '#c0392b' : S.cut === 1 ? '#ff5a3c' : h > 0.75 ? '#ffb347' : '#ffd070';
+  document.getElementById('heatTxt').textContent = S.cut === 2 ? 'BROKEN' : S.cut === 1 ? 'CUT' : S.venting ? 'VENTING' : rho < 0.05 ? 'NO AIR' : Math.round(h * 100) + '%';
+  const cb = document.getElementById('coldBar');
+  cb.style.width = (S.cold * 100).toFixed(1) + '%';
+  cb.style.background = S.cold > 0.66 ? '#bfe6ff' : '#6fb7e6';
+  const ib = document.getElementById('iceBar');                          // the ice, as a white band from the left
+  ib.style.left = '0'; ib.style.top = '0'; ib.style.height = '100%'; ib.style.width = Math.min(100, S.ice * 100).toFixed(1) + '%';
+  ib.style.opacity = S.ice > 0.02 ? 0.85 : 0;
+  document.getElementById('coldTxt').textContent = S.cut === 3 ? 'ICED' : S.ice > 0.05 ? 'ICE ' + Math.round(S.ice * 100) + '%' : Math.round(S.cold * 100) + '%';
   document.getElementById('spd').textContent = (S.v / VMAX * 0.97).toFixed(2) + ' c';
   document.getElementById('alt').textContent = S.pos.y * 4.85 >= 1000 ? (S.pos.y * 4.85 / 1000).toFixed(1) + ' km' : Math.round(S.pos.y * 4.85) + ' m';
   document.getElementById('time').textContent = fmt(S.t);
