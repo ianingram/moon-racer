@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<!--
+   REPO: moon-racer/start.html
+   ==========================================================================
+   MOON RACER — the start: Giza, the destination, and the way to go
+   ==========================================================================
+   The opening montage. The whole Earth flat (earth-bluemarble.jpg, the same
+   NASA Blue Marble the globe uses), the race's start at the Giza pyramid
+   complex, the destination, and the routes between them drawn one by one.
+   Then the choice.
+
+   The routes are real ones:
+     THE LANE        up into orbit on the great circle and down again —
+                     fastest, but nothing to drink up there.
+     BY WATER        down the Nile, the Mediterranean, out through
+                     Gibraltar, across the Atlantic, through Panama, up the
+                     Pacific coast, into the Columbia and up the Snake —
+                     long, but water under the hull the whole way.
+     THE NORTHWEST   the Nile and the Mediterranean, then north: round
+     PASSAGE         Greenland, through the Canadian Arctic and Bering
+                     Strait, down to the Columbia — water and ice all the way.
+     THE LOW ROAD    the lane's own great circle flown low: over Europe,
+                     the Greenland ice cap, Hudson Bay and the prairies.
+   How much of each is water, ice or dry land is not typed in: the page
+   reads it from the Blue Marble picture itself, every 25 km of the way.
+
+   Click anywhere to skip the montage. 1–4 pick a route, Enter to go.
+   ==========================================================================
+-->
+<html lang="en-GB"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moon Racer — the start</title>
+<style>
+:root{--ink:#f2efe6;--dim:#9fb3c2;--gold:#d4af50;--brass:#ffd070;--oak:#2a1d12;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:inherit}
+html,body{height:100%;margin:0;background:#03050a;overflow:hidden;
+  font:14px/1.6 ui-monospace,Menlo,Consolas,monospace;color:var(--ink)}
+canvas{display:block;position:fixed;inset:0}
+.hud{position:fixed;z-index:5}
+#title{left:20px;top:calc(16px + env(safe-area-inset-top,0px));text-shadow:0 1px 3px rgba(0,0,0,.9)}
+#title .a{font-size:14px;letter-spacing:.34em;color:var(--brass)}
+#title .b{font-size:10.5px;letter-spacing:.2em;color:var(--dim)}
+#skip{right:20px;top:calc(16px + env(safe-area-inset-top,0px));font-size:10.5px;letter-spacing:.2em;color:var(--dim);
+  text-shadow:0 1px 3px rgba(0,0,0,.9)}
+#panel{right:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));width:400px;max-height:calc(100% - 90px);overflow:auto;
+  display:flex;flex-direction:column;gap:8px;padding:14px;background:rgba(6,10,16,.82);border:1px solid rgba(232,223,200,.22);
+  opacity:0;transform:translateY(12px);transition:opacity .6s,transform .6s;pointer-events:none}
+#panel.on{opacity:1;transform:none;pointer-events:auto}
+#panel .k{font-size:10px;letter-spacing:.24em;color:var(--dim);padding:2px 4px 6px}
+.card{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border:1px solid rgba(159,179,194,.28);cursor:pointer;
+  background:transparent;color:var(--ink);text-align:left;font:inherit}
+.card:hover{border-color:rgba(255,208,112,.6)}
+.card[aria-pressed="true"]{border-color:var(--brass);background:rgba(255,208,112,.07)}
+.card:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.card .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.card .n{font-size:13px;letter-spacing:.2em}
+.card .d{font-size:12px;color:var(--dim)}
+.card .via{font-size:10.5px;letter-spacing:.06em;color:var(--dim);line-height:1.6}
+.mix{display:flex;height:6px;background:rgba(159,179,194,.15)}
+.mix i{display:block;height:100%}
+.legend{display:flex;gap:12px;font-size:10px;letter-spacing:.12em;color:var(--dim)}
+.legend span::before{content:"";display:inline-block;width:8px;height:8px;margin-right:5px;vertical-align:0;background:var(--c)}
+.card .say{font-size:11px;line-height:1.6;color:var(--ink);opacity:.85}
+#go{margin-top:4px;min-height:46px;font:12px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.22em;cursor:pointer;
+  background:var(--gold);color:#1c140b;border:1px solid var(--gold)}
+#go:disabled{background:transparent;color:var(--dim);border-color:rgba(159,179,194,.4);cursor:default}
+#caption{left:50%;bottom:calc(26px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);font-size:13px;letter-spacing:.3em;
+  color:var(--brass);text-shadow:0 1px 4px rgba(0,0,0,.95);white-space:nowrap;opacity:0;transition:opacity .5s}
+#caption.on{opacity:1}
+@media (max-width:760px){ #panel{left:20px;right:20px;width:auto;max-height:52%} #caption{display:none} }
+</style></head><body>
+
+<canvas id="map" aria-label="Map of the Earth with the routes from Giza to Hells Canyon"></canvas>
+<div class="hud" id="title"><div class="a">MOON RACER</div><div class="b">LEG ONE · THE START</div></div>
+<div class="hud" id="skip">CLICK TO SKIP</div>
+<div class="hud" id="caption"></div>
+<div class="hud" id="panel" role="group" aria-label="Choose a route">
+  <div class="k">GIZA → HELLS CANYON · CHOOSE THE WAY</div>
+  <div id="cards"></div>
+  <div class="legend"><span style="--c:#4fb3d9">WATER</span><span style="--c:#e8f1f5">ICE</span><span style="--c:#b49a60">LAND</span><span style="--c:#6f5fbf">ORBIT</span></div>
+  <button type="button" id="go" disabled>CHOOSE A ROUTE</button>
+</div>
+
+<script>
+/* ============================================================== the places */
+const GIZA = { name: 'GIZA', sub: 'THE PYRAMID COMPLEX', lat: 29.979, lon: 31.134 };
+const DEST = { name: 'HELLS CANYON', sub: 'THE SNAKE RIVER, IDAHO', lat: 45.244, lon: -116.700 };
+
+/* the shared stretches, [lat, lon] */
+const NILE_MED_GIB = [[29.98,31.13],[30.05,31.23],[30.6,31.0],[31.2,30.6],[31.46,30.37],[32.4,28.5],[33.4,25.0],
+  [34.6,20.0],[36.0,15.8],[37.2,11.6],[37.7,8.5],[37.4,3.0],[36.4,-1.5],[35.95,-5.6]];
+const COLUMBIA_SNAKE = [[46.25,-124.05],[46.2,-123.4],[46.1,-122.95],[45.6,-122.7],[45.66,-121.9],[45.7,-121.2],
+  [45.72,-120.2],[45.93,-119.3],[46.23,-119.05],[46.25,-118.88],[46.56,-118.54],[46.58,-118.03],[46.66,-117.43],
+  [46.42,-117.04],[46.10,-116.96],[45.87,-116.78],[45.64,-116.47],[45.43,-116.59],[45.27,-116.67],[45.244,-116.70]];
+
+const ROUTES = [
+  { id: 'lane', n: 'THE LANE', col: '#ffd070', orbit: true,
+    via: 'up out of Giza · 2,000 km up over Poland, the Greenland Sea and Hudson Bay · down onto the dam',
+    say: 'Fastest by far, cold and fast in space — but nothing to drink up there. Leave full.',
+    go: 'globe.html' },
+  { id: 'water', n: 'BY WATER', col: '#4fd6ff',
+    via: 'the Nile · the Mediterranean · Gibraltar · the Atlantic · Panama · the Pacific coast · the Columbia · the Snake',
+    say: 'The long way, with water under the hull from the pyramids to the canyon: never short of fuel, never cool.',
+    pts: [...NILE_MED_GIB, [34.5,-15],[30,-35],[24,-55],[21.3,-66],[20.1,-73.8],[16,-77.5],[11,-79.5],[9.35,-79.92],
+          [8.9,-79.5],[7.2,-80.6],[7.5,-84],[12,-92],[15.5,-99],[20,-106.5],[23,-111],[28,-116],[32.5,-119.5],
+          [36.5,-123],[40.5,-125.2],[44,-125],[46.25,-124.05], ...COLUMBIA_SNAKE.slice(1)] },
+  { id: 'nwp', n: 'THE NORTHWEST PASSAGE', col: '#cfe9ff',
+    via: 'the Nile · the Mediterranean · Gibraltar · round Greenland · the Canadian Arctic · Bering Strait · the Columbia',
+    say: 'Water and ice nearly all the way, and cold air for the engines — but a long way round the top of the world.',
+    pts: [...NILE_MED_GIB, [38,-14],[45,-20],[52,-28],[58,-38],[59.5,-44],[62,-54],[66.5,-58],[70,-62],[73.5,-70],
+          [74.2,-80],[74.3,-90],[74.3,-100],[74.5,-110],[74.4,-119],[73.5,-125],[71.5,-128],[70.6,-135],[70.8,-145],[71.6,-156.5],
+          [70,-166.5],[68,-168.5],[65.8,-168.8],[61,-173],[56,-168],[54.5,-155],[53,-143],[49.5,-131],[46.25,-124.05],
+          ...COLUMBIA_SNAKE.slice(1)] },
+  { id: 'low', n: 'THE LOW ROAD', col: '#8fe6a8', great: true,
+    via: 'the lane\u2019s own great circle, flown low · Europe · the Greenland ice · Hudson Bay · the prairies',
+    say: 'The shortest line on the ground. Thick warm air the whole way, so hold the speed down; drink where you can.' }
+];
+
+/* ================================================================== maths */
+const rad = d => d * Math.PI / 180, deg = r => r * 180 / Math.PI, EARTH_KM = 6371;
+function hav(a, b) {
+  const [p1, l1, p2, l2] = [rad(a[0]), rad(a[1]), rad(b[0]), rad(b[1])];
+  return 2 * EARTH_KM * Math.asin(Math.sqrt(Math.sin((p2 - p1) / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin((l2 - l1) / 2) ** 2));
+}
+function slerp(a, b, f) {
+  const [p1, l1, p2, l2] = [rad(a[0]), rad(a[1]), rad(b[0]), rad(b[1])];
+  const d = hav(a, b) / EARTH_KM; if (d < 1e-9) return a;
+  const A = Math.sin((1 - f) * d) / Math.sin(d), B = Math.sin(f * d) / Math.sin(d);
+  const x = A * Math.cos(p1) * Math.cos(l1) + B * Math.cos(p2) * Math.cos(l2);
+  const y = A * Math.cos(p1) * Math.sin(l1) + B * Math.cos(p2) * Math.sin(l2);
+  const z = A * Math.sin(p1) + B * Math.sin(p2);
+  return [deg(Math.atan2(z, Math.hypot(x, y))), deg(Math.atan2(y, x))];
+}
+/* every route as points 25 km apart, each short step following the
+   great circle, so lines curve on the flat map as they should */
+function densify(pts) {
+  const out = [pts[0]];
+  for (let i = 1; i < pts.length; i++) {
+    const n = Math.max(1, Math.ceil(hav(pts[i - 1], pts[i]) / 25));
+    for (let k = 1; k <= n; k++) out.push(slerp(pts[i - 1], pts[i], k / n));
+  }
+  return out;
+}
+const GC = [[GIZA.lat, GIZA.lon], [DEST.lat, DEST.lon]];
+for (const r of ROUTES) r.path = densify(r.pts || GC);
+for (const r of ROUTES) { r.km = 0; for (let i = 1; i < r.path.length; i++) r.km += hav(r.path[i - 1], r.path[i]); }
+
+/* ================================================================ the map */
+const cv = document.getElementById('map'), cx = cv.getContext('2d');
+const img = new Image();
+let W, H, mapW, mapH, ox, oy, scale = 1, focus = [0, 0];
+let px = null;                                   // the picture's pixels, for reading water from land
+img.onload = () => {
+  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+  const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0);
+  try { px = x.getImageData(0, 0, img.width, img.height).data; } catch (e) { console.warn('[moon-racer] cannot read the map pixels here (open it from GitHub Pages)'); }
+  classify(); buildCards(); resize(); start();
+};
+img.onerror = () => console.warn('[moon-racer] earth-bluemarble.jpg missing — is it in the repo beside this page?');
+img.src = 'earth-bluemarble.jpg';
+
+/* WHAT IS UNDER EACH STEP. Deep blue is sea, near-white is ice, the rest is
+   land. Rivers are too narrow for this picture, so the stretches that are
+   river (the Nile, the Columbia, the Snake) are counted as water by name. */
+const RIVER = new Set();
+function isRiverStep(r, i) {
+  const p = r.path[i];
+  const nile = p[1] > 30 && p[1] < 32 && p[0] < 31.6 && p[0] > 29.9;
+  const colsnake = p[1] > -124.1 && p[1] < -116.5 && p[0] > 45.2 && p[0] < 46.7;
+  return (r.pts && (nile || colsnake));
+}
+function under(lat, lon) {
+  if (!px) return 'land';
+  const x = Math.min(img.width - 1, Math.max(0, Math.floor((lon + 180) / 360 * img.width)));
+  const y = Math.min(img.height - 1, Math.max(0, Math.floor((90 - lat) / 180 * img.height)));
+  const k = (y * img.width + x) * 4, r = px[k], g = px[k + 1], b = px[k + 2];
+  if (r > 190 && g > 190 && b > 190) return 'ice';
+  if (b > g && b > r * 1.4 + 4) return 'water';     // deep ocean here is nearly black-blue, so compare, don't threshold
+  return 'land';
+}
+function classify() {
+  for (const r of ROUTES) {
+    r.mix = { water: 0, ice: 0, land: 0, orbit: 0 };
+    r.kinds = [];
+    for (let i = 1; i < r.path.length; i++) {
+      const step = hav(r.path[i - 1], r.path[i]);
+      let k;
+      if (r.orbit) { const f = i / r.path.length; k = f < 0.02 || f > 0.98 ? under(...r.path[i]) : 'orbit'; }
+      else k = isRiverStep(r, i) ? 'water' : under(...r.path[i]);
+      r.mix[k] += step; r.kinds.push(k);
+    }
+    console.log('[moon-racer] ' + r.n + ': ' + Math.round(r.km).toLocaleString('en-GB') + ' km — ' +
+      Object.entries(r.mix).filter(([, v]) => v > 0).map(([k, v]) => k + ' ' + Math.round(v / r.km * 100) + '%').join(', '));
+  }
+}
+
+function resize() {
+  W = innerWidth; H = innerHeight;
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const s = Math.max(W / 2, H);                  // cover the screen, 2:1
+  mapW = s * 2; mapH = s;
+}
+addEventListener('resize', resize);
+/* lat/lon to the screen, through the current zoom about a focus point */
+function toScreen(lat, lon) {
+  const x = (lon + 180) / 360 * mapW, y = (90 - lat) / 180 * mapH;
+  let fx = (focus[1] + 180) / 360 * mapW, fy = (90 - focus[0]) / 180 * mapH;
+  /* never let the edge of the world show: keep the picture covering the screen */
+  const hx = W / 2 / scale, hy = H / 2 / scale;
+  fx = Math.min(mapW - hx, Math.max(hx, fx)); fy = Math.min(mapH - hy, Math.max(hy, fy));
+  return [W / 2 + (x - fx) * scale, H / 2 + (y - fy) * scale];
+}
+
+/* ============================================================ the montage
+   Eleven seconds: close on Giza, the start named; out, the destination
+   named; the four routes drawn one after another, each named as it goes;
+   then the whole board and the choice. A click skips to the choice. */
+const SCRIPT = [
+  { t: 0,    cap: 'GIZA · THE PYRAMID COMPLEX · THE START' },
+  { t: 2.2,  cap: 'HELLS CANYON · THE SNAKE RIVER · 11,041 KM AWAY' },
+  { t: 4.2,  cap: 'THE LANE · UP INTO ORBIT', route: 0 },
+  { t: 5.8,  cap: 'BY WATER · NILE, OCEANS, PANAMA, COLUMBIA', route: 1 },
+  { t: 7.4,  cap: 'THE NORTHWEST PASSAGE · OVER THE TOP', route: 2 },
+  { t: 9.0,  cap: 'THE LOW ROAD · THE GREAT CIRCLE, FLOWN LOW', route: 3 },
+  { t: 10.8, cap: 'CHOOSE THE WAY' }
+];
+const END = 11.4;
+let t0 = 0, skipped = false, chosen = -1, shown = false;
+const capEl = document.getElementById('caption');
+function start() { t0 = performance.now(); requestAnimationFrame(draw); }
+function skip() { if (!skipped) { skipped = true; t0 = performance.now() - END * 1000; } }
+cv.addEventListener('click', skip);
+document.getElementById('skip').addEventListener('click', skip);
+
+const ease = x => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
+const lerp = (a, b, f) => a + (b - a) * f;
+const COLORS = { water: '#4fb3d9', ice: '#e8f1f5', land: '#b49a60', orbit: '#6f5fbf' };
+
+function drawRoute(r, frac, alpha, width) {
+  const n = Math.max(2, Math.floor(r.path.length * frac));
+  cx.save(); cx.globalAlpha = alpha; cx.lineJoin = 'round'; cx.lineCap = 'round';
+  cx.strokeStyle = 'rgba(0,0,0,.55)'; cx.lineWidth = width + 3; cx.setLineDash(r.orbit ? [6, 5] : []);
+  cx.beginPath();
+  let prev = null;
+  for (let i = 0; i < n; i++) {
+    const [x, y] = toScreen(...r.path[i]);
+    if (prev && Math.abs(x - prev) > W * 0.5) cx.moveTo(x, y); else if (i) cx.lineTo(x, y); else cx.moveTo(x, y);
+    prev = x;
+  }
+  cx.stroke();
+  cx.strokeStyle = r.col; cx.lineWidth = width; cx.stroke();
+  cx.restore();
+  if (frac > 0 && frac < 1) {                       // the craft drawing it
+    const [x, y] = toScreen(...r.path[n - 1]);
+    cx.fillStyle = '#ffffff'; cx.beginPath(); cx.arc(x, y, 3.2, 0, 7); cx.fill();
+  }
+}
+function pin(p, label, sub, a, pulse) {
+  const [x, y] = toScreen(p.lat, p.lon);
+  cx.save(); cx.globalAlpha = a;
+  cx.strokeStyle = '#ffd070'; cx.lineWidth = 1.5;
+  cx.beginPath(); cx.arc(x, y, 7 + pulse * 10, 0, 7); cx.globalAlpha = a * (1 - pulse); cx.stroke();
+  cx.globalAlpha = a; cx.fillStyle = '#ffd070'; cx.beginPath(); cx.arc(x, y, 4.5, 0, 7); cx.fill();
+  cx.font = '12px ui-monospace, Menlo, Consolas, monospace'; cx.textBaseline = 'middle';
+  cx.shadowColor = 'rgba(0,0,0,.95)'; cx.shadowBlur = 4;
+  cx.fillStyle = '#ffd070'; cx.fillText(label.split('').join('\u2009'), x + 14, y - 7);
+  cx.fillStyle = '#9fb3c2'; cx.font = '10px ui-monospace, Menlo, Consolas, monospace'; cx.fillText(sub, x + 14, y + 8);
+  cx.restore();
+}
+
+function draw(now) {
+  const t = (now - t0) / 1000;
+  /* the camera: in on Giza, out to the whole route, easing */
+  const out = ease((t - 1.6) / 1.8);
+  scale = lerp(2.8, W > 760 ? 1.12 : 1.3, out);
+  /* the whole route framed in the space left of the panel on a wide screen */
+  const free = W > 760 ? W - 440 : W, pxPerDeg = mapW * scale / 360;
+  const whole = [40, -47 + (W / 2 - free / 2) / pxPerDeg];
+  focus = [lerp(GIZA.lat, whole[0], out), lerp(GIZA.lon, whole[1], out)];
+
+  cx.fillStyle = '#03050a'; cx.fillRect(0, 0, W, H);
+  const [x0, y0] = toScreen(90, -180);
+  cx.globalAlpha = ease(t / 0.8);
+  cx.drawImage(img, x0, y0, mapW * scale, mapH * scale);
+  cx.globalAlpha = 1;
+  cx.fillStyle = 'rgba(3,5,10,.25)'; cx.fillRect(0, 0, W, H);          // a little dimmer, so the lines read
+
+  /* the routes */
+  ROUTES.forEach((r, i) => {
+    const s = SCRIPT.find(q => q.route === i);
+    const frac = ease((t - s.t) / 1.5);
+    if (frac <= 0) return;
+    const dim = chosen >= 0 && chosen !== i;
+    drawRoute(r, frac, dim ? 0.25 : 1, chosen === i ? 3.2 : 2);
+  });
+
+  pin(GIZA, GIZA.name, GIZA.sub, ease(t / 0.8), (t * 0.7) % 1);
+  if (t > 2.2) pin(DEST, DEST.name, DEST.sub, ease((t - 2.2) / 0.6), ((t - 2.2) * 0.7) % 1);
+
+  /* captions */
+  const cur = [...SCRIPT].reverse().find(q => t >= q.t);
+  if (t < END + 0.3 && cur) { capEl.textContent = cur.cap; capEl.classList.add('on'); } else capEl.classList.remove('on');
+  if (t >= END && !shown) { shown = true; document.getElementById('panel').classList.add('on'); document.getElementById('skip').style.display = 'none'; }
+
+  requestAnimationFrame(draw);
+}
+
+/* ============================================================== the choice */
+const goBtn = document.getElementById('go');
+function buildCards() {
+  const box = document.getElementById('cards');
+  ROUTES.forEach((r, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'card'; b.setAttribute('aria-pressed', 'false');
+    const mix = ['water', 'ice', 'land', 'orbit'].filter(k => r.mix[k] > 0)
+      .map(k => `<i style="width:${(r.mix[k] / r.km * 100).toFixed(1)}%;background:${COLORS[k]}" title="${k}"></i>`).join('');
+    const parts = ['water', 'ice', 'land', 'orbit'].filter(k => r.mix[k] / r.km >= 0.01)
+      .map(k => k + ' ' + Math.round(r.mix[k] / r.km * 100) + '%').join(' · ');
+    b.innerHTML = `<span class="top"><span class="n" style="color:${r.col}">${i + 1} · ${r.n}</span>
+      <span class="d">${Math.round(r.km).toLocaleString('en-GB')} km</span></span>
+      <span class="mix">${mix}</span><span class="via">${parts}</span>
+      <span class="via">${r.via}</span><span class="say">${r.say}</span>`;
+    b.addEventListener('click', () => pick(i));
+    box.appendChild(b);
+    r.btn = b;
+  });
+}
+function pick(i) {
+  chosen = i;
+  ROUTES.forEach((r, k) => r.btn.setAttribute('aria-pressed', k === i ? 'true' : 'false'));
+  const r = ROUTES[i];
+  if (r.go) { goBtn.disabled = false; goBtn.textContent = 'GO · ' + r.n; }
+  else { goBtn.disabled = true; goBtn.textContent = r.n + ' · NOT BUILT YET'; }
+}
+goBtn.addEventListener('click', () => { const r = ROUTES[chosen]; if (r && r.go) location.href = r.go; });
+addEventListener('keydown', e => {
+  if (e.key >= '1' && e.key <= '4') { skip(); pick(+e.key - 1); }
+  if (e.key === 'Enter' && chosen >= 0 && ROUTES[chosen].go) location.href = ROUTES[chosen].go;
+  if (e.key === ' ' || e.key === 'Escape') skip();
+});
+</script>
+</body></html>
