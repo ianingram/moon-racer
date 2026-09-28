@@ -72,7 +72,7 @@ canvas{display:block;position:fixed;inset:0}
 </style></head><body>
 
 <canvas id="map" aria-label="Map of the Earth with the routes from Giza to Hells Canyon"></canvas>
-<div class="hud" id="title"><div class="a">MOON RACER</div><div class="b">LEG ONE · THE START</div></div>
+<div class="hud" id="title"><a class="a" href="index.html" style="text-decoration:none;display:block">MOON RACER</a><div class="b">LEG ONE · THE START</div></div>
 <div class="hud" id="skip">CLICK TO SKIP</div>
 <div class="hud" id="caption"></div>
 <div class="hud" id="panel" role="group" aria-label="Choose a route">
@@ -80,6 +80,7 @@ canvas{display:block;position:fixed;inset:0}
   <div id="cards"></div>
   <div class="legend"><span style="--c:#4fb3d9">WATER</span><span style="--c:#e8f1f5">ICE</span><span style="--c:#b49a60">LAND</span><span style="--c:#6f5fbf">ORBIT</span></div>
   <button type="button" id="go" disabled>CHOOSE A ROUTE</button>
+  <a href="manual.html" target="_blank" rel="noopener" style="display:block;text-align:center;padding:8px;font-size:10.5px;letter-spacing:.22em;color:var(--dim);text-decoration:none;border:1px solid rgba(159,179,194,.3)">READ THE PILOT'S MANUAL FIRST ↗</a>
 </div>
 
 <script>

@@ -94,6 +94,30 @@ canvas#gl{display:block;position:fixed;inset:0;touch-action:none}
   text-shadow:0 1px 3px rgba(0,0,0,.9);transform:translate(10px,-50%);white-space:nowrap}
 .tag.site{color:var(--brass)}
 #hint{right:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));font-size:10.5px;letter-spacing:.16em;color:var(--dim)}
+#copilot{position:fixed;z-index:7;max-width:380px;padding:10px 14px;background:rgba(6,10,16,.78);border:1px solid rgba(255,208,112,.35);
+  font-size:12px;line-height:1.55;letter-spacing:.04em;color:var(--ink);opacity:0;transform:translateY(6px);transition:opacity .35s,transform .35s;pointer-events:none}
+#copilot.on{opacity:1;transform:none}
+#copilot .who{display:block;font-size:9.5px;letter-spacing:.26em;color:var(--brass);margin-bottom:3px}
+#copBar{position:fixed;z-index:7;display:flex;gap:6px}
+#copBar button{font:10px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.18em;padding:7px 9px;cursor:pointer;color:var(--dim);
+  background:rgba(6,10,16,.55);border:1px solid rgba(159,179,194,.35)}
+#copBar button:hover{color:var(--ink);border-color:var(--brass)}
+#copBar button[aria-pressed="true"]{color:var(--brass);border-color:rgba(255,208,112,.6)}
+#copBar button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+#askBox{position:fixed;z-index:9;left:50%;top:38%;transform:translateX(-50%);width:min(560px,90vw);display:none;padding:14px;
+  background:rgba(6,10,16,.94);border:1px solid rgba(255,208,112,.5)}
+#askBox.on{display:block}
+#askBox label{display:block;font-size:10px;letter-spacing:.24em;color:var(--brass);margin-bottom:8px}
+#askIn{width:100%;font:14px ui-monospace,Menlo,Consolas,monospace;color:var(--ink);background:#0b1118;border:1px solid rgba(159,179,194,.4);padding:10px}
+#askIn:focus{outline:2px solid var(--brass);outline-offset:1px}
+#manualBox{position:fixed;inset:0;z-index:20;display:none;background:rgba(3,5,8,.86)}
+#manualBox.on{display:flex;flex-direction:column}
+#manualBox .bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:10.5px;letter-spacing:.24em;color:var(--brass)}
+#manualBox button{font:11px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.2em;padding:9px 12px;cursor:pointer;color:#1c140b;background:var(--gold);border:1px solid var(--gold)}
+#manualBox iframe{flex:1;width:min(980px,100%);margin:0 auto 16px;border:1px solid rgba(232,223,200,.2);background:#070b10}
+#copilot{left:20px;top:calc(150px + env(safe-area-inset-top,0px))}
+#copBar{left:20px;top:calc(108px + env(safe-area-inset-top,0px))}
+@media (max-width:760px){ #copilot{top:auto;bottom:calc(170px + env(safe-area-inset-bottom,0px));right:12px;left:12px;max-width:none} #copBar{left:12px} }
 #nogl{display:none;padding:40px;max-width:640px}
 @media (max-width:760px){
   #leg{left:12px;right:12px;width:auto;padding:12px 14px;gap:8px}
@@ -102,7 +126,7 @@ canvas#gl{display:block;position:fixed;inset:0;touch-action:none}
   #title{left:12px} #hint{display:none} .tag{font-size:9.5px} }
 </style></head><body>
 
-<div class="hud" id="title"><div class="a">MOON RACER</div><div class="b">THE GLOBE · LEG ONE</div>
+<div class="hud" id="title"><a class="a" href="index.html" style="text-decoration:none;display:block" title="Home">MOON RACER</a><div class="b">THE GLOBE · LEG ONE</div>
   <button type="button" id="look" aria-pressed="false" title="Imagery (I)">IMAGERY</button></div>
 <div class="hud" id="tele">
   <div class="row">RACE <b id="clock">0:00.0</b></div>
@@ -123,12 +147,16 @@ canvas#gl{display:block;position:fixed;inset:0;touch-action:none}
   <div class="route">GIZA → HELLS CANYON</div>
   <div class="facts">11,041 km · 99° round the Earth · lane tilted 70.8°<br>
     over Poland, the Greenland Sea and Hudson Bay · 2,000 km up</div>
-  <div class="keys" id="keys">E / Q THROTTLE · ↑ ↓ CLIMB / DIVE · SPACE VENT<br>climb gently · open up in the vacuum · slow before you come down</div>
+  <div class="keys" id="keys">E / Q THROTTLE · ↑ ↓ CLIMB / DIVE · SPACE VENT · P PAUSE<br>hold ↑ to climb out · open up in the vacuum · brake before you come down</div>
   <button type="button" id="launch">LAUNCH</button>
   <a class="go" id="go" href="hells-canyon.html">FLY STAGE ONE →</a>
 </div>
 <div id="msg"></div>
 <div class="hud" id="hint">drag to turn · scroll to zoom · I imagery · G glow</div>
+<div id="copilot" role="status" aria-live="polite"><span class="who">COPILOT · PATHFINDER</span><span id="copText"></span></div>
+<div id="copBar"><button type="button" id="copManual" title="Manual (M) — pauses">MANUAL</button><button type="button" id="copAsk" title="Ask (/)">ASK</button><button type="button" id="copVoice" aria-pressed="true" title="Voice (V)">VOICE</button></div>
+<div id="askBox" role="dialog" aria-label="Ask the copilot"><label for="askIn">ASK THE COPILOT · ENTER TO ASK · ESC TO CLOSE</label><input id="askIn" type="text" autocomplete="off" placeholder="why do my engines keep cutting out?"></div>
+<div id="manualBox" role="dialog" aria-label="Pilot's manual"><div class="bar"><span>THE PILOT'S MANUAL · THE FLIGHT IS PAUSED</span><button type="button" id="manualClose">CLOSE · FLY ON</button></div><iframe id="manualFrame" title="Pilot's manual"></iframe></div>
 <div id="nogl"><h1 style="font-weight:400;letter-spacing:.3em;color:#ffd070">MOON RACER</h1><p>The globe needs WebGL, which this browser has turned off.</p></div>
 
 <script type="module">
@@ -367,7 +395,9 @@ const MOON_KM = 384400, DAY_S = 86400, STARDUST_V = MOON_KM / DAY_S;     // 4.45
 const stardustKgPerS = v => Math.pow(v / STARDUST_V, 2) / DAY_S;
 const SCALE_H = 8.5;                  // the air thins by e every 8.5 km
 const ARRIVE_KM = 40, OVERSHOOT_KM = 300;
-const F = { flying: false, arc: 0, h: 0, v: 0, throttle: 0.15, fuel: 1, heat: 0.1, cold: 0, ice: 0, cut: 0, t: 0, done: false };
+const F = { flying: false, arc: 0, h: 0, v: 0, throttle: 0.15, fuel: 1, heat: 0.1, cold: 0, ice: 0, cut: 0, t: 0, done: false, reserve: 0.03, paused: false };
+const HEAT_MAX = 1.5;                 // heat can climb no higher than this, however hard it is pushed
+const LIFT_S = 4;                     // the first seconds after launch, the craft lifts itself off
 
 /* THE RACE, handed between pages */
 const RACE_KEY = 'moonracer.race';
@@ -383,6 +413,137 @@ const keys = {};
 addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true;
   if (F.flying && ['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(e.key.toLowerCase())) e.preventDefault(); });
 addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+/* P or Escape pauses the flight */
+addEventListener('keydown', e => { if ((e.key === 'p' || e.key === 'P' || e.key === 'Escape') && F.flying) { F.paused = !F.paused; if (!F.paused) msgEl.classList.remove('on'); } });
+function copilotPaused() { return F.paused; }
+function copilotPause(on) { F.paused = on; if (!on) msgEl.classList.remove('on'); }
+/* ================================================================ the copilot
+   It speaks through the pathfinder. It watches the craft and calls out what
+   matters, one thing at a time — highest priority first, never the same
+   thing twice in a short while — on screen and, unless muted (V), aloud in
+   the browser's own voice. / asks it a question, answered from the manual.
+   M opens the manual and pauses the flight. */
+const COP = { voice: true, last: {}, busyUntil: 0, pri: 0, once: {}, cutWas: 0 };
+try { COP.voice = localStorage.getItem('moonracer.voice') !== 'off'; } catch (e) {}
+const copEl = document.getElementById('copilot'), copText = document.getElementById('copText');
+let copVoice = null;
+function pickVoice() {
+  if (!('speechSynthesis' in window)) return;
+  const vs = speechSynthesis.getVoices();
+  copVoice = vs.find(v => /en-GB/i.test(v.lang) && /Daniel|Arthur|Serena|Kate|Google UK/i.test(v.name))
+          || vs.find(v => /en-GB/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
+}
+if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function copNow() { return performance.now() / 1000; }
+/* say something: key throttles repeats (cool seconds), pri decides interrupts */
+function copSay(text, key, pri, cool) {
+  pri = pri || 1; cool = cool === undefined ? 20 : cool;
+  const now = copNow();
+  if (key) { if (key.startsWith('!') ? COP.once[key] : now - (COP.last[key] || -1e9) < cool) return false;
+             if (key.startsWith('!')) COP.once[key] = true; COP.last[key] = now; }
+  if (now < COP.busyUntil && pri <= COP.pri) return false;
+  COP.pri = pri; COP.busyUntil = now + Math.max(3.5, text.length * 0.065);
+  copText.textContent = text; copEl.classList.add('on');
+  clearTimeout(COP.hide); COP.hide = setTimeout(() => copEl.classList.remove('on'), (COP.busyUntil - now + 2.5) * 1000);
+  if (COP.voice && 'speechSynthesis' in window) {
+    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text.replace(/·/g, ',').replace(/—/g, ','));
+      if (copVoice) u.voice = copVoice; u.rate = 1.04; u.pitch = 0.95; speechSynthesis.speak(u); } catch (e) {}
+  }
+  console.log('[moon-racer] copilot: ' + text);
+  return true;
+}
+function copVoiceToggle() {
+  COP.voice = !COP.voice;
+  try { localStorage.setItem('moonracer.voice', COP.voice ? 'on' : 'off'); } catch (e) {}
+  if (!COP.voice && 'speechSynthesis' in window) speechSynthesis.cancel();
+  document.getElementById('copVoice').setAttribute('aria-pressed', COP.voice ? 'true' : 'false');
+  copSay(COP.voice ? 'Voice on.' : 'Voice off — I\u2019ll keep writing.', null, 4);
+}
+document.getElementById('copVoice').setAttribute('aria-pressed', COP.voice ? 'true' : 'false');
+document.getElementById('copVoice').addEventListener('click', copVoiceToggle);
+
+/* ASKING: answers from the manual, matched by the words in the question */
+const COP_KB = [
+  { k: ['refuel', 'fuel', 'drink', 'water', 'tank', 'empty'], a: 'Fly within about seventy-five metres of any open water, over the water itself, and the tank fills fast. Dense cloud gives a steady drink, rain a moderate one. Up high there is nothing to drink.' },
+  { k: ['cut', 'cutting', 'overheat', 'hot', 'heat', 'stop', 'engines'], a: 'The engines cut out at a hundred percent heat, and come back at fifty-five. Heat comes from speed and thick air. Watch the green tick on the heat bar: if it is past the end, ease off, climb, or hold space to vent.' },
+  { k: ['broke', 'breakdown', 'broken'], a: 'Push past a hundred and twenty percent heat and the engines break down. They stay out until heat falls to thirty percent. Glide, keep off the walls, and let the air cool you.' },
+  { k: ['vent', 'space', 'vortex', 'cool', 'cooling'], a: 'Hold space to vent. The wake vortex spins up and sheds heat three times as fast, but its drag costs speed. It needs air: in a vacuum it does almost nothing.' },
+  { k: ['cold', 'core', 'bank'], a: 'Venting also banks cold in the vortex core. Let go of space and the banked cold soaks up engine heat until it is spent. Vent in a calm stretch, then run hard on the cold you saved.' },
+  { k: ['ice', 'iced', 'frost', 'choke', 'power'], a: 'Past two-thirds cold, ice forms, fast in wet air. It steals up to sixty percent of your power and weighs you down; full ice chokes the intakes. Stop venting, leave the wet air, or run warmer. Heat melts it.' },
+  { k: ['stardust', 'karman', 'space', 'vacuum', 'moon'], a: 'The stardust engine idles inside the atmosphere and wakes past the Kármán line, a hundred kilometres up. One kilogram of water carries the craft to the Moon in a day. Faster costs more, as the square of the speed.' },
+  { k: ['brake', 'slow', 'braking', 'overshoot', 'reserve'], a: 'In space there is no air to slow you: pull the throttle back and the engines brake, which burns fuel. About thirteen hundred kilometres out, brake, then dive. A three hundred gram reserve is kept for the brakes alone.' },
+  { k: ['climb', 'launch', 'take', 'off', 'altitude', 'up'], a: 'Hold the up arrow to climb out. The craft lifts itself off for the first few seconds. Open the throttle once the air has thinned — near the ground, speed cooks the engines.' },
+  { k: ['lane', 'orbit', 'great', 'circle', 'route'], a: 'A lane is the great circle through two places, lifted into orbit. It passes straight over both ends. Below the lane you are held to sixty percent of full speed; in it you have everything.' },
+  { k: ['gate', 'gates', 'ring', 'rings', 'missed'], a: 'Gates are the gold rings over the water. Fly through them. A missed gate costs three seconds, a wall two seconds and a jolt of heat.' },
+  { k: ['land', 'landing', 'pyramid', 'beacon', 'finish', 'field', 'end'], a: 'A leg ends only when you land. After the last gate, follow the beacon to the pyramid and set down inside the gold ring, below about ninety speed.' },
+  { k: ['pathfinder', 'companion', 'guide', 'trace', 'line'], a: 'I fly ahead of you at your pace and trace the route in gold. If you get into trouble I come back, show you the way to water, and can call in rain.' },
+  { k: ['rain', 'cloud', 'clouds'], a: 'Fly into a dense cloud to drink steadily. If you are low on fuel and far from water, I can call in rain over you for fifteen seconds.' },
+  { k: ['turn', 'steer', 'wall', 'walls', 'bend', 'crash'], a: 'Left and right turn. Turning gets weaker the faster you go, so take tight bends slower, or you will clip the wall.' },
+  { k: ['pause', 'stop', 'manual', 'help', 'keys', 'controls'], a: 'P or Escape pauses. M opens the manual. V turns my voice on or off. Slash asks me something. E and Q throttle, arrows climb, dive and turn, space vents.' },
+  { k: ['speed', 'c', 'light', 'fast'], a: 'Speed is shown as a fraction of the speed of light, scaled for play. Near light speed inside the air cooks the engines; in the vacuum it costs nothing but fuel.' }
+];
+function copAnswer(q) {
+  const words = q.toLowerCase().replace(/[^a-z\u00e1 ]/g, ' ').split(/\s+/).filter(Boolean);
+  let best = null, score = 0;
+  for (const e of COP_KB) { const sc = e.k.reduce((n, k) => n + (words.some(w => w === k || (k.length > 3 && w.startsWith(k))) ? 1 : 0), 0);
+    if (sc > score) { score = sc; best = e; } }
+  return best ? best.a : 'I don\u2019t have that one. Press M for the manual — it covers the engines, navigation and landing.';
+}
+const askBox = document.getElementById('askBox'), askIn = document.getElementById('askIn');
+function openAsk() { askBox.classList.add('on'); askIn.value = ''; askIn.focus(); }
+function closeAsk() { askBox.classList.remove('on'); askIn.blur(); }
+['keydown', 'keyup'].forEach(t => askIn.addEventListener(t, e => {
+  e.stopPropagation();                                       // typing a question never flies the craft
+  if (t === 'keydown' && e.key === 'Enter') { const q = askIn.value.trim(); closeAsk(); if (q) copSay(copAnswer(q), null, 9); }   // an answer always shows
+  if (t === 'keydown' && e.key === 'Escape') closeAsk();
+}));
+document.getElementById('copAsk').addEventListener('click', openAsk);
+
+/* THE MANUAL over the game; pauses while it is open */
+const manualBox = document.getElementById('manualBox'), manualFrame = document.getElementById('manualFrame');
+function manualURL() { return location.hostname === 'ianingram.github.io' || /^(localhost|127\.)/.test(location.hostname) ? 'manual.html'
+  : 'https://ianingram.github.io/moon-racer/manual.html'; }
+function openManual() {
+  if (!manualFrame.src) manualFrame.src = manualURL();
+  COP.wasPaused = copilotPaused(); copilotPause(true);
+  manualBox.classList.add('on'); document.getElementById('manualClose').focus();
+}
+function closeManual() { manualBox.classList.remove('on'); if (!COP.wasPaused) copilotPause(false); }
+document.getElementById('copManual').addEventListener('click', openManual);
+document.getElementById('manualClose').addEventListener('click', closeManual);
+addEventListener('keydown', e => {
+  if (e.target === askIn) return;
+  /* while the question box is open, no key reaches the craft */
+  if (askBox.classList.contains('on')) { e.stopImmediatePropagation(); if (e.key === 'Escape') closeAsk(); else askIn.focus(); return; }
+  if (manualBox.classList.contains('on')) { if (e.key === 'Escape' || e.key === 'm' || e.key === 'M') { e.stopImmediatePropagation(); closeManual(); } return; }
+  if (e.key === 'm' || e.key === 'M') openManual();
+  if (e.key === 'v' || e.key === 'V') copVoiceToggle();
+  if (e.key === '/' || e.key === '?') { e.preventDefault(); openAsk(); }
+}, true);
+
+/* what the copilot watches on the lane */
+function copRules() {
+  if (!F.flying && !F.done) { copSay('Giza. The lane to Hells Canyon is set — eleven thousand kilometres. Launch when ready; M for the manual.', '!ready', 1); return; }
+  if (F.done) { copSay('Canyon entry. The run starts from here — fly stage one.', '!arrived', 5); return; }
+  copSay('Lifting off. Hold the up arrow to climb out; open the throttle once the air thins.', '!launch', 3);
+  if (F.cut !== COP.cutWas) {                    // engine states: said once, when they change
+    COP.cutWas = F.cut;
+    if (F.cut === 2) copSay('Engines broken down — too hot. Let the air cool you; they come back at thirty percent.', null, 4);
+    else if (F.cut === 1) copSay('Engines cut — heat. Climb out of the thick air or vent.', null, 3);
+    else if (F.cut === 3) copSay('Intakes iced. Let go of space.', null, 4);
+    else copSay('Engines back.', null, 2);
+  }
+  if (F.h > 45 && F.h < 100 && F.throttle < 0.5) copSay('The air\u2019s thin now. Open her up.', '!open', 2);
+  if (F.stardust) copSay('Past the Kármán line. Stardust engine active — one kilogram to the Moon in a day.', '!stardust', 3);
+  if (F.h > 1500) copSay('In the lane. Everything\u2019s available now.', '!lane', 2);
+  if (craft.position.clone().sub(B).dot(bn) > 0.01) copSay('Hells Canyon\u2019s over the horizon.', '!sight', 2);
+  const togo = (ARC - F.arc) * EARTH_KM;
+  if (togo < 1800 && togo > 200 && F.v > 80) copSay('Canyon\u2019s close. Pull the throttle back to brake, then dive.', 'brake', 4, 25);
+  if (togo < 200 && F.h > 25 && F.v < 60) copSay('Over the entry. Dive — down below twenty-five kilometres.', 'dive', 3, 20);
+  if (F.cut <= 0 && (F.heatEq || 0) > 1.02 && F.heat > 0.5) copSay('Heat will settle over the limit. Slow down, climb, or vent.', 'heat', 2, 20);
+  if (F.fuel < 0.25 && F.fuel > 0) copSay('Fuel\u2019s low, and up here there\u2019s nothing to drink. Keep enough to brake.', 'fuel', 2, 40);
+  if (F.ice > 0.3 && F.cut !== 3) copSay('Ice on the intakes. Let go of space.', 'ice', 2, 20);
+}
 
 const msgEl = document.getElementById('msg'); let msgUntil = 0, clockS = 0;
 function say(t, secs) { msgEl.textContent = t; msgEl.classList.add('on'); msgUntil = clockS + (secs || 1.8); }
@@ -394,12 +555,19 @@ launchBtn.addEventListener('click', () => {
   F.flying = true; trailN = 0;
   launchBtn.disabled = true; launchBtn.textContent = 'IN FLIGHT';
   document.getElementById('keys').style.display = 'block';
-  say('CLIMB GENTLY · THE AIR IS THICK', 2.5);
+  say('HOLD ↑ TO CLIMB OUT · OPEN UP ONCE THE AIR IS GONE', 3.2);
   console.log('[moon-racer] launch: Giza → Hells Canyon');
 });
 
 function fly(dt) {
-  const climb = (keys['arrowup'] || keys['w'] ? 1 : 0) - (keys['arrowdown'] || keys['s'] ? 1 : 0);
+  /* lift-off: for the first seconds the craft climbs by itself, unless you
+     dive; after that, sitting low with the throttle open is called out */
+  let climb = (keys['arrowup'] || keys['w'] ? 1 : 0) - (keys['arrowdown'] || keys['s'] ? 1 : 0);
+  if (F.t < LIFT_S && climb === 0) climb = 1;
+  if (F.t > LIFT_S && F.h < 8 && F.throttle > 0.2 && climb <= 0 && !F.done) {
+    F.lowT = (F.lowT || 0) + dt;
+    if (F.lowT > 2.5) { F.lowT = 0; say('HOLD ↑ TO CLIMB · THE THICK AIR IS COOKING YOU', 2.6); }
+  } else F.lowT = 0;
   if (keys['e']) F.throttle = Math.min(1, F.throttle + dt * 0.6);
   if (keys['q']) F.throttle = Math.max(0, F.throttle - dt * 0.6);
   const rho = Math.exp(-F.h / SCALE_H);
@@ -420,9 +588,16 @@ function fly(dt) {
      vacuum there is none, so the engines brake instead — reverse thrust,
      and it burns fuel. Dry, or with the engines out, you just coast. */
   else {
-    const brake = F.cut <= 0 && F.fuel > 0 ? 0.6 : 0;
+    /* THE RESERVE: 300 g held back that only the brakes can draw on, so a
+       dry tank in space can still stop and come down */
+    const canBrake = F.cut <= 0 && (F.fuel > 0 || F.reserve > 0);
+    const brake = canBrake ? 0.6 : 0;
     F.v -= (F.v - want) * Math.min(1, dt * (0.02 + 0.8 * rho + brake));
-    if (brake) F.fuel = Math.max(0, F.fuel - (F.h >= KARMAN_KM ? stardustKgPerS(F.v - want) / TANK_KG : (F.v - want) / VMAX * 0.02) * dt);
+    if (brake) {
+      const use = (F.h >= KARMAN_KM ? stardustKgPerS(F.v - want) / TANK_KG : (F.v - want) / VMAX * 0.02) * dt;
+      if (F.fuel > 0) F.fuel = Math.max(0, F.fuel - use);
+      else { F.reserve = Math.max(0, F.reserve - use); if (!F.onReserve) { F.onReserve = true; say('BRAKING ON THE RESERVE', 2.2); } }
+    }
   }
 
   /* climb needs thrust; falling does not — and falls fast through the
@@ -440,7 +615,7 @@ function fly(dt) {
   const venting = !!keys[' '];
   const coldAir = Math.min(1, F.h / 11);
   const shedRate = (0.02 + 0.14 * rho * (1 + 1.5 * coldAir)) * (venting ? 3 : 1);
-  F.heat = Math.max(0, F.heat + (gain - F.heat * shedRate) * dt);
+  F.heat = Math.min(HEAT_MAX, Math.max(0, F.heat + (gain - F.heat * shedRate) * dt));
   F.heatEq = gain / shedRate; F.venting = venting;
   /* the cold core and ice, as in the canyon: venting banks cold (it needs
      air to spin); stopped, the cold soaks up heat; past two-thirds, ice
@@ -521,7 +696,8 @@ function hud(pos, speed) {
   $('clock').textContent = fmt(raceT0 + F.t) + (race ? '' : ' · practice');
   $('fuelB').style.width = (F.fuel * 100).toFixed(1) + '%';
   $('fuelB').style.background = F.fuel < 0.2 ? '#ff7a5c' : '#f2efe6';
-  $('fuelT').textContent = Math.round(F.fuel * 100) + '% · ' + (F.fuel * TANK_KG).toFixed(1) + ' kg';
+  $('fuelT').textContent = F.fuel > 0 ? Math.round(F.fuel * 100) + '% · ' + (F.fuel * TANK_KG).toFixed(1) + ' kg'
+    : 'DRY · RESERVE ' + (F.reserve * TANK_KG).toFixed(2) + ' kg, BRAKES ONLY';
   $('sdT').textContent = F.stardust ? 'ACTIVE · ' + (stardustKgPerS(F.v) * 1000).toFixed(1) + ' g/s' : 'IDLE · IN THE ATMOSPHERE · ' + Math.max(0, Math.round(KARMAN_KM - F.h)) + ' km to space';
   $('sdT').style.color = F.stardust ? '#b8a6ff' : '';
   const hh = Math.min(1, F.heat);
@@ -529,6 +705,7 @@ function hud(pos, speed) {
   $('heatB').style.background = F.cut === 2 ? '#c0392b' : F.cut === 1 ? '#ff5a3c' : hh > 0.75 ? '#ffb347' : '#ffd070';
   $('heatT').textContent = F.cut === 2 ? 'BROKEN' : F.cut === 1 ? 'CUT' : F.venting && F.flying ? 'VENTING' : Math.round(hh * 100) + '%';
   $('heatE').style.left = Math.min(100, (F.heatEq || 0) * 100).toFixed(1) + '%';
+  if (F.paused) { msgEl.textContent = 'PAUSED · P TO GO ON'; msgEl.classList.add('on'); msgUntil = clockS + 0.2; }
   $('thr').textContent = Math.round(F.throttle * 100) + '%';
   $('coldB').style.width = (F.cold * 100).toFixed(1) + '%';
   $('coldB').style.background = F.ice > 0.05 ? '#f2f7ff' : F.cold > 0.66 ? '#bfe6ff' : '#6fb7e6';
@@ -574,7 +751,8 @@ function frame(now) {
 
   clockS += dt;
   let speed = F.v / VMAX;
-  if (F.flying) {
+  if (!F.paused) copRules();
+  if (F.flying && !F.paused) {
     fly(dt);
     speed = F.v / VMAX;
     const arc = F.arc, r = R + F.h * KM;

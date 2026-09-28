@@ -105,7 +105,7 @@ canvas#gl{display:block;position:fixed;inset:0}
 #msg.on{opacity:1}
 #map{right:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));background:rgba(8,12,18,.55);
   border:1px solid rgba(232,223,200,.22)}
-#keys{left:50%;top:calc(18px + env(safe-area-inset-top,0px));transform:translateX(-50%);font-size:10px;
+#keys{left:50%;top:calc(18px + env(safe-area-inset-top,0px));max-width:calc(100% - 520px);transform:translateX(-50%);font-size:10px;
   letter-spacing:.16em;color:var(--ink);opacity:.8;text-align:center}
 #end{position:fixed;inset:0;z-index:9;display:none;align-items:center;justify-content:center;background:rgba(5,9,14,.55)}
 #end .card{padding:26px 30px;background:rgba(8,12,18,.88);border:1px solid rgba(255,208,112,.5);min-width:320px;
@@ -114,13 +114,43 @@ canvas#gl{display:block;position:fixed;inset:0}
 #end .big{font-size:34px}
 #end .row{display:flex;justify-content:space-between;font-size:12px;letter-spacing:.12em;color:var(--dim)}
 #end .row b{font-weight:400;color:var(--ink)}
+#end .endlink{flex:1;min-height:40px;display:flex;align-items:center;justify-content:center;font-size:11px;letter-spacing:.2em;
+  color:var(--ink);text-decoration:none;border:1px solid rgba(159,179,194,.45)}
+#end .endlink:hover{border-color:var(--brass)}
 #end button{margin-top:8px;font:12px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.2em;min-height:42px;
   background:var(--gold);color:#1c140b;border:1px solid var(--gold);cursor:pointer}
+#copilot{position:fixed;z-index:7;max-width:380px;padding:10px 14px;background:rgba(6,10,16,.78);border:1px solid rgba(255,208,112,.35);
+  font-size:12px;line-height:1.55;letter-spacing:.04em;color:var(--ink);opacity:0;transform:translateY(6px);transition:opacity .35s,transform .35s;pointer-events:none}
+#copilot.on{opacity:1;transform:none}
+#copilot .who{display:block;font-size:9.5px;letter-spacing:.26em;color:var(--brass);margin-bottom:3px}
+#copBar{position:fixed;z-index:7;display:flex;gap:6px}
+#copBar button{font:10px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.18em;padding:7px 9px;cursor:pointer;color:var(--dim);
+  background:rgba(6,10,16,.55);border:1px solid rgba(159,179,194,.35)}
+#copBar button:hover{color:var(--ink);border-color:var(--brass)}
+#copBar button[aria-pressed="true"]{color:var(--brass);border-color:rgba(255,208,112,.6)}
+#copBar button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+#askBox{position:fixed;z-index:9;left:50%;top:38%;transform:translateX(-50%);width:min(560px,90vw);display:none;padding:14px;
+  background:rgba(6,10,16,.94);border:1px solid rgba(255,208,112,.5)}
+#askBox.on{display:block}
+#askBox label{display:block;font-size:10px;letter-spacing:.24em;color:var(--brass);margin-bottom:8px}
+#askIn{width:100%;font:14px ui-monospace,Menlo,Consolas,monospace;color:var(--ink);background:#0b1118;border:1px solid rgba(159,179,194,.4);padding:10px}
+#askIn:focus{outline:2px solid var(--brass);outline-offset:1px}
+#manualBox{position:fixed;inset:0;z-index:20;display:none;background:rgba(3,5,8,.86)}
+#manualBox.on{display:flex;flex-direction:column}
+#manualBox .bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:10.5px;letter-spacing:.24em;color:var(--brass)}
+#manualBox button{font:11px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.2em;padding:9px 12px;cursor:pointer;color:#1c140b;background:var(--gold);border:1px solid var(--gold)}
+#manualBox iframe{flex:1;width:min(980px,100%);margin:0 auto 16px;border:1px solid rgba(232,223,200,.2);background:#070b10}
+#copilot{left:20px;bottom:calc(122px + env(safe-area-inset-bottom,0px))}
+#copBar{right:20px;top:calc(104px + env(safe-area-inset-top,0px))}
+@media (max-width:760px){ #copilot{bottom:calc(170px + env(safe-area-inset-bottom,0px));right:20px;max-width:none} }
 #nogl{display:none;padding:40px;max-width:640px;color:#1c140b}
-@media (max-width:760px){ #map{display:none} #keys{display:none} .gauge{width:110px} }
+@media (max-width:1180px){ #keys{left:20px;top:calc(62px + env(safe-area-inset-top,0px));transform:none;max-width:60%;text-align:left} }
+@media (max-width:980px){ .gauge{width:112px} .read{min-width:70px} .read .v{font-size:16px} #gauges{gap:12px;padding:10px 12px} #map{width:130px;height:184px} }
+@media (max-width:760px){ #map{display:none} #keys{display:none}
+  #gauges{right:12px;left:12px;flex-wrap:wrap;gap:10px 14px} .gauge{width:calc(33% - 12px)} .read{min-width:0} }
 </style></head><body>
 
-<div class="hud" id="title"><div class="a">MOON RACER</div><div class="b">STAGE ONE · SNAKE RIVER · HELLS CANYON</div></div>
+<div class="hud" id="title"><a class="a" href="index.html" style="text-decoration:none;display:block" title="Home">MOON RACER</a><div class="b">STAGE ONE · SNAKE RIVER · HELLS CANYON</div></div>
 <div class="hud" id="clock"><div class="t" id="time">0:00.0</div><div class="g" id="gates">GATES 0 / 0</div><div class="g" id="best"></div></div>
 <div class="hud" id="msg"></div>
 <div class="hud" id="gauges">
@@ -132,16 +162,21 @@ canvas#gl{display:block;position:fixed;inset:0}
   <div class="read"><span class="l">ABOVE WATER</span><span class="v" id="alt">0 m</span></div>
 </div>
 <canvas class="hud" id="map" width="170" height="240" aria-label="Route map"></canvas>
-<div class="hud" id="keys">← → TURN · ↑ ↓ CLIMB / DIVE · SPACE VENT · E / Q THROTTLE · R RESTART · G GLOW</div>
+<div class="hud" id="keys">← → TURN · ↑ ↓ CLIMB / DIVE · SPACE VENT · E / Q THROTTLE · P PAUSE · R RESTART · G GLOW</div>
 <div id="end" role="dialog" aria-label="Stage result"><div class="card">
-  <h2>GRANDE RONDE · FINISH</h2>
+  <h2>DOWN ON CRAIG MOUNTAIN · FINISH</h2>
   <div class="big" id="endTime">0:00.0</div>
   <div class="row">GATES <b id="endGates"></b></div>
   <div class="row">MISSED GATES <b id="endPen"></b></div>
   <div class="row">BEST <b id="endBest"></b></div>
   <div class="row">LEG ONE, GIZA TO HERE <b id="endRace"></b></div>
   <button type="button" id="again">FLY IT AGAIN · R</button>
+  <div style="display:flex;gap:8px"><a class="endlink" href="start.html">NEW RACE</a><a class="endlink" href="index.html">HOME</a></div>
 </div></div>
+<div id="copilot" role="status" aria-live="polite"><span class="who">COPILOT · PATHFINDER</span><span id="copText"></span></div>
+<div id="copBar"><button type="button" id="copManual" title="Manual (M) — pauses">MANUAL</button><button type="button" id="copAsk" title="Ask (/)">ASK</button><button type="button" id="copVoice" aria-pressed="true" title="Voice (V)">VOICE</button></div>
+<div id="askBox" role="dialog" aria-label="Ask the copilot"><label for="askIn">ASK THE COPILOT · ENTER TO ASK · ESC TO CLOSE</label><input id="askIn" type="text" autocomplete="off" placeholder="why do my engines keep cutting out?"></div>
+<div id="manualBox" role="dialog" aria-label="Pilot's manual"><div class="bar"><span>THE PILOT'S MANUAL · THE FLIGHT IS PAUSED</span><button type="button" id="manualClose">CLOSE · FLY ON</button></div><iframe id="manualFrame" title="Pilot's manual"></iframe></div>
 <div id="nogl"><h1 style="font-weight:400;letter-spacing:.3em">MOON RACER</h1><p>This stage needs WebGL, which this browser has turned off.</p></div>
 
 <script type="module">
@@ -177,7 +212,7 @@ const toXZ = (lat, lon) => new THREE.Vector3((lon - LON0) * 111.32 * COS0 * KM, 
 const STEP = 20;                 // units between rows along the river
 const RIVER_W = 36;              // about 175 m of water
 const M_PER_UNIT = 4.85;         // metres in a unit, across and up
-const HALF = 2700;               // how far the land runs either side
+const HALF = 3000;               // how far the land runs either side (room for the landing fields)
 
 /* ------------------------------------------------------------- noise */
 function hash(x, y) { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); }
@@ -340,15 +375,66 @@ const RIVER_M = new Float32Array(ROWS);
     RIVER_M[ROWS - 1].toFixed(0) + ' m at the end');
 }
 
+/* ====================================================== the landing fields
+   Every landing zone is the same field as the one on Mars: a pyramid at the
+   centre, a gold ring round it, six runways running in, stands for the
+   fleet — at the same real size, in this stage's units. Each sits on a
+   real plateau, found in the height data as the flattest ground near that
+   end of the canyon, and the ground under it is levelled to the plateau's
+   own mean height, easing back into the real slopes round the edge:
+     THE RUN begins at the canyon's entry, the dam, straight out of
+             whatever route brought you from Giza; it ends only when you
+             land. Past the last gate you must find the nearby pyramid:
+     FINISH  Craig Mountain, Idaho, ~1,516 m, 6 km east of the river above
+             the Grande Ronde, its beacon lit.
+   Both lie alongside the river's course, so the stage's ground is under
+   them. */
+const FIELD_SIZE = {                     // metres, as on Mars, turned into units here
+  pyHalf: 306 / M_PER_UNIT, pyH: 391 / M_PER_UNIT, ringR: 1190 / M_PER_UNIT, ringW: 58 / M_PER_UNIT,
+  rwIn: 1250 / M_PER_UNIT, rwOut: 3655 / M_PER_UNIT, rwW: 102 / M_PER_UNIT, standR: 731 / M_PER_UNIT,
+  flatR: 3800 / M_PER_UNIT, blend: 900 / M_PER_UNIT
+};
+const FIELDS = [
+  { id: 'finish', name: 'CRAIG MOUNTAIN', lat: 46.045, lon: -116.824 }
+].map(f => {
+  const c = toXZ(f.lat, f.lon);
+  let sum = 0, n = 0;                      // the plateau's own mean height, over the ring
+  for (let r = 0; r <= FIELD_SIZE.ringR; r += FIELD_SIZE.ringR / 6)
+    for (let a = 0; a < Math.PI * 2; a += Math.PI / 12) { sum += demAt(c.clone().add(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r))); n++; }
+  return Object.assign(f, { c, levelM: sum / n });
+});
+const FIELD = { finish: FIELDS[0] };
+console.log('[moon-racer] landing fields: ' + FIELDS.map(f => f.name + ' at ' + Math.round(f.levelM) + ' m').join(', '));
+/* how much of a point's ground is the field's: 1 on the field, easing to 0 */
+function fieldPull(p) {
+  for (const f of FIELDS) {
+    const d = Math.hypot(p.x - f.c.x, p.z - f.c.z);
+    if (d < FIELD_SIZE.flatR + FIELD_SIZE.blend) {
+      const k = d <= FIELD_SIZE.flatR ? 1 : 1 - (d - FIELD_SIZE.flatR) / FIELD_SIZE.blend;
+      return [k * k * (3 - 2 * k), f];
+    }
+  }
+  return [0, null];
+}
+
 /* ------------------------------------------------------ the canyon's shape
    Now simply the real ground, measured up from the water, with a bed under
-   the river and banks that never dip below it. */
+   the river and banks that never dip below it — and levelled where a
+   landing field stands. */
 function height(i, u) {
   const x = Math.abs(u) - RIVER_W / 2;
   if (x < 0) return -8;
-  const y = (demAt(worldAt(i, OFF[i] + u)) - RIVER_M[i]) / M_PER_UNIT;
+  const p = worldAt(i, OFF[i] + u);
+  let y = (demAt(p) - RIVER_M[i]) / M_PER_UNIT;
+  /* on a field, level to the field's own height — set once, in these
+     units, so the whole field is one flat plane whatever row it spans */
+  const [k, f] = fieldPull(p);
+  if (k > 0) { if (f.y === undefined) f.y = fieldY(f); y += (f.y - y) * k; }
   return Math.max(y, Math.min(3, x * 0.25));
 }
+/* a field's level in this stage's height units, measured from the river at its nearest row */
+function fieldY(f) { const at = locateRow(f.c); return (f.levelM - RIVER_M[at]) / M_PER_UNIT; }
+function locateRow(p) { let bi = 0, bd = 1e18; for (let i = 0; i < ROWS; i += 2) { const d = A[i].distanceToSquared(p); if (d < bd) { bd = d; bi = i; } } return bi; }
 
 /* ================================================================ render */
 const scene = new THREE.Scene();
@@ -420,6 +506,88 @@ const U = [];
   g.setIndex(idx); g.computeVertexNormals();
   if (g.attributes.normal.getY(0) < 0) { g.index.array.reverse(); g.computeVertexNormals(); }
   scene.add(new THREE.Mesh(g, new THREE.MeshPhongMaterial({ color: 0x2c6472, specular: 0xbfe6ee, shininess: 80 })));
+}
+
+/* THE BEACON, as in the opening scene: a shaft of light standing straight
+   up out of the capstone, bright where it leaves the gold and gone by the
+   top. Additive and depth-free, so it adds to the sky rather than covering
+   it — and tall, so a field can be found from far off. */
+function beaconBeam(height, rBase) {
+  const c = document.createElement('canvas'); c.width = 4; c.height = 256; const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 256, 0, 0);
+  g.addColorStop(0.00, 'rgba(255,238,190,.95)'); g.addColorStop(0.12, 'rgba(255,224,150,.55)');
+  g.addColorStop(0.45, 'rgba(255,214,120,.18)'); g.addColorStop(0.78, 'rgba(255,206,110,.05)'); g.addColorStop(1.00, 'rgba(255,206,110,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 4, 256);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rBase * 0.17, rBase, height, 12, 1, true),
+    new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide, fog: false, opacity: 0.85 }));
+  m.renderOrder = 5;
+  return m;
+}
+
+/* the fields themselves: the Mars field, piece for piece */
+function fieldTex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; }
+const RWY_TEX = fieldTex(128, 256, (x, w, h) => { x.fillStyle = '#23262b'; x.fillRect(0, 0, w, h); x.fillStyle = '#e9e4d6';
+  x.fillRect(4, 0, 3, h); x.fillRect(w - 7, 0, 3, h); x.fillRect(w / 2 - 2, 0, 4, h * 0.55); });
+RWY_TEX.wrapT = THREE.RepeatWrapping;
+const FIELD_LIGHTS = new THREE.InstancedMesh(new THREE.SphereGeometry(0.9, 6, 4), new THREE.MeshBasicMaterial({ toneMapped: false }), 1600);
+FIELD_LIGHTS.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(1600 * 3), 3);
+let fieldLightN = 0;
+function fieldLight(x, y, z, c) { if (fieldLightN >= 1600) return; const m = new THREE.Matrix4().makeTranslation(x, y, z);
+  FIELD_LIGHTS.setMatrixAt(fieldLightN, m); FIELD_LIGHTS.instanceColor.setXYZ(fieldLightN, c[0], c[1], c[2]); fieldLightN++; }
+const STAND_COLS = [0x35e6ff, 0x7cff4f, 0xff2bd6, 0xff7a18, 0xffd23a, 0x9fb3c2];
+for (const f of FIELDS) {
+  const F = FIELD_SIZE, y0 = f.y === undefined ? (f.y = fieldY(f)) : f.y, g = new THREE.Group();
+  g.position.set(f.c.x, y0, f.c.z); f.group = g;
+  const flat = (w, l, mat) => { const geo = new THREE.PlaneGeometry(w, l); geo.rotateX(-Math.PI / 2); return new THREE.Mesh(geo, mat); };
+  for (let k = 0; k < 6; k++) {
+    const b = k * Math.PI / 3, ux = Math.sin(b), uz = -Math.cos(b), len = F.rwOut - F.rwIn, mid = (F.rwIn + F.rwOut) / 2;
+    const t = RWY_TEX.clone(); t.needsUpdate = true; t.repeat.set(1, len / (F.rwW * 1.6));
+    const rw = flat(F.rwW, len, new THREE.MeshStandardMaterial({ map: t, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+    rw.rotation.y = -b; rw.position.set(ux * mid, 0.3, uz * mid); g.add(rw);
+    const px = -uz, pz = ux, W2 = F.rwW / 2 + 1;
+    for (let d = F.rwIn; d <= F.rwOut; d += 14) for (const sgn of [-1, 1]) fieldLight(f.c.x + ux * d + px * sgn * W2, y0 + 1.2, f.c.z + uz * d + pz * sgn * W2, [2.6, 2.6, 2.4]);
+    for (let d = F.rwOut + 14; d <= F.rwOut + 90; d += 7) fieldLight(f.c.x + ux * d, y0 + 1.5, f.c.z + uz * d, [3.2, 2.2, 0.8]);
+  }
+  const ringGeo = new THREE.RingGeometry(F.ringR - F.ringW / 2, F.ringR + F.ringW / 2, 160, 1); ringGeo.rotateX(-Math.PI / 2);
+  const ring = new THREE.Mesh(ringGeo, new THREE.MeshStandardMaterial({ color: 0xd4af50, metalness: 0.75, roughness: 0.35, emissive: 0x3a2a08, emissiveIntensity: 0.4 }));
+  ring.position.y = 0.5; g.add(ring);
+  const apronGeo = new THREE.CircleGeometry(F.ringR - F.ringW / 2, 96); apronGeo.rotateX(-Math.PI / 2);
+  const apron = new THREE.Mesh(apronGeo, new THREE.MeshStandardMaterial({ color: 0x2b2d31, roughness: 0.92, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
+  apron.position.y = 0.2; g.add(apron);
+  for (let k = 0; k < 96; k++) { const a = k / 96 * Math.PI * 2; fieldLight(f.c.x + Math.cos(a) * (F.ringR + F.ringW), y0 + 1.2, f.c.z + Math.sin(a) * (F.ringR + F.ringW), [3.2, 2.2, 0.8]); }
+  for (let k = 0; k < 6; k++) {
+    const a = (k + 0.5) * Math.PI / 3, sx = Math.sin(a) * F.standR, sz = -Math.cos(a) * F.standR;
+    const pad = new THREE.Mesh(new THREE.CylinderGeometry(9, 10, 0.8, 40), new THREE.MeshStandardMaterial({ color: 0x3a3d42, roughness: 0.8 }));
+    pad.position.set(sx, 0.4, sz); g.add(pad);
+    const edge = new THREE.Mesh(new THREE.TorusGeometry(9.6, 0.4, 6, 48), new THREE.MeshBasicMaterial({ color: new THREE.Color(STAND_COLS[k]).multiplyScalar(2.2), toneMapped: false }));
+    edge.rotation.x = Math.PI / 2; edge.position.set(sx, 0.9, sz); g.add(edge);
+    if (k === 1) f.stand = new THREE.Vector3(f.c.x + sx, y0, f.c.z + sz);        // X's stand, the green one
+  }
+  const pyGeo = new THREE.ConeGeometry(F.pyHalf * Math.SQRT2, F.pyH, 4, 1); pyGeo.rotateY(Math.PI / 4);
+  const pyr = new THREE.Mesh(pyGeo, new THREE.MeshStandardMaterial({ color: 0x1c1a18, roughness: 0.55, metalness: 0.15, flatShading: true }));
+  pyr.position.y = F.pyH / 2; g.add(pyr);
+  const apex = new THREE.Vector3(0, F.pyH, 0), pts = [], H2 = F.pyHalf;
+  for (const [sx, sz] of [[1, 1], [1, -1], [-1, -1], [-1, 1]]) pts.push(apex, new THREE.Vector3(sx * H2, 0.3, sz * H2));
+  for (const [a, b] of [[[1, 1], [1, -1]], [[1, -1], [-1, -1]], [[-1, -1], [-1, 1]], [[-1, 1], [1, 1]]])
+    pts.push(new THREE.Vector3(a[0] * H2, 0.3, a[1] * H2), new THREE.Vector3(b[0] * H2, 0.3, b[1] * H2));
+  g.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: new THREE.Color(0xffd070).multiplyScalar(1.6), toneMapped: false })));
+  const beacon = new THREE.Mesh(new THREE.SphereGeometry(2.2, 16, 12), new THREE.MeshBasicMaterial({ color: new THREE.Color(4, 3.2, 1.6), toneMapped: false }));
+  beacon.position.y = F.pyH + 1.5; g.add(beacon); f.beacon = beacon;
+  const shaft = beaconBeam(F.pyH * 4, 4.5); shaft.position.y = F.pyH + F.pyH * 2; g.add(shaft); f.shaft = shaft;
+  scene.add(g);
+}
+FIELD_LIGHTS.count = fieldLightN; FIELD_LIGHTS.instanceMatrix.needsUpdate = true; FIELD_LIGHTS.instanceColor.needsUpdate = true;
+FIELD_LIGHTS.frustumCulled = false; scene.add(FIELD_LIGHTS);
+/* the pyramid is solid: the height of its faces over a point */
+function pyramidTop(p) {
+  for (const f of FIELDS) {
+    const dx = Math.abs(p.x - f.c.x), dz = Math.abs(p.z - f.c.z), m = Math.max(dx, dz);
+    if (m < FIELD_SIZE.pyHalf) return f.y + FIELD_SIZE.pyH * (1 - m / FIELD_SIZE.pyHalf);
+  }
+  return -1e9;
 }
 
 /* the dam across the canyon behind the start */
@@ -556,6 +724,10 @@ const traceDots = new THREE.Points(traceGeo, new THREE.PointsMaterial({ map: glo
   transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
 traceLine.frustumCulled = traceDots.frustumCulled = false;   // the trace grows as it goes; its bounds are never current
 scene.add(traceLine, traceDots);
+/* the gold dashed line: down into the canyon at the start, to the field at the end */
+const toField = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]),
+  new THREE.LineDashedMaterial({ color: new THREE.Color(2.6, 1.9, 0.7), dashSize: 10, gapSize: 8, toneMapped: false }));
+toField.frustumCulled = false; toField.visible = false; scene.add(toField);
 const PF = { row: 0, laid: 0, n: 0, mode: 'lead', pos: new THREE.Vector3(), why: '', since: 0, calm: 0, lastRain: -99, lastRow: 0, rowSpeed: 0 };
 
 /* the way to water: a dashed line from the craft down to the nearest
@@ -633,13 +805,15 @@ if (race) console.log('[moon-racer] race carried in: fuel ' + Math.round(race.fu
 else console.log('[moon-racer] no race in progress — practice run');
 const raceT0 = race ? race.t : 0;
 function reset() {
+  /* the canyon's entry, at the dam: the run begins here, straight off the
+     route from Giza */
   const i = 18, c = riverAt(i);
-  Object.assign(S, { pos: new THREE.Vector3(c.x, 10, c.z), yaw: Math.atan2(T[i].x, -T[i].z), pitch: 0, roll: 0,
+  Object.assign(S, { pos: new THREE.Vector3(c.x, 10, c.z), yaw: Math.atan2(T[i].x, -T[i].z), pitch: 0, roll: 0, phase: 'river', startY: 10,
     v: 0, throttle: 0.22, fuel: race ? race.fuel : 0.8, heat: race ? race.heat : 0.1, cold: race && race.cold || 0, ice: race && race.ice || 0, cut: 0, row: i, t: 0, started: false, count: 3,
     gatesDone: 0, missed: 0, over: false, hitT: -9 });
   gates.forEach(g => { g.done = false; g.mesh.visible = true; });
   PF.row = i; PF.laid = i; PF.n = 0; PF.mode = 'lead'; PF.since = 0; PF.calm = 0; PF.lastRow = i; PF.rowSpeed = 0;
-  PF.pos.copy(lineAt(i)); traceGeo.setDrawRange(0, 0);
+  PF.pos.copy(lineAt(i)); traceGeo.setDrawRange(0, 0); if (typeof toField !== 'undefined') toField.visible = false;
   RAIN.on = false; rain.visible = rainCloud.visible = false; toWater.visible = waterMark.visible = false;
   document.getElementById('end').style.display = 'none';
 }
@@ -647,11 +821,145 @@ const keys = {};
 addEventListener('keydown', e => {
   keys[e.key.toLowerCase()] = true;
   if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(e.key.toLowerCase())) e.preventDefault();
-  if (e.key === 'r' || e.key === 'R') reset();
+  if (e.key === 'r' || e.key === 'R') { reset(); COP.once = {}; COP.missed = 0; }
   if (e.key === 'g' || e.key === 'G') { glowOn = !glowOn; try { localStorage.setItem('moonracer.glow', glowOn ? 'on' : 'off'); } catch (err) {}
     console.log('[moon-racer] glow ' + (glowOn ? 'ON' : 'OFF')); }
 });
 addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+/* P or Escape pauses; the clock stops with it */
+let paused = false;
+addEventListener('keydown', e => { if ((e.key === 'p' || e.key === 'P' || e.key === 'Escape') && S.started && !S.over) { paused = !paused; if (!paused) msgEl.classList.remove('on'); } });
+function copilotPaused() { return paused; }
+function copilotPause(on) { paused = on && !S.over ? true : on ? paused : false; if (!paused) msgEl.classList.remove('on'); }
+/* ================================================================ the copilot
+   It speaks through the pathfinder. It watches the craft and calls out what
+   matters, one thing at a time — highest priority first, never the same
+   thing twice in a short while — on screen and, unless muted (V), aloud in
+   the browser's own voice. / asks it a question, answered from the manual.
+   M opens the manual and pauses the flight. */
+const COP = { voice: true, last: {}, busyUntil: 0, pri: 0, once: {}, cutWas: 0 };
+try { COP.voice = localStorage.getItem('moonracer.voice') !== 'off'; } catch (e) {}
+const copEl = document.getElementById('copilot'), copText = document.getElementById('copText');
+let copVoice = null;
+function pickVoice() {
+  if (!('speechSynthesis' in window)) return;
+  const vs = speechSynthesis.getVoices();
+  copVoice = vs.find(v => /en-GB/i.test(v.lang) && /Daniel|Arthur|Serena|Kate|Google UK/i.test(v.name))
+          || vs.find(v => /en-GB/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
+}
+if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function copNow() { return performance.now() / 1000; }
+/* say something: key throttles repeats (cool seconds), pri decides interrupts */
+function copSay(text, key, pri, cool) {
+  pri = pri || 1; cool = cool === undefined ? 20 : cool;
+  const now = copNow();
+  if (key) { if (key.startsWith('!') ? COP.once[key] : now - (COP.last[key] || -1e9) < cool) return false;
+             if (key.startsWith('!')) COP.once[key] = true; COP.last[key] = now; }
+  if (now < COP.busyUntil && pri <= COP.pri) return false;
+  COP.pri = pri; COP.busyUntil = now + Math.max(3.5, text.length * 0.065);
+  copText.textContent = text; copEl.classList.add('on');
+  clearTimeout(COP.hide); COP.hide = setTimeout(() => copEl.classList.remove('on'), (COP.busyUntil - now + 2.5) * 1000);
+  if (COP.voice && 'speechSynthesis' in window) {
+    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text.replace(/·/g, ',').replace(/—/g, ','));
+      if (copVoice) u.voice = copVoice; u.rate = 1.04; u.pitch = 0.95; speechSynthesis.speak(u); } catch (e) {}
+  }
+  console.log('[moon-racer] copilot: ' + text);
+  return true;
+}
+function copVoiceToggle() {
+  COP.voice = !COP.voice;
+  try { localStorage.setItem('moonracer.voice', COP.voice ? 'on' : 'off'); } catch (e) {}
+  if (!COP.voice && 'speechSynthesis' in window) speechSynthesis.cancel();
+  document.getElementById('copVoice').setAttribute('aria-pressed', COP.voice ? 'true' : 'false');
+  copSay(COP.voice ? 'Voice on.' : 'Voice off — I\u2019ll keep writing.', null, 4);
+}
+document.getElementById('copVoice').setAttribute('aria-pressed', COP.voice ? 'true' : 'false');
+document.getElementById('copVoice').addEventListener('click', copVoiceToggle);
+
+/* ASKING: answers from the manual, matched by the words in the question */
+const COP_KB = [
+  { k: ['refuel', 'fuel', 'drink', 'water', 'tank', 'empty'], a: 'Fly within about seventy-five metres of any open water, over the water itself, and the tank fills fast. Dense cloud gives a steady drink, rain a moderate one. Up high there is nothing to drink.' },
+  { k: ['cut', 'cutting', 'overheat', 'hot', 'heat', 'stop', 'engines'], a: 'The engines cut out at a hundred percent heat, and come back at fifty-five. Heat comes from speed and thick air. Watch the green tick on the heat bar: if it is past the end, ease off, climb, or hold space to vent.' },
+  { k: ['broke', 'breakdown', 'broken'], a: 'Push past a hundred and twenty percent heat and the engines break down. They stay out until heat falls to thirty percent. Glide, keep off the walls, and let the air cool you.' },
+  { k: ['vent', 'space', 'vortex', 'cool', 'cooling'], a: 'Hold space to vent. The wake vortex spins up and sheds heat three times as fast, but its drag costs speed. It needs air: in a vacuum it does almost nothing.' },
+  { k: ['cold', 'core', 'bank'], a: 'Venting also banks cold in the vortex core. Let go of space and the banked cold soaks up engine heat until it is spent. Vent in a calm stretch, then run hard on the cold you saved.' },
+  { k: ['ice', 'iced', 'frost', 'choke', 'power'], a: 'Past two-thirds cold, ice forms, fast in wet air. It steals up to sixty percent of your power and weighs you down; full ice chokes the intakes. Stop venting, leave the wet air, or run warmer. Heat melts it.' },
+  { k: ['stardust', 'karman', 'space', 'vacuum', 'moon'], a: 'The stardust engine idles inside the atmosphere and wakes past the Kármán line, a hundred kilometres up. One kilogram of water carries the craft to the Moon in a day. Faster costs more, as the square of the speed.' },
+  { k: ['brake', 'slow', 'braking', 'overshoot', 'reserve'], a: 'In space there is no air to slow you: pull the throttle back and the engines brake, which burns fuel. About thirteen hundred kilometres out, brake, then dive. A three hundred gram reserve is kept for the brakes alone.' },
+  { k: ['climb', 'launch', 'take', 'off', 'altitude', 'up'], a: 'Hold the up arrow to climb out. The craft lifts itself off for the first few seconds. Open the throttle once the air has thinned — near the ground, speed cooks the engines.' },
+  { k: ['lane', 'orbit', 'great', 'circle', 'route'], a: 'A lane is the great circle through two places, lifted into orbit. It passes straight over both ends. Below the lane you are held to sixty percent of full speed; in it you have everything.' },
+  { k: ['gate', 'gates', 'ring', 'rings', 'missed'], a: 'Gates are the gold rings over the water. Fly through them. A missed gate costs three seconds, a wall two seconds and a jolt of heat.' },
+  { k: ['land', 'landing', 'pyramid', 'beacon', 'finish', 'field', 'end'], a: 'A leg ends only when you land. After the last gate, follow the beacon to the pyramid and set down inside the gold ring, below about ninety speed.' },
+  { k: ['pathfinder', 'companion', 'guide', 'trace', 'line'], a: 'I fly ahead of you at your pace and trace the route in gold. If you get into trouble I come back, show you the way to water, and can call in rain.' },
+  { k: ['rain', 'cloud', 'clouds'], a: 'Fly into a dense cloud to drink steadily. If you are low on fuel and far from water, I can call in rain over you for fifteen seconds.' },
+  { k: ['turn', 'steer', 'wall', 'walls', 'bend', 'crash'], a: 'Left and right turn. Turning gets weaker the faster you go, so take tight bends slower, or you will clip the wall.' },
+  { k: ['pause', 'stop', 'manual', 'help', 'keys', 'controls'], a: 'P or Escape pauses. M opens the manual. V turns my voice on or off. Slash asks me something. E and Q throttle, arrows climb, dive and turn, space vents.' },
+  { k: ['speed', 'c', 'light', 'fast'], a: 'Speed is shown as a fraction of the speed of light, scaled for play. Near light speed inside the air cooks the engines; in the vacuum it costs nothing but fuel.' }
+];
+function copAnswer(q) {
+  const words = q.toLowerCase().replace(/[^a-z\u00e1 ]/g, ' ').split(/\s+/).filter(Boolean);
+  let best = null, score = 0;
+  for (const e of COP_KB) { const sc = e.k.reduce((n, k) => n + (words.some(w => w === k || (k.length > 3 && w.startsWith(k))) ? 1 : 0), 0);
+    if (sc > score) { score = sc; best = e; } }
+  return best ? best.a : 'I don\u2019t have that one. Press M for the manual — it covers the engines, navigation and landing.';
+}
+const askBox = document.getElementById('askBox'), askIn = document.getElementById('askIn');
+function openAsk() { askBox.classList.add('on'); askIn.value = ''; askIn.focus(); }
+function closeAsk() { askBox.classList.remove('on'); askIn.blur(); }
+['keydown', 'keyup'].forEach(t => askIn.addEventListener(t, e => {
+  e.stopPropagation();                                       // typing a question never flies the craft
+  if (t === 'keydown' && e.key === 'Enter') { const q = askIn.value.trim(); closeAsk(); if (q) copSay(copAnswer(q), null, 9); }   // an answer always shows
+  if (t === 'keydown' && e.key === 'Escape') closeAsk();
+}));
+document.getElementById('copAsk').addEventListener('click', openAsk);
+
+/* THE MANUAL over the game; pauses while it is open */
+const manualBox = document.getElementById('manualBox'), manualFrame = document.getElementById('manualFrame');
+function manualURL() { return location.hostname === 'ianingram.github.io' || /^(localhost|127\.)/.test(location.hostname) ? 'manual.html'
+  : 'https://ianingram.github.io/moon-racer/manual.html'; }
+function openManual() {
+  if (!manualFrame.src) manualFrame.src = manualURL();
+  COP.wasPaused = copilotPaused(); copilotPause(true);
+  manualBox.classList.add('on'); document.getElementById('manualClose').focus();
+}
+function closeManual() { manualBox.classList.remove('on'); if (!COP.wasPaused) copilotPause(false); }
+document.getElementById('copManual').addEventListener('click', openManual);
+document.getElementById('manualClose').addEventListener('click', closeManual);
+addEventListener('keydown', e => {
+  if (e.target === askIn) return;
+  /* while the question box is open, no key reaches the craft */
+  if (askBox.classList.contains('on')) { e.stopImmediatePropagation(); if (e.key === 'Escape') closeAsk(); else askIn.focus(); return; }
+  if (manualBox.classList.contains('on')) { if (e.key === 'Escape' || e.key === 'm' || e.key === 'M') { e.stopImmediatePropagation(); closeManual(); } return; }
+  if (e.key === 'm' || e.key === 'M') openManual();
+  if (e.key === 'v' || e.key === 'V') copVoiceToggle();
+  if (e.key === '/' || e.key === '?') { e.preventDefault(); openAsk(); }
+}, true);
+
+/* what the copilot watches in the canyon */
+function copRules() {
+  if (!S.started) { copSay('Canyon entry, Hells Canyon Dam. Stand by — the run starts on go.', '!entry', 2); return; }
+  if (S.over) { copSay('Down. Well flown.', '!down', 5); return; }
+  copSay('Ease the throttle up with E and stay low over the river. The gates are the gold rings; I\u2019ll fly ahead and trace the way.', '!go', 3);
+  if (S.cut !== COP.cutWas) {                    // engine states: said once, when they change
+    COP.cutWas = S.cut;
+    if (S.cut === 2) copSay('Engines broken down — too hot. Glide, keep off the walls; they come back at thirty percent.', null, 4);
+    else if (S.cut === 3) copSay('Intakes iced. Let go of space and get out of the wet air — heat melts it.', null, 4);
+    else if (S.cut === 1) copSay('Engines cut — heat. When they come back, ease off or vent.', null, 3);
+    else copSay('Engines back.', null, 2);
+  }
+  if (S.phase === 'land') {
+    copSay('That\u2019s the last gate. Find the beacon on Craig Mountain and land inside the ring, slowly.', '!land', 4);
+    const f = FIELD.finish, d = Math.hypot(S.pos.x - f.c.x, S.pos.z - f.c.z);
+    if (d < 450 && S.v > 90) copSay('Too fast to land. Under ninety, inside the ring.', 'landfast', 3, 10);
+  }
+  if (S.cut <= 0 && (S.heatEq || 0) > 1.02 && S.heat > 0.55 && !S.venting) copSay('Heat will settle over the limit. Ease off, or hold space to vent.', 'heatEq', 2, 18);
+  if (S.fuel < 0.3 && !S.skim && S.phase === 'river') copSay('Fuel under thirty percent. Drop within seventy-five metres of the water to drink.', 'fuel', 2, 25);
+  if (S.skim && S.heat > 0.7) copSay('You\u2019re drinking hot. Ease the throttle while you skim.', 'skimhot', 1, 25);
+  if (S.venting && S.cold > 0.6) copSay('Core\u2019s nearly full cold. Let go of space before ice forms.', 'cold', 2, 20);
+  if (S.ice > 0.3 && S.cut !== 3) copSay('Ice on the intakes — power\u2019s dropping. Climb out of the spray or run warmer.', 'ice', 2, 20);
+  if (S.missed > (COP.missed || 0)) { COP.missed = S.missed; copSay('Missed a gate — three seconds. Keep over the river.', 'miss', 1, 6); }
+  if (clock - S.hitT < 0.2) copSay('Wall. Take the bends slower — turning\u2019s weaker at speed.', 'wall', 2, 20);
+}
 document.getElementById('again').addEventListener('click', reset);
 
 /* where the craft is over the land: row, and distance across from the river */
@@ -729,7 +1037,7 @@ function step(dt) {
      up three times as hard. Where heat will settle = gain / shed rate. */
   const coldAir = Math.min(1, S.pos.y * 4.85 / 11000);               // colder with height, to the tropopause
   const shedRate = (0.02 + 0.14 * rho * (1 + 1.5 * coldAir)) * (venting ? 3 : 1);
-  S.heat = Math.max(0, S.heat + (gain - S.heat * shedRate) * dt);
+  S.heat = Math.min(1.5, Math.max(0, S.heat + (gain - S.heat * shedRate) * dt));   // a ceiling, however hard it is pushed
   S.heatEq = gain / shedRate; S.venting = venting;
 
   /* THE COLD CORE. Like a vortex tube, the spun-up vortex splits the air:
@@ -754,6 +1062,7 @@ function step(dt) {
 
   /* fuel: thrust and speed burn it; water, cloud and damp air give it */
   const burn = S.started ? (0.004 + power * 0.018 + (S.v / VMAX) * 0.01) : 0;
+  S.skim = skimming; S.inCloud = !!inCloud;
   const drink = (skimming ? 0.3 : 0) + (inCloud ? 0.15 * inCloud.dens : 0) + (wet ? 0.1 : 0) + rho * 0.003;
   S.fuel = Math.min(1, Math.max(0, S.fuel + (drink - burn) * dt));
   if (skimming && S.fuel < 0.999 && Math.random() < 0.6) {
@@ -769,16 +1078,27 @@ function step(dt) {
   S.pos.addScaledVector(fwd, S.v * dt);
   if (S.v < 70) S.pos.y -= (70 - S.v) * 0.35 * dt;           // too slow to hold the air
   if (S.ice > 0.05) S.pos.y -= S.ice * 6 * dt;                // and ice is weight
-  if (!S.started) { S.pos.y = 10; }
+  if (!S.started) { S.pos.y = S.startY; }
 
   /* the ground and the water */
   const at2 = locate(S.pos);
-  const ground = Math.max(0, height(at2.i, at2.u));
+  const ground = Math.max(0, height(at2.i, at2.u), pyramidTop(S.pos));
+  /* ON THE FIELD. After the last gate, touch down inside the finish ring,
+     slowly, to finish */
+  if (S.phase === 'land' && !S.over) {
+    const f = FIELD.finish, d = Math.hypot(S.pos.x - f.c.x, S.pos.z - f.c.z);
+    if (d < FIELD_SIZE.ringR && S.pos.y - f.y < 14 && S.v < 90) { say('DOWN · ' + f.name, 2.4); finish(); }
+  }
+  const soft = S.v < 90 && fieldPull(S.pos)[0] >= 1;            // setting down on a field costs nothing
+  /* on the finish field too early: say why it will not count */
+  if (S.phase === 'river' && S.started && !S.over && soft && S.pos.y - FIELD.finish.y < 30 && clock - (S.earlyT || -9) > 4) {
+    S.earlyT = clock; say('FLY THE GRANDE RONDE GATE FIRST', 2.6);
+  }
   if (S.pos.y < ground + 3) {
     /* a wall at speed costs time and heat, and glances the craft back
        towards the line of the river so it is never pinned; drifting onto
        a slope slowly costs nothing */
-    if (ground > 1 && S.v > 40 && clock - S.hitT > 1.0) {
+    if (ground > 1 && S.v > 40 && !soft && clock - S.hitT > 1.0) {
       S.hitT = clock; S.v *= 0.4; S.heat = Math.min(1.2, S.heat + 0.15);
       if (S.started && !S.over) { S.t += 2; say('WALL — +2 s', 1.4); }
       const along = Math.atan2(T[at2.i].x, -T[at2.i].z);
@@ -794,6 +1114,8 @@ function step(dt) {
     S.pos.addScaledVector(N[at2.i], -Math.sign(at2.u) * (Math.abs(at2.u) - (HALF - 200)));
   }
 
+  if (S.phase === 'depart' && Math.abs(at2.u) < 300 && S.pos.y < 200) { S.phase = 'river'; say('INTO THE CANYON', 1.6); }
+
   /* the gates: crossing a gate's plane counts, through it or not */
   if (S.started && !S.over) {
     S.t += dt;
@@ -805,7 +1127,11 @@ function step(dt) {
         const miss = S.pos.distanceTo(g.at) > 40;
         if (miss) { S.missed++; S.t += 3; say('MISSED GATE ' + g.k + ' — +3 s', 1.6); g.mesh.visible = false; }
         else { S.gatesDone++; g.mesh.visible = false; say(g.name ? 'GATE ' + g.k + ' · ' + g.name : 'GATE ' + g.k, 1.4); }
-        if (g.finish) finish();
+        if (g.finish) {
+          S.phase = 'land';
+          say('GRANDE RONDE · NOW LAND ON ' + FIELD.finish.name, 3);
+          console.log('[moon-racer] last gate — landing at ' + FIELD.finish.name);
+        }
       } else if (d > 0 && !g.done && d < 400 && gates.indexOf(g) < gates.length - 1) {
         /* flown past it well to the side: counts as missed */
         const lateral = S.pos.clone().sub(g.at); lateral.addScaledVector(g.n, -d);
@@ -828,8 +1154,8 @@ function step(dt) {
     PF.rowSpeed += (rs - PF.rowSpeed) * Math.min(1, dt * 2); PF.lastRow = S.row;
 
     /* is the craft in trouble? */
-    const off = Math.abs(at2.u) > RIVER_W / 2 + 260 && S.pos.y < 900;
-    const back = S.v > 30 && fwd.clone().setY(0).normalize().dot(T[at2.i]) < -0.5;
+    const off = S.phase === 'river' && Math.abs(at2.u) > RIVER_W / 2 + 260 && S.pos.y < 900;
+    const back = S.phase === 'river' && S.v > 30 && fwd.clone().setY(0).normalize().dot(T[at2.i]) < -0.5;
     const stalled = S.started && S.t > 5 && S.v < 40 && !S.over;          // not in the first seconds off the line
     const why = S.cut === 2 ? 'ENGINES DOWN' : S.cut === 3 ? 'ICED UP' : S.fuel < 0.18 ? 'LOW ON FUEL' : off ? 'OFF COURSE' : back ? 'WRONG WAY' : stalled ? 'STALLED' : '';
     if (why && S.started && !S.over) { PF.since += dt; PF.calm = 0; } else { PF.since = 0; PF.calm += dt; }
@@ -844,7 +1170,20 @@ function step(dt) {
       say('PATHFINDER · BACK ON POINT', 1.6);
     }
 
-    if (PF.mode === 'lead') {
+    if (S.phase === 'land' && PF.mode !== 'field') { PF.mode = 'field'; toWater.visible = waterMark.visible = false; }
+    if (PF.mode === 'field') {
+      /* over the finish pyramid, a beacon to land by; and the line to it */
+      const f = FIELD.finish, target = new THREE.Vector3(f.c.x, f.y + FIELD_SIZE.pyH + 30, f.c.z);
+      const step = Math.max(500, S.v * 1.8) * dt, gap = target.clone().sub(PF.pos);
+      PF.pos.add(gap.length() > step ? gap.setLength(step) : gap);
+      toField.geometry.setFromPoints([S.pos.clone(), new THREE.Vector3(f.c.x, f.y + 2, f.c.z)]); toField.computeLineDistances();
+      toField.visible = true;
+    } else if (PF.mode === 'lead') {
+      toField.visible = S.phase === 'depart';
+      if (S.phase === 'depart') {                  // the way down into the canyon
+        const g0 = gates[0].at;
+        toField.geometry.setFromPoints([S.pos.clone(), g0.clone()]); toField.computeLineDistances();
+      }
       const want = Math.min(finishRow + 20, S.row + LEAD_ROWS);
       /* the craft's pace, plus a pull to close the gap; never backwards */
       const rate = Math.max(0, PF.rowSpeed) + (want - PF.row) * 1.2;
@@ -993,7 +1332,9 @@ function hud(rho, skimming, inCloud) {
   document.getElementById('spd').textContent = (S.v / VMAX * 0.97).toFixed(2) + ' c';
   document.getElementById('alt').textContent = S.pos.y * 4.85 >= 1000 ? (S.pos.y * 4.85 / 1000).toFixed(1) + ' km' : Math.round(S.pos.y * 4.85) + ' m';
   document.getElementById('time').textContent = fmt(S.t);
-  document.getElementById('gates').textContent = 'GATES ' + S.gatesDone + ' / ' + gates.length;
+  document.getElementById('gates').textContent = S.phase === 'land'
+    ? 'LAND · ' + FIELD.finish.name + ' ' + (Math.hypot(S.pos.x - FIELD.finish.c.x, S.pos.z - FIELD.finish.c.z) * M_PER_UNIT / 1000).toFixed(1) + ' km'
+    : 'GATES ' + S.gatesDone + ' / ' + gates.length;
   document.getElementById('best').textContent = (race ? 'RACE ' + fmt(raceT0 + S.t) + ' · ' : '') + (best !== null ? 'BEST ' + fmt(best) : '');
   if (clock > msgUntil) msgEl.classList.remove('on');
 
@@ -1001,6 +1342,7 @@ function hud(rho, skimming, inCloud) {
   if (!mapBox) {
     let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9;
     for (let i = 0; i < ROWS; i += 5) { const p = riverAt(i); x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.z); z1 = Math.max(z1, p.z); }
+    for (const f of FIELDS) { x0 = Math.min(x0, f.c.x - 300); x1 = Math.max(x1, f.c.x + 300); z0 = Math.min(z0, f.c.z - 300); z1 = Math.max(z1, f.c.z + 300); }
     const s = Math.min((mapC.width - 24) / (x1 - x0), (mapC.height - 24) / (z1 - z0));
     mapBox = { x0, z0, s, ox: (mapC.width - (x1 - x0) * s) / 2, oz: (mapC.height - (z1 - z0) * s) / 2 };
   }
@@ -1011,6 +1353,7 @@ function hud(rho, skimming, inCloud) {
   mx.stroke();
   for (const g of gates) { const [x, y] = M(g.at); mx.fillStyle = g.done ? 'rgba(159,179,194,.35)' : g.finish ? '#8fe6a8' : '#ffd070';
     mx.fillRect(x - 2, y - 2, 4, 4); }
+  for (const f of FIELDS) { const [fx, fy] = M(f.c); mx.strokeStyle = '#ffd070'; mx.lineWidth = 1.5; mx.beginPath(); mx.arc(fx, fy, 5, 0, Math.PI * 2); mx.stroke(); mx.fillStyle = '#ffd070'; mx.fillRect(fx - 1.5, fy - 1.5, 3, 3); }
   { const [gx, gy] = M(pathfinder.position); mx.fillStyle = '#ffd070'; mx.beginPath(); mx.arc(gx, gy, 3, 0, Math.PI * 2); mx.fill(); }
   const [px, py] = M(S.pos); mx.fillStyle = '#7cff4f'; mx.beginPath(); mx.arc(px, py, 4, 0, Math.PI * 2); mx.fill();
   mx.fillStyle = 'rgba(242,239,230,.7)'; mx.font = '9px ui-monospace, Menlo, monospace'; mx.fillText('N', mapC.width - 14, 14);
@@ -1025,7 +1368,7 @@ addEventListener('resize', () => {
 let fpsF = 0, fpsFrom = performance.now(), fpsUntil = performance.now() + 20000;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now; clock += dt;
-  step(dt);
+  if (!paused) { step(dt); copRules(); } else { msgEl.textContent = 'PAUSED · P TO GO ON'; msgEl.classList.add('on'); msgUntil = clock + 0.2; }
   for (const p of spray) {
     if (!p.s.visible) continue;
     const age = clock - p.born;
