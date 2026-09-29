@@ -381,6 +381,25 @@ lights.instanceColor.needsUpdate = true;
 field.add(lights);
 console.log('[moon-racer] landing zone: ' + lightCount + ' field lights');
 
+/* THE BEACON, as in the opening scene: a shaft of light standing straight
+   up out of the capstone, bright where it leaves the gold and gone by the
+   top. Additive and depth-free, so it adds to the sky rather than covering
+   it — and tall, so a field can be found from far off. */
+function beaconBeam(height, rBase) {
+  const c = document.createElement('canvas'); c.width = 4; c.height = 256; const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 256, 0, 0);
+  g.addColorStop(0.00, 'rgba(255,238,190,.95)'); g.addColorStop(0.12, 'rgba(255,224,150,.55)');
+  g.addColorStop(0.45, 'rgba(255,214,120,.18)'); g.addColorStop(0.78, 'rgba(255,206,110,.05)'); g.addColorStop(1.00, 'rgba(255,206,110,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 4, 256);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rBase * 0.17, rBase, height, 12, 1, true),
+    new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide, fog: false, opacity: 0.85 }));
+  m.renderOrder = 5;
+  return m;
+}
+{ const shaft = beaconBeam(PY_H * 4, 14); shaft.position.y = PY_H + PY_H * 2; field.add(shaft); }
+
 /* ---------------------------------------------------------------- stars */
 const stars = (() => {
   const N = 2500, p = new Float32Array(N * 3);
