@@ -11,6 +11,9 @@
 <html lang="en-GB"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Moon Racer — pilot's manual</title>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
 <style>
 :root{--ink:#f2efe6;--dim:#9fb3c2;--gold:#d4af50;--brass:#ffd070;--line:rgba(232,223,200,.16)}
 *{box-sizing:border-box}
@@ -31,15 +34,22 @@ h3{font-weight:400;font-size:13px;letter-spacing:.18em;color:var(--ink);margin:2
 p,li{color:#d9d6cc}
 p{margin:0 0 12px}
 ul{margin:0 0 12px;padding-left:20px}
-b{font-weight:400;color:var(--ink)}
+b{font-weight:700;color:var(--ink)}
 .key{display:inline-block;min-width:24px;padding:1px 7px;border:1px solid rgba(159,179,194,.45);color:var(--ink);text-align:center;font-size:12px}
 table{border-collapse:collapse;width:100%;margin:6px 0 14px;font-size:13px}
 th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 th{font-weight:400;color:var(--dim);letter-spacing:.14em;font-size:11px}
 .note{border-left:2px solid var(--gold);padding:8px 14px;margin:10px 0 16px;color:var(--ink);background:rgba(212,175,80,.06)}
+.pn{color:#4da3ff}
+.fig{margin:6px 0 18px;padding:10px;background:#0a1017;border:1px solid var(--line)}
+.fig svg{display:block;width:100%;height:auto}
+.fig .viz{display:none;width:100%;height:auto;aspect-ratio:760/300;background:#070b10}
+html.webgl .fig.has3d .viz{display:block}
+html.webgl .fig.has3d svg{display:none}
+.fig figcaption{margin-top:8px;font-size:12px;color:var(--dim);line-height:1.6}                     /* proper nouns: terminal blue */
 .tick{display:inline-block;width:2px;height:12px;background:#8fe6a8;vertical-align:-1px}
 @media (max-width:600px){ header,nav,main{padding-left:16px;padding-right:16px} }
-@media print{ nav{position:static} body{background:#fff;color:#111} p,li,b,td{color:#111} h2,header .a{color:#8a6a10} }
+@media print{ nav{position:static} body{background:#fff;color:#111} p,li,b,td{color:#111} .pn{color:#0b5fbf} h2,header .a{color:#8a6a10} }
 </style></head><body>
 
 <header>
@@ -56,49 +66,53 @@ th{font-weight:400;color:var(--dim);letter-spacing:.14em;font-size:11px}
 
 <section id="race">
 <h2>THE RACE</h2>
-<p>Moon Racer is a tour of the world's ancient megalithic sites. A race starts at <b>Giza</b>. Each leg takes you from one site to the next by whatever route you choose — up into orbit along a lane, or low over rivers, oceans and ice — into a <b>run</b> through real terrain, and it ends only when you <b>land at a pyramid</b>.</p>
-<p>Leg one: <b>Giza → Hells Canyon</b>. Take the lane 11,041 km round the curve of the Earth, come down at the canyon's entry by Hells Canyon Dam, run the Snake River north through the gates, and after the last gate at the Grande Ronde, find the beacon on <b>Craig Mountain</b> and land.</p>
-<div class="note">A leg is never finished at a checkpoint. The clock stops when you are down inside the ring at the pyramid.</div>
-<p>Fuel, heat and the race clock carry from one part of the leg to the next. What you arrive with from the lane is what you start the canyon with.</p>
+<figure class="fig has3d"><canvas class="viz" data-viz="race" aria-label="moving diagram"></canvas><svg viewBox="0 0 760 220" role="img" aria-label="A leg: leave the site, take your route, fly the run, and land at the pyramid — the clock stops only when you are down." xmlns="http://www.w3.org/2000/svg"><line x1="20" y1="180" x2="740" y2="180" stroke="#9fb3c2" stroke-opacity=".3"/><polygon points="50,180 90,180 70,156.0" fill="#1c1a18" stroke="#ffd070" stroke-width="1.5"/><text x="70" y="205" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="11" fill="#f2efe6" text-anchor="middle" letter-spacing=".14em" font-weight="400">GIZA</text><path d="M 90 175 C 180 20, 330 20, 420 170" fill="none" stroke="#d4af50" stroke-width="2" stroke-dasharray="6 5"/><text x="255" y="50" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="11" fill="#ffd070" text-anchor="middle" letter-spacing=".14em" font-weight="400">1 · THE LANE · IN ORBIT</text><circle cx="420" cy="172" r="5" fill="#8fe6f0"/><text x="420" y="205" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="11" fill="#f2efe6" text-anchor="middle" letter-spacing=".14em" font-weight="400">2 · CANYON ENTRY</text><path d="M 430 172 q 25 -18 50 0 t 50 0 t 50 0 t 50 0" fill="none" stroke="#4da3ff" stroke-width="3"/><ellipse cx="455" cy="160" rx="7" ry="10" fill="none" stroke="#d4af50" stroke-width="2"/><ellipse cx="505" cy="160" rx="7" ry="10" fill="none" stroke="#d4af50" stroke-width="2"/><ellipse cx="555" cy="160" rx="7" ry="10" fill="none" stroke="#d4af50" stroke-width="2"/><ellipse cx="605" cy="160" rx="7" ry="10" fill="none" stroke="#d4af50" stroke-width="2"/><text x="560" y="132" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="11" fill="#ffd070" text-anchor="middle" letter-spacing=".14em" font-weight="400">3 · THE RUN · THROUGH THE GATES</text><path d="M 640 172 Q 665 150 690 176" fill="none" stroke="#9fb3c2" stroke-dasharray="3 3"/><line x1="700" y1="160.8" x2="700" y2="100.80000000000001" stroke="#ffd070" stroke-width="3" opacity=".45"/><line x1="700" y1="160.8" x2="700" y2="100.80000000000001" stroke="#fff3c4" stroke-width="1" opacity=".8"/><polygon points="684,180 716,180 700,160.8" fill="#1c1a18" stroke="#ffd070" stroke-width="1.5"/><text x="745" y="205" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="11" fill="#f2efe6" text-anchor="end" letter-spacing=".14em" font-weight="400">4 · LAND AT THE PYRAMID</text></svg><figcaption>A leg: leave the site, take your route, fly the run, and land at the pyramid — the clock stops only when you are down.</figcaption></figure>
+<p><span class="pn">Moon Racer</span> is a tour of the world's ancient megalithic sites. A race starts at <b><span class="pn">Giza</span></b>. Each <b>leg</b> takes you from one site to the next by whatever route you choose — up into orbit along a lane, or low over rivers, oceans and <b>ice</b> — into a <b>run</b> through real terrain, and it ends only when you <b>land at a pyramid</b>.</p>
+<p>Leg one: <b><span class="pn">Giza</span> → <span class="pn">Hells Canyon</span></b>. Take <b>the lane</b> 11,041 km round the curve of the <span class="pn">Earth</span>, come down at the canyon's entry by <span class="pn">Hells Canyon Dam</span>, <b>run</b> the <span class="pn">Snake River</span> north through the <b>gates</b>, and after the last gate at the <span class="pn">Grande Ronde</span>, find the <b>beacon</b> on <b><span class="pn">Craig Mountain</span></b> and land.</p>
+<div class="note">A leg is never finished at a checkpoint. The clock stops when you are down inside the ring at the <b>pyramid</b>.</div>
+<p><b>Fuel</b>, <b>heat</b> and the <b>race clock</b> carry from one part of the leg to the next. What you arrive with from the lane is what you start the canyon with.</p>
 </section>
 
 <section id="controls">
 <h2>CONTROLS</h2>
+<figure class="fig"><svg viewBox="0 0 760 220" role="img" aria-label="The keys: throttle, climb and turn, vent, flood and jump, and the pause, manual, voice and ask keys." xmlns="http://www.w3.org/2000/svg"><rect x="30" y="40" width="34" height="30" rx="4" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".6"/><text x="47.0" y="60" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#f2efe6" text-anchor="middle" letter-spacing="0" font-weight="700">E</text><text x="47.0" y="88" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="middle" letter-spacing=".12em" font-weight="400">THROTTLE +</text><rect x="80" y="40" width="34" height="30" rx="4" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".6"/><text x="97.0" y="60" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#f2efe6" text-anchor="middle" letter-spacing="0" font-weight="700">Q</text><text x="97.0" y="88" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="middle" letter-spacing=".12em" font-weight="400">THROTTLE −</text><rect x="190" y="40" width="34" height="30" rx="4" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".6"/><text x="207.0" y="60" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#f2efe6" text-anchor="middle" letter-spacing="0" font-weight="700">↑</text><text x="207.0" y="88" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="middle" letter-spacing=".12em" font-weight="400">CLIMB</text><rect x="150" y="90" width="34" height="30" rx="4" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".6"/><text x="167.0" y="110" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#f2efe6" text-anchor="middle" letter-spacing="0" font-weight="700">←</text><text x="167.0" y="138" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="middle" letter-spacing=".12em" font-weight="400">TURN</text><rect x="190" y="90" width="34" height="30" rx="4" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".6"/><text x="207.0" y="110" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#f2efe6" text-anchor="middle" letter-spacing="0" font-weight="700">↓</text><text x="207.0" y="138" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="middle" letter-spacing=".12em" font-weight="400">DIVE</text><rect x="230" y="90" width="34" height="30" rx="4" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".6"/><text x="247.0" y="110" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#f2efe6" text-anchor="middle" letter-spacing="0" font-weight="700">→</text><text x="247.0" y="138" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="middle" letter-spacing=".12em" font-weight="400">TURN</text><rect x="300" y="40" width="110" height="30" rx="4" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".6"/><text x="355.0" y="60" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#f2efe6" text-anchor="middle" letter-spacing="0" font-weight="700">SPACE</text><text x="355.0" y="88" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="middle" letter-spacing=".12em" font-weight="400">VENT</text><rect x="430" y="40" width="34" height="30" rx="4" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".6"/><text x="447.0" y="60" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#f2efe6" text-anchor="middle" letter-spacing="0" font-weight="700">J</text><text x="447.0" y="88" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="middle" letter-spacing=".12em" font-weight="400">FLOOD · JUMP</text><rect x="500" y="40" width="34" height="30" rx="4" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".6"/><text x="517.0" y="60" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#f2efe6" text-anchor="middle" letter-spacing="0" font-weight="700">P</text><text x="517.0" y="88" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="middle" letter-spacing=".12em" font-weight="400">PAUSE</text><rect x="550" y="40" width="34" height="30" rx="4" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".6"/><text x="567.0" y="60" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#f2efe6" text-anchor="middle" letter-spacing="0" font-weight="700">M</text><text x="567.0" y="88" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="middle" letter-spacing=".12em" font-weight="400">MANUAL</text><rect x="600" y="40" width="34" height="30" rx="4" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".6"/><text x="617.0" y="60" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#f2efe6" text-anchor="middle" letter-spacing="0" font-weight="700">V</text><text x="617.0" y="88" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="middle" letter-spacing=".12em" font-weight="400">VOICE</text><rect x="650" y="40" width="34" height="30" rx="4" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".6"/><text x="667.0" y="60" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#f2efe6" text-anchor="middle" letter-spacing="0" font-weight="700">/</text><text x="667.0" y="88" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="middle" letter-spacing=".12em" font-weight="400">ASK</text><rect x="500" y="120" width="34" height="30" rx="4" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".6"/><text x="517.0" y="140" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#f2efe6" text-anchor="middle" letter-spacing="0" font-weight="700">R</text><text x="517.0" y="168" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="middle" letter-spacing=".12em" font-weight="400">RESTART</text><rect x="550" y="120" width="34" height="30" rx="4" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".6"/><text x="567.0" y="140" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" fill="#f2efe6" text-anchor="middle" letter-spacing="0" font-weight="700">G</text><text x="567.0" y="168" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="middle" letter-spacing=".12em" font-weight="400">GLOW</text><text x="30" y="190" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">W A S D WORK AS THE ARROWS.  ENTER STARTS THE RUN FROM RECON.</text></svg><figcaption>The keys: throttle, climb and turn, vent, flood and jump, and the pause, manual, voice and ask keys.</figcaption></figure>
 <table>
 <tr><th>KEY</th><th>WHAT IT DOES</th></tr>
 <tr><td><span class="key">E</span> <span class="key">Q</span></td><td>Throttle up / down. Hold it; speed follows the throttle, not instantly.</td></tr>
 <tr><td><span class="key">↑</span> <span class="key">↓</span> or <span class="key">W</span> <span class="key">S</span></td><td>Climb / dive.</td></tr>
-<tr><td><span class="key">←</span> <span class="key">→</span> or <span class="key">A</span> <span class="key">D</span></td><td>Turn (in runs; the lane has no steering — it is the route).</td></tr>
-<tr><td><span class="key">J</span></td><td>Flood the engines (hold, low over water) and jump (let go).</td></tr>
-<tr><td><span class="key">SPACE</span></td><td>Vent: spin the wake vortex up to shed heat faster, at a cost in speed.</td></tr>
-<tr><td><span class="key">P</span> or <span class="key">Esc</span></td><td>Pause. The race clock stops.</td></tr>
+<tr><td><span class="key">←</span> <span class="key">→</span> or <span class="key">A</span> <span class="key">D</span></td><td>Turn (in runs; <b>the lane</b> has no steering — it is the route).</td></tr>
+<tr><td><span class="key">J</span></td><td><b>Flood</b> the engines (hold, low over water) and jump (let go).</td></tr>
+<tr><td><span class="key">SPACE</span></td><td>Vent: spin the wake vortex up to shed <b>heat</b> faster, at a cost in speed.</td></tr>
+<tr><td><span class="key">P</span> or <span class="key">Esc</span></td><td>Pause. The <b>race clock</b> stops.</td></tr>
 <tr><td><span class="key">M</span></td><td>This manual (pauses).</td></tr>
 <tr><td><span class="key">V</span></td><td>Copilot's voice on / off.</td></tr>
 <tr><td><span class="key">/</span></td><td>Ask the copilot a question.</td></tr>
-<tr><td><span class="key">R</span></td><td>Restart the run.</td></tr>
+<tr><td><span class="key">R</span></td><td>Restart the <b>run</b>.</td></tr>
 <tr><td><span class="key">G</span></td><td>Glow on / off (if the frame rate suffers).</td></tr>
 </table>
 </section>
 
 <section id="engines">
 <h2>THE ENGINES · FUEL</h2>
+<figure class="fig has3d"><canvas class="viz" data-viz="engines" aria-label="moving diagram"></canvas><svg viewBox="0 0 760 220" role="img" aria-label="Fuel is water. On the deck — 500 ft over the river — the intakes drink at full rate, clear of the rocks and debris below." xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="760" height="220" fill="#0a1017"/><polygon points="0,220 0,40 90,70 140,150 160,200 160,220" fill="#5a4a3e" opacity=".7"/><polygon points="760,220 760,30 660,60 610,150 590,200 590,220" fill="#5a4a3e" opacity=".7"/><rect x="160" y="200" width="430" height="20" fill="#2c6472"/><text x="375" y="214" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#f2efe6" text-anchor="middle" letter-spacing=".14em" font-weight="400">THE RIVER</text><rect x="150" y="186" width="450" height="14" fill="#c0392b" opacity=".18"/><text x="595" y="196" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#ff8a70" text-anchor="end" letter-spacing=".14em" font-weight="400">ROCKS · DEBRIS</text><rect x="150" y="140" width="450" height="30" fill="#8fe6a8" opacity=".16"/><line x1="150" y1="155" x2="600" y2="155" stroke="#8fe6a8" stroke-width="1.5" stroke-dasharray="5 4"/><text x="160" y="150" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="11" fill="#8fe6a8" text-anchor="start" letter-spacing=".14em" font-weight="700">THE DECK · 500 FT · FULL DRINK</text><rect x="150" y="60" width="450" height="80" fill="url(#fadeG)"/><defs><linearGradient id="fadeG" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#8fe6a8" stop-opacity=".12"/><stop offset="1" stop-color="#8fe6a8" stop-opacity="0"/></linearGradient></defs><text x="160" y="78" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">DRINKING FADES ABOVE · NONE BY 1,500 FT</text><polygon points="470,158 488,158 496,152 478,152" fill="#f2efe6"/><line x1="476" y1="196" x2="476" y2="164" stroke="#8fe6f0" stroke-dasharray="2 4"/><line x1="484" y1="196" x2="484" y2="164" stroke="#8fe6f0" stroke-dasharray="2 4"/><line x1="492" y1="196" x2="492" y2="164" stroke="#8fe6f0" stroke-dasharray="2 4"/><text x="460" y="182" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#8fe6f0" text-anchor="end" letter-spacing=".14em" font-weight="400">SPRAY DRAWN UP TO THE INTAKES</text><ellipse cx="520" cy="95" rx="42" ry="16" fill="#e8eef2" opacity=".85"/><ellipse cx="495" cy="100" rx="24" ry="12" fill="#e8eef2" opacity=".85"/><text x="520" y="125" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="middle" letter-spacing=".14em" font-weight="400">CLOUD · STEADY</text></svg><figcaption>Fuel is water. On the deck — 500 ft over the river — the intakes drink at full rate, clear of the rocks and debris below.</figcaption></figure>
 <p>The craft runs on <b>water</b>. The air engines drink it from whatever is around them and burn it for thrust. The tank holds <b>10 kg</b>.</p>
 <table>
 <tr><th>SOURCE</th><th>HOW MUCH</th><th>HOW</th></tr>
 <tr><td>Open water — any river, lake or sea</td><td>fastest</td><td>fly <b>on the deck</b>: about <b>500 ft (150 m)</b> over the water. The readout says WATER; the height reads DECK. It fades above, to nothing by 1,500 ft.</td></tr>
 <tr><td>Dense cloud</td><td>steady</td><td>fly into it. The readout says CLOUD. Thin wispy cloud gives little.</td></tr>
-<tr><td>Rain</td><td>moderate</td><td>the pathfinder can call rain over you when you are low and far from water.</td></tr>
+<tr><td>Rain</td><td>moderate</td><td>the <b>pathfinder</b> can call rain over you when you are low and far from water.</td></tr>
 <tr><td>Damp air</td><td>a trickle</td><td>always, low down; nothing up high.</td></tr>
 </table>
-<p>Thrust and speed burn fuel. Empty, the engines stop: in the air you glide and sink; in space you coast.</p>
+<p>Thrust and speed burn <b>fuel</b>. Empty, the engines stop: in the air you glide and sink; in space you coast.</p>
 <div class="note">Drinking is not free. Water through the intakes runs the engines hotter — drink with the throttle eased back.</div>
 <h3>THE DECK</h3>
-<p>500 ft over the water is the <b>deck</b>: the intakes draw water and humid air at full rate, clear of the rocks, trees and debris on the river. There is no need to go lower. The deck is soft — you can fly below it — but below about 300 ft, fast, the river throws up debris that costs speed and heat, and the copilot will call you back up. The gold gates hang at deck height.</p>
+<p>500 ft over the water is the <b>deck</b>: the intakes draw water and humid air at full rate, clear of the rocks, trees and debris on the river. There is no need to go lower. <b>The deck</b> is soft — you can fly below it — but below about 300 ft, fast, the river throws up debris that costs speed and <b>heat</b>, and the copilot will call you back up. The gold <b>gates</b> hang at deck height.</p>
 </section>
 
 <section id="heat">
 <h2>HEAT</h2>
-<p>Heat comes from what the engines burn and tear through around the craft. Driving hard through thick air rips its molecules apart — hydrogen and oxygen from the water, nitrogen and oxygen from the air — and the space round the craft overheats.</p>
+<figure class="fig has3d"><canvas class="viz" data-viz="heat" aria-label="moving diagram"></canvas><svg viewBox="0 0 760 220" role="img" aria-label="Heat grows with speed squared and the thickness of the air: steep near the ground, gentle when thin, none in a vacuum. The green tick shows where it will settle." xmlns="http://www.w3.org/2000/svg"><line x1="70" y1="190" x2="430" y2="190" stroke="#9fb3c2"/><line x1="70" y1="190" x2="70" y2="30" stroke="#9fb3c2"/><text x="430" y="206" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#9fb3c2" text-anchor="end" letter-spacing=".14em" font-weight="400">SPEED →</text><text x="62" y="34" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#9fb3c2" text-anchor="end" letter-spacing=".14em" font-weight="400">HEAT</text><line x1="70" y1="90.0" x2="430" y2="90.0" stroke="#ffb347" stroke-dasharray="4 4" opacity=".8"/><text x="436" y="94.0" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#ffb347" text-anchor="start" letter-spacing=".14em" font-weight="400">100% · CUT-OUT</text><line x1="70" y1="70.0" x2="430" y2="70.0" stroke="#ff5a3c" stroke-dasharray="4 4" opacity=".8"/><text x="436" y="74.0" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#ff5a3c" text-anchor="start" letter-spacing=".14em" font-weight="400">120% · BREAKDOWN</text><line x1="70" y1="40.0" x2="430" y2="40.0" stroke="#c0392b" stroke-dasharray="4 4" opacity=".8"/><text x="436" y="44.0" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#c0392b" text-anchor="start" letter-spacing=".14em" font-weight="400">150% · CEILING</text><polyline points="70.0,190.0 79.0,189.81 88.0,189.24 97.0,188.29 106.0,186.96 115.0,185.25 124.0,183.16 133.0,180.69 142.0,177.84 151.0,174.60999999999999 160.0,171.0 169.0,167.01 178.0,162.64000000000001 187.0,157.89 196.0,152.76000000000002 205.0,147.25 214.0,141.35999999999999 223.0,135.09 232.0,128.44 241.0,121.41000000000001 250.0,114.00000000000001 259.0,106.21 268.0,98.03999999999999 277.0,89.49000000000002 286.0,80.56000000000002 295.0,71.25 304.0,61.56 313.0,51.48999999999998 322.0,41.04000000000005 331.0,40.0 340.0,40.0 349.0,40.0 358.0,40.0 367.0,40.0 376.0,40.0 385.0,40.0 394.0,40.0 403.0,40.0 412.0,40.0 421.0,40.0 430.0,40.0" fill="none" stroke="#ffd070" stroke-width="2"/><text x="220" y="65" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#ffd070" text-anchor="start" letter-spacing=".14em" font-weight="400">THICK AIR</text><polyline points="70.0,190.0 79.0,189.965 88.0,189.86 97.0,189.685 106.0,189.44 115.0,189.125 124.0,188.74 133.0,188.285 142.0,187.76 151.0,187.165 160.0,186.5 169.0,185.765 178.0,184.96 187.0,184.085 196.0,183.14 205.0,182.125 214.0,181.04 223.0,179.885 232.0,178.66 241.0,177.365 250.0,176.0 259.0,174.565 268.0,173.06 277.0,171.485 286.0,169.84 295.0,168.125 304.0,166.34 313.0,164.485 322.0,162.56 331.0,160.565 340.0,158.5 349.0,156.365 358.0,154.16 367.0,151.885 376.0,149.54000000000002 385.0,147.125 394.0,144.64 403.0,142.085 412.0,139.46 421.0,136.76500000000001 430.0,134.0" fill="none" stroke="#8fe6f0" stroke-width="2"/><text x="370" y="150" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#8fe6f0" text-anchor="start" letter-spacing=".14em" font-weight="400">THIN AIR</text><text x="370" y="182" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">VACUUM: NONE</text><text x="560" y="70" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#f2efe6" text-anchor="start" letter-spacing=".14em" font-weight="700">THE HEAT BAR</text><rect x="560" y="82" width="170" height="10" fill="#1d2630"/><rect x="560" y="82" width="120" height="10" fill="#ffb347"/><rect x="741" y="76" width="3" height="22" fill="#8fe6a8"/><line x1="742" y1="100" x2="742" y2="118" stroke="#8fe6a8"/><text x="740" y="132" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#8fe6a8" text-anchor="end" letter-spacing=".14em" font-weight="400">THE GREEN TICK:</text><text x="740" y="146" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#8fe6a8" text-anchor="end" letter-spacing=".14em" font-weight="400">WHERE HEAT WILL SETTLE</text><text x="740" y="166" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9" fill="#9fb3c2" text-anchor="end" letter-spacing=".14em" font-weight="400">PAST THE END → EASE OFF, CLIMB OR VENT</text></svg><figcaption>Heat grows with speed squared and the thickness of the air: steep near the ground, gentle when thin, none in a vacuum. The green tick shows where it will settle.</figcaption></figure>
+<p><b>Heat</b> comes from what the engines burn and tear through around the craft. Driving hard through thick air rips its molecules apart — hydrogen and oxygen from the water, nitrogen and oxygen from the air — and the space round the craft overheats.</p>
 <ul>
 <li>Heat rises with <b>speed squared</b> times <b>how thick the air is</b>, and again with throttle times how rich the intake is (water richest).</li>
 <li>In a <b>vacuum</b> there is nothing to burn: no heat is made at any speed.</li>
@@ -111,89 +125,539 @@ th{font-weight:400;color:var(--dim);letter-spacing:.14em;font-size:11px}
 
 <section id="vortex">
 <h2>THE VORTEX, THE COLD CORE &amp; ICE</h2>
+<figure class="fig has3d"><canvas class="viz" data-viz="vortex" aria-label="moving diagram"></canvas><svg viewBox="0 0 760 220" role="img" aria-label="The wake vortex throws its hot rim off and its core goes cold. Venting sheds heat fast and banks cold — but past two-thirds, ice forms." xmlns="http://www.w3.org/2000/svg"><polygon points="60,110 110,100 118,110 110,120" fill="#f2efe6"/><text x="80" y="145" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="middle" letter-spacing=".14em" font-weight="400">CRAFT</text><path d="M 179.0,110.0 L 179.60292629295216,111.68019925653171 L 179.43608468625004,113.73646258597861 L 178.33372602087456,115.81173561147992 L 176.29175028604183,117.4894179479123 L 173.48490852697932,118.36388054842847 L 170.25444661676136,118.11416804649942 L 167.06661808331273,116.56897643198539 L 164.44710978451104,113.75186728174614 L 162.90042763249676,109.8982723068575 L 162.82606306521964,105.43981804003494 L 164.44435307798864,100.95631059479418 L 167.74413984415764,97.10067856827891 L 172.46168340324712,94.50655142149918 L 178.09610533241474,93.69128663043608 L 183.96149585173222,94.96864636503464 L 189.2704121645886,98.38469386314928 L 193.2386036281506,103.687842073014 L 195.19714445494498,110.33964078978386 L 194.69631131937402,117.56738530869806 L 191.5858495955527,124.45370517181335 L 186.058775063921,130.052767741277 L 178.6502979165012,133.51840396627261 L 170.18929215170036,134.22699093982388 L 161.7062104546129,131.87773204706002 L 154.30758938444765,126.5551847744861 L 149.03242810160754,118.74329512837225 L 146.70900106318578,109.28629196643446 L 147.8315528545412,99.29880942584374 L 152.4745999408713,90.034621161215 L 160.25835523212425,82.72943144087823 L 170.3725647294449,78.43741387628666 L 181.65855953325502,77.8829704838368 " fill="none" stroke="#dfe8f2" stroke-width="1.6" opacity=".8"/><path d="M 259.0,110.0 L 259.60292629295213,108.31980074346829 L 259.43608468625,106.26353741402139 L 258.33372602087456,104.18826438852008 L 256.2917502860418,102.5105820520877 L 253.48490852697932,101.63611945157153 L 250.25444661676136,101.88583195350058 L 247.06661808331273,103.43102356801461 L 244.44710978451104,106.24813271825386 L 242.90042763249676,110.1017276931425 L 242.82606306521964,114.56018195996506 L 244.44435307798864,119.04368940520582 L 247.74413984415764,122.89932143172109 L 252.46168340324712,125.49344857850082 L 258.09610533241477,126.30871336956392 L 263.9614958517322,125.03135363496536 L 269.2704121645886,121.61530613685072 L 273.2386036281506,116.312157926986 L 275.197144454945,109.66035921021614 L 274.696311319374,102.43261469130194 L 271.5858495955527,95.54629482818665 L 266.05877506392096,89.94723225872299 L 258.6502979165012,86.48159603372739 L 250.18929215170036,85.77300906017612 L 241.7062104546129,88.12226795293999 L 234.30758938444765,93.4448152255139 L 229.03242810160754,101.25670487162775 L 226.70900106318578,110.71370803356554 L 227.8315528545412,120.70119057415626 L 232.4745999408713,129.965378838785 L 240.25835523212425,137.27056855912178 L 250.3725647294449,141.56258612371334 L 261.658559533255,142.1170295161632 L 272.74153774895757,138.65183830581057 L 282.1980322464799,131.3875440834014 L 288.7381650709024,121.04473710183002 L 291.3794189122366,108.77612108115062 L 289.58874911538567,96.03903890726328 L 283.37301839728025,84.42243508408984 L 273.30366020554555,75.4487912935028 L 260.46948872831337,70.37570577220518 L 246.3606979610916,70.02285077346669 " fill="none" stroke="#dfe8f2" stroke-width="1.6" opacity=".8"/><circle cx="215" cy="110" r="10" fill="#4da3ff" opacity=".6"/><text x="215" y="75" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#4da3ff" text-anchor="middle" letter-spacing=".14em" font-weight="700">COLD CORE</text><line x1="243.92544243589427" y1="75.52800005964599" x2="263.20907072649044" y2="52.54666676607665" stroke="#ffb347" stroke-width="1.5" marker-end="url(#arr)"/><line x1="260.0" y1="110.0" x2="290.0" y2="110.0" stroke="#ffb347" stroke-width="1.5" marker-end="url(#arr)"/><line x1="243.92544243589427" y1="144.471999940354" x2="263.20907072649044" y2="167.45333323392336" stroke="#ffb347" stroke-width="1.5" marker-end="url(#arr)"/><defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#ffb347"/></marker></defs><text x="300" y="70" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#ffb347" text-anchor="start" letter-spacing=".14em" font-weight="400">HOT RIM THROWN OFF</text><text x="40" y="190" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">HOLD SPACE TO VENT: 3× THE SHEDDING, AT A COST IN SPEED. NEEDS AIR.</text><text x="470" y="60" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#f2efe6" text-anchor="start" letter-spacing=".14em" font-weight="700">THE COLD CORE GAUGE</text><rect x="470" y="75" width="260" height="14" fill="#1d2630"/><rect x="470" y="75" width="150" height="14" fill="#6fb7e6"/><line x1="641.6" y1="68" x2="641.6" y2="96" stroke="#f2f7ff" stroke-width="2"/><text x="641.6" y="112" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#f2f7ff" text-anchor="middle" letter-spacing=".14em" font-weight="400">⅔ · ICE FORMS PAST HERE</text><text x="470" y="140" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">BANKED COLD SOAKS UP HEAT WHEN YOU LET GO.</text><text x="470" y="156" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">TOO MUCH, IN WET AIR → ICE: LESS POWER,</text><text x="470" y="172" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">MORE WEIGHT; FULL ICE CHOKES THE INTAKES.</text></svg><figcaption>The wake vortex throws its hot rim off and its core goes cold. Venting sheds heat fast and banks cold — but past two-thirds, ice forms.</figcaption></figure>
 <h3>SHEDDING HEAT</h3>
-<p>Heat leaves the craft through its own <b>wake vortex</b>: the low-pressure core cools by expansion and the high-pressure ring carries the heat out and away. So shedding needs air — the more of it and the colder, the better. In a vacuum only a slow glow of radiation is left, so <b>heat you carry up, you keep</b>.</p>
+<p><b>Heat</b> leaves the craft through its own <b>wake vortex</b>: the low-pressure core cools by expansion and the high-pressure ring carries the heat out and away. So shedding needs air — the more of it and the colder, the better. In a vacuum only a slow glow of radiation is left, so <b>heat you carry up, you keep</b>.</p>
 <h3>VENTING</h3>
-<p>Hold <span class="key">SPACE</span> to spin the vortex up: it sheds <b>three times</b> as fast, but its drag costs speed. You see two counter-rotating spirals behind the craft, and a swirl on the water when you are low over it. In a vacuum venting does almost nothing.</p>
+<p>Hold <span class="key">SPACE</span> to spin <b>the vortex</b> up: it sheds <b>three times</b> as fast, but its drag costs speed. You see two counter-rotating spirals behind the craft, and a swirl on the water when you are low over it. In a vacuum <b>venting</b> does almost nothing.</p>
 <h3>THE COLD CORE</h3>
-<p>Like a vortex tube, the spun-up vortex throws its hot rim off and its core goes colder the longer and harder it spins. Venting <b>banks cold</b> (about 8 seconds to full at river level). Stop venting and the banked cold <b>soaks up engine heat</b> until it is spent — vent in a calm stretch, then run hard through the next on the cold you saved.</p>
+<p>Like a vortex tube, the spun-up vortex throws its hot rim off and its core goes colder the longer and harder it spins. Venting <b>banks cold</b> (about 8 seconds to full at river level). Stop venting and the banked cold <b>soaks up engine heat</b> until it is spent — vent in a calm stretch, then <b>run</b> hard through the next on the cold you saved.</p>
 <h3>ICE — THE OTHER EDGE</h3>
-<p>Drive the core past <b>two-thirds</b> and ice forms on the intakes and hull — fast in wet air (river spray, cloud, rain), slowly in dry. Ice takes up to <b>60% of your power</b> and weighs the craft down; the hull whitens with frost. Full ice <b>chokes the intakes</b> and the engines stop until it melts back to 40%. Heat melts ice: stop venting, leave the wet air, or run warmer.</p>
+<p>Drive the core past <b>two-thirds</b> and <b>ice</b> forms on the intakes and hull — fast in wet air (river spray, cloud, rain), slowly in dry. Ice takes up to <b>60% of your power</b> and weighs the craft down; the hull whitens with frost. Full ice <b>chokes the intakes</b> and the engines stop until it melts back to 40%. Heat melts ice: stop venting, leave the wet air, or run warmer.</p>
 </section>
 
 <section id="jump">
 <h2>JUMPING THE BENDS</h2>
-<p>Two skills win a run: <b>flying the river</b>, and <b>jumping it</b>.</p>
+<figure class="fig has3d"><canvas class="viz" data-viz="jump" aria-label="moving diagram"></canvas><svg viewBox="0 0 760 220" role="img" aria-label="Flood on the deck, let go, and the blast throws you over the ridge between two bends. Take the cyan jump gate at the top and the gold gates on the bend are cleared." xmlns="http://www.w3.org/2000/svg"><text x="20" y="22" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#f2efe6" text-anchor="start" letter-spacing=".14em" font-weight="700">FROM ABOVE</text><path d="M 40 190 C 40 80, 180 40, 250 90 S 330 200, 350 60" fill="none" stroke="#4da3ff" stroke-width="5"/><polygon points="140,150 190,95 240,130 200,175" fill="#5a4a3e" opacity=".7"/><text x="200" y="192" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9" fill="#f2efe6" text-anchor="middle" letter-spacing=".14em" font-weight="400">RIDGE</text><line x1="60" y1="160" x2="330" y2="90" stroke="#8fe6f0" stroke-width="1.5" stroke-dasharray="6 5"/><ellipse cx="195" cy="125" rx="7" ry="11" fill="none" stroke="#8fe6f0" stroke-width="2.5"/><circle cx="128" cy="74" r="6" fill="none" stroke="#d4af50" stroke-width="2" opacity=".5"/><circle cx="300" cy="132" r="6" fill="none" stroke="#d4af50" stroke-width="2" opacity=".5"/><text x="55" y="208" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#8fe6f0" text-anchor="start" letter-spacing=".14em" font-weight="400">JUMP POINT</text><text x="360" y="60" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#8fe6f0" text-anchor="start" letter-spacing=".14em" font-weight="400">FAR SIDE</text><text x="110" y="45" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9" fill="#d4af50" text-anchor="middle" letter-spacing=".14em" font-weight="400">GATES ON THE BEND: CLEARED</text><line x1="400" y1="10" x2="400" y2="210" stroke="#9fb3c2" stroke-opacity=".25"/><text x="420" y="22" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#f2efe6" text-anchor="start" letter-spacing=".14em" font-weight="700">FROM THE SIDE</text><rect x="420" y="195" width="320" height="10" fill="#2c6472"/><line x1="420" y1="175" x2="740" y2="175" stroke="#8fe6a8" stroke-dasharray="4 4" opacity=".7"/><text x="424" y="170" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9" fill="#8fe6a8" text-anchor="start" letter-spacing=".14em" font-weight="400">DECK</text><path d="M 520 195 Q 580 110 640 195" fill="#5a4a3e" opacity=".7"/><path d="M 450 175 Q 580 -10 715 190" fill="none" stroke="#e8eef2" stroke-width="2" stroke-dasharray="3 5"/><ellipse cx="582" cy="85" rx="8" ry="13" fill="none" stroke="#8fe6f0" stroke-width="2.5"/><text x="600" y="80" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#8fe6f0" text-anchor="start" letter-spacing=".14em" font-weight="400">JUMP GATE</text><text x="450" y="190" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9" fill="#ffd070" text-anchor="start" letter-spacing=".14em" font-weight="400">HOLD J · LET GO</text><text x="715" y="190" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9" fill="#8fe6f0" text-anchor="end" letter-spacing=".14em" font-weight="400">SPLASHDOWN</text></svg><figcaption>Flood on the deck, let go, and the blast throws you over the ridge between two bends. Take the cyan jump gate at the top and the gold gates on the bend are cleared.</figcaption></figure>
+<p>Two skills win a <b>run</b>: <b>flying the river</b>, and <b>jumping it</b>.</p>
 <h3>FLOOD AND JUMP</h3>
 <ul>
-<li>Get <b>down to the deck</b> over the water and <b>hold <span class="key">J</span></b>. The engines flood: the JUMP gauge fills (2.5 s to full), water is drawn from the tank, and the heat climbs. While you flood, the engines won't cut out — the heat is going into the charge.</li>
+<li>Get <b>down to the deck</b> over the water and <b>hold <span class="key">J</span></b>. The engines <b>flood</b>: the JUMP gauge fills (2.5 s to full), water is drawn from the tank, and the <b>heat</b> climbs. While you flood, the engines won't cut out — the heat is going into the charge.</li>
 <li><b>Let go.</b> The energy dumps into the river as a steam blast that throws the craft up and on in a long arc, over the ridge between two bends. The heat goes into the water with it: you come out cool, and fast.</li>
 <li>A bigger charge flies higher and further. A full charge reaches about 2 km up and 16 km on. In the arc you can steer, but not climb or throttle.</li>
 <li>Come down on the water and it is a <b>splashdown</b>. Come down on a ridge or wall and it hurts like any wall.</li>
 </ul>
 <h3>JUMP POINTS AND JUMP GATES</h3>
-<p><b>Jump points</b> are where the river swings round a bend far enough, and the ridge inside it is low enough, for a jump to cut it: 8–15 km of flight that saves 2–3 km of river. At each one a <b>cyan jump gate</b> hangs at the top of the right arc. <b>Fly through it</b> and the gold gates on the bend you jumped are cleared with no penalty. Jump without taking it and those gates count as missed.</p>
-<p>The first stretch below the dam is <b>river only</b> — it is where the line is learnt. At every jump point the <b>probe jumps first</b>, a few seconds ahead of you: watch its vapour trace the arc through the cyan gate, then follow. It also marks the river line round the bend, more faintly, so both ways are shown. The first two jump points also show their arc as a faint cyan line.</p>
-<div class="note">Neither line always wins. Jumping is faster but costs water; the river is slower but you drink all the way. The best runs mix the two.</div>
+<p><b>Jump points</b> are where the river swings round a bend far enough, and the ridge inside it is low enough, for a jump to cut it: 8–15 km of flight that saves 2–3 km of river. At each one a <b>cyan jump gate</b> hangs at the top of the right arc. <b>Fly through it</b> and the gold <b>gates</b> on the bend you jumped are cleared with no penalty. Jump without taking it and those gates count as missed.</p>
+<p>The first stretch below the dam is <b>river only</b> — it is where the line is learnt. At every <b>jump point</b> the <b>probe jumps first</b>, a few seconds ahead of you: watch its vapour trace the arc through the cyan gate, then follow. It also marks the river line round the bend, more faintly, so both ways are shown. The first two <b>jump points</b> also show their arc as a faint cyan line.</p>
+<div class="note">Neither line always wins. <b>Jumping</b> is faster but costs water; the river is slower but you drink all the way. The best runs mix the two.</div>
 </section>
 
 <section id="stardust">
 <h2>THE STARDUST ENGINE</h2>
-<p>Everywhere inside the atmosphere the stardust engine is <b>IDLE</b>. Past the <b>Kármán line</b> — 100 km, the edge of space — it becomes <b>ACTIVE</b> and takes over from the air engines, on the same water, at an efficiency nothing in the air can match:</p>
-<div class="note">One kilogram of water carries the craft to the Moon — 384,400 km — in a day. Going faster costs more, as the square of the speed.</div>
-<p>In space there is no air to slow you. Pull the throttle back and the engines <b>brake</b>, which burns fuel. A <b>300 g reserve</b> is held back that only the brakes can use, so a dry tank can still stop — but plan to arrive with fuel.</p>
+<figure class="fig has3d"><canvas class="viz" data-viz="stardust" aria-label="moving diagram"></canvas><svg viewBox="0 0 760 220" role="img" aria-label="Past the Kármán line (100 km) the stardust engine wakes: one kilogram of water carries the craft to the Moon in a day." xmlns="http://www.w3.org/2000/svg"><rect x="0" y="190" width="760" height="30" fill="#1b2a36"/><text x="20" y="208" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">THICK AIR · AIR ENGINES</text><rect x="0" y="140" width="760" height="50" fill="#132029"/><text x="20" y="158" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">THIN AIR</text><rect x="0" y="90" width="760" height="50" fill="#0c141b"/><rect x="0" y="0" width="760" height="90" fill="#05080d"/><line x1="0" y1="90" x2="760" y2="90" stroke="#b8a6ff" stroke-width="1.5" stroke-dasharray="7 5"/><text x="20" y="84" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#b8a6ff" text-anchor="start" letter-spacing=".14em" font-weight="700">THE KÁRMÁN LINE · 100 KM · THE EDGE OF SPACE</text><text x="20" y="30" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="11" fill="#b8a6ff" text-anchor="start" letter-spacing=".14em" font-weight="700">SPACE · THE STARDUST ENGINE IS ACTIVE</text><text x="20" y="50" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">BELOW THE LINE IT IDLES</text><line x1="330" y1="20" x2="740" y2="20" stroke="#d4af50" stroke-width="2" stroke-dasharray="6 5"/><text x="740" y="36" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#ffd070" text-anchor="end" letter-spacing=".14em" font-weight="400">THE LANE · 2,000 KM (NOT TO SCALE)</text><circle cx="420" cy="55" r="14" fill="#cfd4da"/><text x="442" y="56" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#f2efe6" text-anchor="start" letter-spacing=".14em" font-weight="700">1 KG OF WATER → THE MOON IN A DAY</text><text x="442" y="72" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">FASTER COSTS MORE, AS SPEED SQUARED</text></svg><figcaption>Past the Kármán line (100 km) the stardust engine wakes: one kilogram of water carries the craft to the Moon in a day.</figcaption></figure>
+<p>Everywhere inside the atmosphere the <b>stardust engine</b> is <b>IDLE</b>. Past the <b><span class="pn">Kármán</span> line</b> — 100 km, the edge of space — it becomes <b>ACTIVE</b> and takes over from the air engines, on the same water, at an efficiency nothing in the air can match:</p>
+<div class="note">One kilogram of water carries the craft to the <span class="pn">Moon</span> — 384,400 km — in a day. Going faster costs more, as the square of the speed.</div>
+<p>In space there is no air to slow you. Pull the throttle back and the engines <b>brake</b>, which burns <b>fuel</b>. A <b>300 g reserve</b> is held back that only the brakes can use, so a dry tank can still stop — but plan to arrive with fuel.</p>
 </section>
 
 <section id="nav">
 <h2>NAVIGATION</h2>
+<figure class="fig has3d"><canvas class="viz" data-viz="nav" aria-label="moving diagram"></canvas><svg viewBox="0 0 760 220" role="img" aria-label="Lanes are great circles lifted into orbit. In a run, the forward probe flies ahead of you and its vapour trail is the route." xmlns="http://www.w3.org/2000/svg"><circle cx="150" cy="120" r="80" fill="#152029" stroke="#78aadc" stroke-opacity=".6"/><ellipse cx="150" cy="120" rx="118" ry="44" fill="none" stroke="#d4af50" stroke-width="2" stroke-dasharray="5 4" transform="rotate(-25 150 120)"/><circle cx="215" cy="160" r="4" fill="#ffd070"/><text x="222" y="176" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#f2efe6" text-anchor="start" letter-spacing=".14em" font-weight="400">GIZA</text><circle cx="85" cy="80" r="4" fill="#8fe6a8"/><text x="20" y="64" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#f2efe6" text-anchor="start" letter-spacing=".14em" font-weight="400">HELLS CANYON</text><text x="150" y="212" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#ffd070" text-anchor="middle" letter-spacing=".14em" font-weight="400">A LANE: THE GREAT CIRCLE THROUGH BOTH, IN ORBIT</text><line x1="340" y1="10" x2="340" y2="210" stroke="#9fb3c2" stroke-opacity=".25"/><text x="360" y="30" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#f2efe6" text-anchor="start" letter-spacing=".14em" font-weight="700">THE PROBE, 4 KM AHEAD</text><path d="M 380 150 C 460 150, 480 90, 560 95 S 680 140, 730 120" fill="none" stroke="#4da3ff" stroke-width="4" opacity=".6"/><circle cx="414.3" cy="135.9" r="2.2" fill="#e8eef2" opacity="0.15"/><circle cx="428.9" cy="131.4" r="2.3" fill="#e8eef2" opacity="0.18"/><circle cx="442.3" cy="125.7" r="2.4" fill="#e8eef2" opacity="0.22"/><circle cx="454.9" cy="119.2" r="2.5" fill="#e8eef2" opacity="0.25"/><circle cx="467.0" cy="112.4" r="2.6" fill="#e8eef2" opacity="0.29"/><circle cx="479.0" cy="105.5" r="2.7" fill="#e8eef2" opacity="0.32"/><circle cx="491.3" cy="99.0" r="2.8" fill="#e8eef2" opacity="0.35"/><circle cx="504.3" cy="93.3" r="2.9" fill="#e8eef2" opacity="0.39"/><circle cx="518.2" cy="88.8" r="3.0" fill="#e8eef2" opacity="0.42"/><circle cx="533.6" cy="85.8" r="3.1" fill="#e8eef2" opacity="0.46"/><circle cx="550.7" cy="84.7" r="3.2" fill="#e8eef2" opacity="0.49"/><circle cx="569.4" cy="85.8" r="3.3" fill="#e8eef2" opacity="0.52"/><circle cx="587.2" cy="88.1" r="3.4" fill="#e8eef2" opacity="0.56"/><circle cx="603.6" cy="91.4" r="3.5" fill="#e8eef2" opacity="0.59"/><circle cx="618.9" cy="95.3" r="3.6" fill="#e8eef2" opacity="0.63"/><circle cx="633.2" cy="99.6" r="3.7" fill="#e8eef2" opacity="0.66"/><circle cx="646.6" cy="103.8" r="3.8" fill="#e8eef2" opacity="0.69"/><circle cx="659.4" cy="107.8" r="3.9" fill="#e8eef2" opacity="0.73"/><circle cx="671.6" cy="111.3" r="4.0" fill="#e8eef2" opacity="0.76"/><circle cx="683.4" cy="113.9" r="4.1" fill="#e8eef2" opacity="0.80"/><circle cx="695.0" cy="115.3" r="4.2" fill="#e8eef2" opacity="0.83"/><circle cx="706.6" cy="115.4" r="4.3" fill="#e8eef2" opacity="0.86"/><circle cx="718.2" cy="113.7" r="4.4" fill="#e8eef2" opacity="0.90"/><circle cx="730.0" cy="110.0" r="4.5" fill="#e8eef2" opacity="0.93"/><polygon points="386,134 402,130 405,134 402,138" fill="#f2efe6"/><text x="380" y="170" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">YOU</text><circle cx="710" cy="104" r="5" fill="#ffd070"/><text x="705" y="90" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#ffd070" text-anchor="end" letter-spacing=".14em" font-weight="400">PROBE</text><text x="360" y="196" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">ITS VAPOUR TRAIL IS THE ROUTE:</text><text x="360" y="211" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">FRESH NEAR THE PROBE, THINNING BEHIND IT</text></svg><figcaption>Lanes are great circles lifted into orbit. In a run, the forward probe flies ahead of you and its vapour trail is the route.</figcaption></figure>
 <h3>LANES</h3>
-<p>Any two places on Earth lie on one <b>great circle</b>. Lifted into orbit it becomes a <b>lane</b>: a ring that passes straight over both ends, so it is always overhead from either end even when the destination is far below the horizon. Giza → Hells Canyon: bearing 338° from Giza, tilted 70.8°, over Poland, the Greenland Sea and Hudson Bay, 2,000 km up. Hells Canyon rises over the horizon about 4,400 km out.</p>
+<p>Any two places on <span class="pn">Earth</span> lie on one <b>great circle</b>. Lifted into orbit it becomes a <b>lane</b>: a ring that passes straight over both ends, so it is always overhead from either end even when the destination is far below the horizon. <span class="pn">Giza</span> → <span class="pn">Hells Canyon</span>: bearing 338° from <span class="pn">Giza</span>, tilted 70.8°, over <span class="pn">Poland</span>, the <span class="pn">Greenland Sea</span> and <span class="pn">Hudson Bay</span>, 2,000 km up. <span class="pn">Hells Canyon</span> rises over the horizon about 4,400 km out.</p>
 <h3>FLYING THE LANE</h3>
 <ul>
 <li><b>Hold ↑ to climb out.</b> The craft lifts itself off for the first seconds; after that, climbing is yours.</li>
-<li>Below the lane you are held to 60% of full speed; in it you have everything.</li>
+<li>Below <b>the lane</b> you are held to 60% of full speed; in it you have everything.</li>
 <li>About <b>1,300 km</b> out, pull the throttle right back and brake; then dive. You arrive within 40 km of the canyon entry, below 25 km. Overshoot and it costs 30 seconds.</li>
 </ul>
 <h3>RECON, BEFORE THE RUN</h3>
-<p>At the start of a run you can choose <b>RECON</b>: the pathfinder leads you over the whole course about <b>1,500 ft above the high ground</b>, with the canyon, the gates, the jump points and the landing field laid out below, and the copilot pointing each out. Nothing is timed; fuel and heat are held. Practise the controls up there — the race itself is flown down in the canyon, below. <span class="key">Enter</span> starts the run at any time.</p>
+<p>At the start of a <b>run</b> you can choose <b>RECON</b>: the <b>pathfinder</b> leads you over the whole course about <b>1,500 ft above the high ground</b>, with the canyon, the <b>gates</b>, the <b>jump points</b> and the <b>landing field</b> laid out below, and the copilot pointing each out. Nothing is timed; <b>fuel</b> and <b>heat</b> are held. Practise the controls up there — <b>the race</b> itself is flown down in the canyon, below. <span class="key">Enter</span> starts the run at any time.</p>
 <h3>RUNS</h3>
-<p>A run follows real ground — here the Snake River through Hells Canyon, the deepest river gorge in North America. <b>Gates</b> are gold rings over the water; missing one costs 3 s, clipping a wall 2 s and a jolt of heat.</p>
+<p>A run follows real ground — here the <span class="pn">Snake River</span> through <span class="pn">Hells Canyon</span>, the deepest river gorge in <span class="pn">North America</span>. <b>Gates</b> are gold rings over the water; missing one costs 3 s, clipping a wall 2 s and a jolt of heat.</p>
 <h3>THE PATHFINDER — THE FORWARD PROBE</h3>
-<p>A companion probe that flies about 4 km ahead at your pace, on the deck. It vents compressed air and water from its tanks, and its <b>vapour trail</b> is the route: fresh and bright ahead of you, rising, drifting and thinning once you pass. At each jump point it jumps first, to show you the arc. If you are off course, going the wrong way, stalled, low on fuel, broken down or iced, it comes back, circles you, draws a dashed line to the nearest water, and if the tank is low and water far, calls in rain.</p>
+<p>A companion probe that flies about 4 km ahead at your pace, on <b>the deck</b>. It vents compressed air and water from its tanks, and its <b>vapour trail</b> is the route: fresh and bright ahead of you, rising, drifting and thinning once you pass. At each <b>jump point</b> it jumps first, to show you the arc. If you are off course, going the wrong way, stalled, low on fuel, broken down or iced, it comes back, circles you, draws a dashed line to the nearest water, and if the tank is low and water far, calls in rain.</p>
 <h3>THE MAPS</h3>
 <p>The globe shows the planet dark with its coasts, the axis from pole to pole, the Arctic and Antarctic Circles, the lane and the sites. The route map in a run shows the river, the gates, the pathfinder, the landing field and you.</p>
 </section>
 
 <section id="landing">
 <h2>LANDING</h2>
-<p>Every landing field is the same: a <b>pyramid</b> with its <b>beacon</b> lit — a shaft of light you can see from far off — inside a gold ring 2.4 km across, six runways running in, and six stands. Fields stand on flat plateaus, never on a site itself.</p>
+<figure class="fig has3d"><canvas class="viz" data-viz="landing" aria-label="moving diagram"></canvas><svg viewBox="0 0 760 220" role="img" aria-label="Every landing field: the pyramid and its beacon inside a gold ring, six runways running in. Land inside the ring, slowly." xmlns="http://www.w3.org/2000/svg"><line x1="190.0" y1="55.0" x2="190.0" y2="15.0" stroke="#2c3036" stroke-width="10"/><line x1="190.0" y1="55.0" x2="190.0" y2="15.0" stroke="#f2efe6" stroke-width="1" stroke-dasharray="4 4" opacity=".6"/><line x1="241.96152422706632" y1="85.0" x2="276.60254037844385" y2="64.99999999999999" stroke="#2c3036" stroke-width="10"/><line x1="241.96152422706632" y1="85.0" x2="276.60254037844385" y2="64.99999999999999" stroke="#f2efe6" stroke-width="1" stroke-dasharray="4 4" opacity=".6"/><line x1="241.96152422706632" y1="145.0" x2="276.6025403784439" y2="164.99999999999997" stroke="#2c3036" stroke-width="10"/><line x1="241.96152422706632" y1="145.0" x2="276.6025403784439" y2="164.99999999999997" stroke="#f2efe6" stroke-width="1" stroke-dasharray="4 4" opacity=".6"/><line x1="190.0" y1="175.0" x2="190.0" y2="215.0" stroke="#2c3036" stroke-width="10"/><line x1="190.0" y1="175.0" x2="190.0" y2="215.0" stroke="#f2efe6" stroke-width="1" stroke-dasharray="4 4" opacity=".6"/><line x1="138.03847577293368" y1="145.00000000000003" x2="103.39745962155617" y2="165.00000000000006" stroke="#2c3036" stroke-width="10"/><line x1="138.03847577293368" y1="145.00000000000003" x2="103.39745962155617" y2="165.00000000000006" stroke="#f2efe6" stroke-width="1" stroke-dasharray="4 4" opacity=".6"/><line x1="138.03847577293368" y1="85.0" x2="103.39745962155614" y2="64.99999999999999" stroke="#2c3036" stroke-width="10"/><line x1="138.03847577293368" y1="85.0" x2="103.39745962155614" y2="64.99999999999999" stroke="#f2efe6" stroke-width="1" stroke-dasharray="4 4" opacity=".6"/><circle cx="190" cy="115" r="58" fill="#2b2d31" stroke="#d4af50" stroke-width="4"/><circle cx="209.0" cy="82.09103465619133" r="6" fill="none" stroke="#35e6ff" stroke-width="1.5"/><circle cx="228.0" cy="115.0" r="6" fill="none" stroke="#7cff4f" stroke-width="1.5"/><circle cx="209.0" cy="147.9089653438087" r="6" fill="none" stroke="#ff2bd6" stroke-width="1.5"/><circle cx="171.0" cy="147.90896534380866" r="6" fill="none" stroke="#ff7a18" stroke-width="1.5"/><circle cx="152.0" cy="115.0" r="6" fill="none" stroke="#ffd23a" stroke-width="1.5"/><circle cx="170.99999999999997" cy="82.09103465619134" r="6" fill="none" stroke="#9fb3c2" stroke-width="1.5"/><rect x="174" y="99" width="32" height="32" fill="#1c1a18" stroke="#ffd070"/><line x1="174" y1="99" x2="206" y2="131" stroke="#ffd070"/><line x1="206" y1="99" x2="174" y2="131" stroke="#ffd070"/><text x="340" y="50" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#f2efe6" text-anchor="start" letter-spacing=".14em" font-weight="700">THE FIELD, FROM ABOVE</text><text x="340" y="72" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#ffd070" text-anchor="start" letter-spacing=".14em" font-weight="400">PYRAMID AT THE CENTRE · BEACON LIT</text><text x="340" y="92" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#d4af50" text-anchor="start" letter-spacing=".14em" font-weight="400">GOLD RING 2.4 KM ACROSS</text><text x="340" y="112" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">SIX RUNWAYS · SIX STANDS</text><text x="340" y="150" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10.5" fill="#f2efe6" text-anchor="start" letter-spacing=".14em" font-weight="700">TO FINISH: SET DOWN INSIDE THE RING,</text><text x="340" y="168" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10.5" fill="#f2efe6" text-anchor="start" letter-spacing=".14em" font-weight="700">SLOWLY — UNDER 90</text><line x1="660" y1="178.6" x2="660" y2="118.6" stroke="#ffd070" stroke-width="3" opacity=".45"/><line x1="660" y1="178.6" x2="660" y2="118.6" stroke="#fff3c4" stroke-width="1" opacity=".8"/><polygon points="638,205 682,205 660,178.6" fill="#1c1a18" stroke="#ffd070" stroke-width="1.5"/><text x="660" y="215" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="11" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400"></text></svg><figcaption>Every landing field: the pyramid and its beacon inside a gold ring, six runways running in. Land inside the ring, slowly.</figcaption></figure>
+<p>Every <b>landing field</b> is the same: a <b>pyramid</b> with its <b>beacon</b> lit — a shaft of light you can see from far off — inside a gold ring 2.4 km across, six runways running in, and six stands. Fields stand on flat plateaus, never on a site itself.</p>
 <ul>
-<li>After the last gate, follow the beacon (and the gold dashed line) to the field.</li>
+<li>After the last gate, follow the <b>beacon</b> (and the gold dashed line) to the field.</li>
 <li>Come in slowly and set down <b>inside the ring</b> below about 90 speed.</li>
-<li>Landing on a field costs nothing; the pyramid itself is solid.</li>
+<li>Landing on a field costs nothing; the <b>pyramid</b> itself is solid.</li>
 <li>Landing before the last gate does not count — the copilot will tell you.</li>
 </ul>
 </section>
 
 <section id="readouts">
 <h2>THE READOUTS</h2>
+<figure class="fig"><svg viewBox="0 0 760 220" role="img" aria-label="The gauges along the bottom of the screen in a run." xmlns="http://www.w3.org/2000/svg"><rect x="10" y="40" width="740" height="120" fill="#0b1117" stroke="#9fb3c2" stroke-opacity=".3"/><text x="28" y="80" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">FUEL</text><text x="146" y="80" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#f2efe6" text-anchor="end" letter-spacing=".14em" font-weight="400">WATER</text><rect x="28" y="90" width="118" height="7" fill="#1d2630"/><rect x="28" y="90" width="118" height="7" fill="#8fe6a8"/><text x="166" y="80" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">HEAT</text><text x="284" y="80" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#f2efe6" text-anchor="end" letter-spacing=".14em" font-weight="400">62%</text><rect x="166" y="90" width="118" height="7" fill="#1d2630"/><rect x="166" y="90" width="73.16" height="7" fill="#ffd070"/><rect x="260.4" y="85" width="2" height="16" fill="#8fe6a8"/><text x="304" y="80" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">JUMP</text><text x="422" y="80" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#f2efe6" text-anchor="end" letter-spacing=".14em" font-weight="400">J</text><rect x="304" y="90" width="118" height="7" fill="#1d2630"/><rect x="304" y="90" width="0" height="7" fill="#8fe6f0"/><text x="442" y="80" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">COLD CORE</text><text x="560" y="80" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#f2efe6" text-anchor="end" letter-spacing=".14em" font-weight="400">0%</text><rect x="442" y="90" width="118" height="7" fill="#1d2630"/><rect x="442" y="90" width="0" height="7" fill="#6fb7e6"/><text x="590" y="72" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">SPEED</text><text x="590" y="100" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="18" fill="#f2efe6" text-anchor="start" letter-spacing=".14em" font-weight="400">0.19 c</text><text x="680" y="72" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">ABOVE WATER</text><text x="680" y="100" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="18" fill="#f2efe6" text-anchor="start" letter-spacing=".14em" font-weight="400">154 m</text><text x="680" y="120" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#8fe6a8" text-anchor="start" letter-spacing=".14em" font-weight="400">· DECK</text><text x="28" y="140" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">STARDUST IDLE (IN THE AIR) · ACTIVE PAST 100 KM</text><text x="166" y="124" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9" fill="#8fe6a8" text-anchor="start" letter-spacing=".14em" font-weight="400">↑ GREEN TICK</text><text x="10" y="190" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">MOST READOUTS ALSO SAY WHAT IS HAPPENING: WATER · CLOUD · VENTING · CUT · BROKEN · ICE · DECK · LOW</text></svg><figcaption>The gauges along the bottom of the screen in a run.</figcaption></figure>
 <table>
 <tr><th>READOUT</th><th>MEANS</th></tr>
-<tr><td>FUEL</td><td>Water in the tank, % and kg. WATER / CLOUD when you are drinking.</td></tr>
-<tr><td>HEAT</td><td>Engine heat; the green tick is where it will settle. VENTING, CUT, BROKEN, NO AIR.</td></tr>
-<tr><td>COLD CORE</td><td>Banked cold; ICE and a white band when ice is forming; ICED when the intakes choke.</td></tr>
+<tr><td><b>FUEL</b></td><td>Water in the tank, % and kg. WATER / CLOUD when you are drinking.</td></tr>
+<tr><td><b>HEAT</b></td><td>Engine heat; the green tick is where it will settle. <b>VENTING</b>, CUT, BROKEN, NO AIR.</td></tr>
+<tr><td><b>COLD CORE</b></td><td>Banked cold; <b>ICE</b> and a white band when ice is forming; ICED when the intakes choke.</td></tr>
 <tr><td>STARDUST</td><td>IDLE inside the atmosphere; ACTIVE (with grams a second) beyond 100 km.</td></tr>
 <tr><td>SPEED</td><td>A fraction of the speed of light, scaled for play.</td></tr>
-<tr><td>ABOVE WATER / ALTITUDE</td><td>Height over the river, or over the Earth on the lane.</td></tr>
-<tr><td>RACE</td><td>The whole leg's clock, carried from page to page.</td></tr>
+<tr><td>ABOVE WATER / ALTITUDE</td><td>Height over the river, or over the <span class="pn">Earth</span> on <b>the lane</b>.</td></tr>
+<tr><td>RACE</td><td>The whole <b>leg</b>'s clock, carried from page to page.</td></tr>
 </table>
 </section>
 
 <section id="copilot">
 <h2>THE COPILOT</h2>
-<p>The copilot speaks through the pathfinder. It watches the craft and calls out what matters, one thing at a time: heat heading past the limit, fuel low with water near, ice forming, the stardust engine coming alive, time to brake, where to land. It speaks aloud (turn the voice off with <span class="key">V</span>) and writes on the screen.</p>
+<figure class="fig"><svg viewBox="0 0 760 180" role="img" aria-label="The copilot calls out what matters, one thing at a time, and answers questions from this manual." xmlns="http://www.w3.org/2000/svg"><rect x="20" y="40" width="380" height="110" fill="#0b1117" stroke="#ffd070" stroke-opacity=".5"/><text x="36" y="62" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#ffd070" text-anchor="start" letter-spacing=".14em" font-weight="700">COPILOT · PATHFINDER</text><text x="36" y="86" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="11" fill="#f2efe6" text-anchor="start" letter-spacing=".02em" font-weight="400">Heat will settle over the limit.</text><text x="36" y="104" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="11" fill="#f2efe6" text-anchor="start" letter-spacing=".02em" font-weight="400">Ease off, or hold space to vent.</text><text x="36" y="134" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">ON SCREEN, AND ALOUD (V TURNS THE VOICE OFF)</text><rect x="470" y="50" width="76" height="26" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".5"/><text x="508" y="67" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#f2efe6" text-anchor="middle" letter-spacing=".14em" font-weight="400">MANUAL</text><rect x="555" y="50" width="76" height="26" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".5"/><text x="593" y="67" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#f2efe6" text-anchor="middle" letter-spacing=".14em" font-weight="400">ASK</text><rect x="640" y="50" width="76" height="26" fill="#0e141b" stroke="#9fb3c2" stroke-opacity=".5"/><text x="678" y="67" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#f2efe6" text-anchor="middle" letter-spacing=".14em" font-weight="400">VOICE</text><text x="470" y="106" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10" fill="#f2efe6" text-anchor="start" letter-spacing=".14em" font-weight="700">PRESS / TO ASK:</text><text x="470" y="124" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="10.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".02em" font-weight="400">"how do I refuel?"</text><text x="470" y="142" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="9.5" fill="#9fb3c2" text-anchor="start" letter-spacing=".14em" font-weight="400">IT ANSWERS FROM THIS MANUAL</text></svg><figcaption>The copilot calls out what matters, one thing at a time, and answers questions from this manual.</figcaption></figure>
+<p>The copilot speaks through the <b>pathfinder</b>. It watches the craft and calls out what matters, one thing at a time: <b>heat</b> heading past the limit, <b>fuel</b> low with water near, <b>ice</b> forming, the <b>stardust engine</b> coming alive, time to brake, where to land. It speaks aloud (turn the voice off with <span class="key">V</span>) and writes on the screen.</p>
 <p>Press <span class="key">/</span> to ask it something — "why do my engines cut out?", "how do I refuel?", "where do I land?" — and it answers from this manual.</p>
 </section>
 
 </main>
+<script type="module">
+/* ==========================================================================
+   MANUAL · 4D — the concepts as moving 3D scenes
+   ==========================================================================
+   One WebGL renderer draws every scene, and each figure's canvas gets a
+   copy — so eight scenes cost one context. Only the scenes on screen are
+   drawn. Every scene loops in time (the fourth dimension): each shows a
+   concept happening, not a still of it. Everything is built from shapes
+   and canvas-drawn text; nothing is downloaded but three.js itself.
+   If WebGL is not there, the flat diagrams stay in place.
+   ========================================================================== */
+import * as THREE from 'three';
+
+const W = 760, H = 300;
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  renderer.setSize(W, H, false);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  document.documentElement.classList.add('webgl');
+} catch (e) { console.warn('[moon-racer] manual: no WebGL, keeping the flat diagrams'); }
+
+const C = { ink: 0xf2efe6, dim: 0x9fb3c2, gold: 0xd4af50, brass: 0xffd070, blue: 0x4da3ff, cyan: 0x8fe6f0,
+            water: 0x2c6472, rock: 0x5a4a3e, green: 0x8fe6a8, hot: 0xffb347, red: 0xff5a3c, violet: 0xb8a6ff, bg: 0x070b10 };
+const hex = n => '#' + n.toString(16).padStart(6, '0');
+
+/* ---------------------------------------------------------------- helpers */
+function label(text, color, size) {
+  const c = document.createElement('canvas'), x = c.getContext('2d'), fs = 44;
+  x.font = `600 ${fs}px ui-monospace, Menlo, Consolas, monospace`;
+  const w = Math.ceil(x.measureText(text).width) + 24;
+  c.width = w; c.height = fs + 20;
+  x.font = `600 ${fs}px ui-monospace, Menlo, Consolas, monospace`;
+  x.fillStyle = hex(color); x.textBaseline = 'middle'; x.fillText(text, 12, c.height / 2);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: false }));
+  const k = (size || 1) * 0.012; s.scale.set(w * k, c.height * k, 1); s.renderOrder = 10;
+  /* new words: resize the canvas to fit them, and the sprite with it */
+  s.userData.setText = (tt) => {
+    x.font = `600 ${fs}px ui-monospace, Menlo, Consolas, monospace`;
+    const w2 = Math.max(24, Math.ceil(x.measureText(tt).width) + 24);
+    if (w2 !== c.width) { c.width = w2; t.dispose(); }
+    x.font = `600 ${fs}px ui-monospace, Menlo, Consolas, monospace`;
+    x.clearRect(0, 0, c.width, c.height); x.fillStyle = hex(color); x.textBaseline = 'middle'; x.fillText(tt, 12, c.height / 2);
+    t.needsUpdate = true; s.scale.set(c.width * k, c.height * k, 1);
+  };
+  return s;
+}
+const mat = (c, o) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.8 }, o || {}));
+const glow = (c, k) => new THREE.MeshBasicMaterial({ color: new THREE.Color(c).multiplyScalar(k || 1), toneMapped: false });
+function craft(color) {
+  const g = new THREE.Group();
+  const hull = new THREE.Mesh(new THREE.ConeGeometry(0.35, 1.4, 4), mat(0x1b1a1d, { roughness: 0.5 }));
+  hull.rotation.x = Math.PI / 2; hull.scale.set(1, 1, 0.6); g.add(hull);
+  const sail = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.55), new THREE.MeshStandardMaterial({ color: 0x2b3a2b, emissive: color || 0x3aa02a, emissiveIntensity: 0.6, side: THREE.DoubleSide }));
+  sail.position.set(0, 0.45, 0.05); g.add(sail);
+  const plume = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 8), glow(0xffe0b0, 1.4)); plume.position.z = 0.75; g.add(plume);
+  g.userData = { hull, plume };
+  return g;
+}
+function lights(scene, k) {
+  scene.add(new THREE.HemisphereLight(0xdfeefa, 0x2a2420, 0.7 * (k || 1)));
+  const d = new THREE.DirectionalLight(0xfff2dc, 1.4 * (k || 1)); d.position.set(-4, 6, 3); scene.add(d);
+}
+function spiralTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
+  x.translate(128, 128); x.lineCap = 'round';
+  for (let arm = 0; arm < 3; arm++) { x.beginPath();
+    for (let k = 0; k <= 120; k++) { const f = k / 120, a = arm * 2.094 + f * 7.5, r = 8 + f * 112; k ? x.lineTo(Math.cos(a) * r, Math.sin(a) * r) : x.moveTo(Math.cos(a) * r, Math.sin(a) * r); }
+    x.strokeStyle = 'rgba(235,245,255,0.9)'; x.lineWidth = 7; x.stroke(); }
+  return new THREE.CanvasTexture(c);
+}
+function particles(n, color, size) {
+  const g = new THREE.BufferGeometry(), p = new Float32Array(n * 3);
+  g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+  const pts = new THREE.Points(g, new THREE.PointsMaterial({ color, size: size || 0.12, transparent: true, opacity: 0.85, depthWrite: false }));
+  pts.frustumCulled = false; return pts;
+}
+/* pin a caption or gauge to the view, in camera space: x, y at distance d */
+const _v = new THREE.Vector3();
+function pin(obj, cam, x, y, d) {
+  d = d || 6;
+  obj.position.copy(cam.position).add(_v.set(x, y, -d).applyQuaternion(cam.quaternion));
+  obj.quaternion.copy(cam.quaternion);
+}
+const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
+
+/* ================================================================ scenes */
+const SCENES = {};
+
+/* THE RACE — a leg round the planet: Giza, the lane, the entry, down to the pyramid */
+SCENES.race = () => {
+  const scene = new THREE.Scene(); lights(scene);
+  const cam = new THREE.PerspectiveCamera(38, W / H, 0.1, 100); cam.position.set(0, 2.2, 9.5); cam.lookAt(0, 0, 0);
+  const R = 2.6, earth = new THREE.Mesh(new THREE.SphereGeometry(R, 64, 48), mat(0x151b24, { roughness: 0.7, metalness: 0.1 }));
+  scene.add(earth);
+  const rim = new THREE.Mesh(new THREE.SphereGeometry(R * 1.04, 64, 48), new THREE.MeshBasicMaterial({ color: 0x4d8fd0, transparent: true, opacity: 0.12, side: THREE.BackSide }));
+  scene.add(rim);
+  const toV = (lat, lon, r) => { const la = lat * Math.PI / 180, lo = lon * Math.PI / 180; return new THREE.Vector3(Math.cos(la) * Math.sin(lo), Math.sin(la), Math.cos(la) * Math.cos(lo)).multiplyScalar(r); };
+  const A = toV(30, 31, R), B = toV(45, -117, R), an = A.clone().normalize(), bn = B.clone().normalize();
+  const side = an.clone().cross(bn).cross(an).normalize().negate(), arc = Math.acos(an.dot(bn));
+  const lane = (t, r) => an.clone().multiplyScalar(Math.cos(t)).addScaledVector(side, Math.sin(t)).multiplyScalar(r);
+  const pts = []; for (let k = 0; k <= 128; k++) pts.push(lane(k / 128 * Math.PI * 2, R * 1.35));
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: C.gold, transparent: true, opacity: 0.35 })));
+  const legPts = []; for (let k = 0; k <= 64; k++) legPts.push(lane(k / 64 * arc, R * 1.35));
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(legPts), new THREE.LineBasicMaterial({ color: C.brass })));
+  for (const [p, c] of [[A, C.brass], [B, C.green]]) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 8), glow(c, 1.6)); m.position.copy(p.clone().multiplyScalar(1.01)); scene.add(m); }
+  const lg = label('GIZA', C.brass, 0.9); lg.position.copy(A.clone().multiplyScalar(1.18)); scene.add(lg);
+  const lh = label('HELLS CANYON', C.green, 0.9); lh.position.copy(B.clone().multiplyScalar(1.2)); scene.add(lh);
+  const pyr = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.2, 4), mat(0x1c1a18, { emissive: 0x3a2a08 })); pyr.position.copy(B.clone().multiplyScalar(1.03)); pyr.lookAt(0, 0, 0); pyr.rotateX(-Math.PI / 2); scene.add(pyr);
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.03, 0.9, 8, 1, true), new THREE.MeshBasicMaterial({ color: 0xfff0c0, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  beam.position.copy(B.clone().multiplyScalar(1.2)); beam.lookAt(0, 0, 0); beam.rotateX(Math.PI / 2); scene.add(beam);
+  const dot = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 8), glow(0x7cff4f, 2)); scene.add(dot);
+  const cap = label('', C.ink, 0.55); scene.add(cap);
+  let last = '';
+  return { scene, cam, dur: 11, update(t) {
+    earth.rotation.y = 0.35 + Math.sin(t * 0.25) * 0.1; rim.rotation.y = earth.rotation.y;
+    const k = t / 11; let pos, txt;
+    if (k < 0.12) { pos = A.clone().lerp(lane(0.05, R * 1.35), ease(k / 0.12)); txt = '1 · LEAVE THE SITE'; }
+    else if (k < 0.72) { pos = lane(0.05 + (arc - 0.1) * ease((k - 0.12) / 0.6), R * 1.35); txt = '2 · THE LANE, IN ORBIT'; }
+    else if (k < 0.84) { pos = lane(arc - 0.05, R * 1.35).lerp(B.clone().multiplyScalar(1.02), ease((k - 0.72) / 0.12)); txt = '3 · DOWN TO THE ENTRY · THE RUN'; }
+    else { pos = B.clone().multiplyScalar(1.02); txt = '4 · LAND AT THE PYRAMID'; }
+    dot.position.copy(pos);
+    beam.material.opacity = k > 0.84 ? 0.7 : 0.15;
+    if (txt !== last) { cap.userData.setText(txt); last = txt; }
+    pin(cap, cam, 0, -1.75);
+  } };
+};
+
+/* FUEL · THE DECK — a canyon, the river, the deck at 500 ft, spray rising to the intakes */
+SCENES.engines = () => {
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b1219); lights(scene);
+  const cam = new THREE.PerspectiveCamera(40, W / H, 0.1, 200);
+  const L = 24;
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(3, L), new THREE.MeshPhongMaterial({ color: C.water, specular: 0x88ccdd, shininess: 60 }));
+  water.rotation.x = -Math.PI / 2; scene.add(water);
+  for (const s of [-1, 1]) {
+    const shape = new THREE.Shape(); shape.moveTo(0, 0); shape.lineTo(3.5 * s, 4.6); shape.lineTo(6 * s, 5); shape.lineTo(6 * s, 0);
+    const wall = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth: L, bevelEnabled: false }), mat(C.rock, { flatShading: true }));
+    wall.position.set(1.5 * s, 0, -L / 2); scene.add(wall);
+  }
+  const DECK = 1.6;
+  const deck = new THREE.Mesh(new THREE.PlaneGeometry(7.2, L), new THREE.MeshBasicMaterial({ color: C.green, transparent: true, opacity: 0.13, side: THREE.DoubleSide, depthWrite: false }));
+  deck.rotation.x = -Math.PI / 2; deck.position.y = DECK; scene.add(deck);
+  const edge = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(7.2, L)), new THREE.LineBasicMaterial({ color: C.green }));
+  edge.rotation.x = -Math.PI / 2; edge.position.y = DECK; scene.add(edge);
+  const danger = new THREE.Mesh(new THREE.BoxGeometry(3, 0.55, L), new THREE.MeshBasicMaterial({ color: C.red, transparent: true, opacity: 0.12, depthWrite: false }));
+  danger.position.y = 0.3; scene.add(danger);
+  const fade = new THREE.Mesh(new THREE.BoxGeometry(7.2, 3.2, L), new THREE.MeshBasicMaterial({ color: C.green, transparent: true, opacity: 0.035, depthWrite: false }));
+  fade.position.y = DECK + 1.6; scene.add(fade);
+  const c1 = label('THE DECK · 500 FT · FULL DRINK', C.green, 0.7); scene.add(c1);
+  const c2 = label('DRINKING FADES · NONE BY 1,500 FT', C.dim, 0.6); scene.add(c2);
+  const c3 = label('ROCKS · DEBRIS BELOW THE DECK', 0xff8a70, 0.6); scene.add(c3);
+  const c4 = label('SPRAY DRAWN UP TO THE INTAKES', C.cyan, 0.55); scene.add(c4);
+  const ship = craft(); ship.position.y = DECK; scene.add(ship);
+  const N = 90, spray = particles(N, 0xdff4f8, 0.09), sp = spray.geometry.attributes.position.array, seed = [];
+  for (let k = 0; k < N; k++) seed.push(Math.random());
+  scene.add(spray);
+  const cloud = new THREE.Group(); for (let k = 0; k < 6; k++) { const s = new THREE.Mesh(new THREE.SphereGeometry(0.5 + Math.random() * 0.4, 12, 8), new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0x505860 })); s.position.set((k - 3) * 0.45, Math.random() * 0.3, Math.random() * 0.4); cloud.add(s); }
+  cloud.position.set(2.6, DECK + 3.2, -4); scene.add(cloud);
+  return { scene, cam, dur: 10, update(t) {
+    const z = 8 - (t / 10) * 16; ship.position.set(Math.sin(t * 0.8) * 0.3, DECK + Math.sin(t * 2) * 0.05, z);
+    cam.position.set(1.2 + Math.sin(t * 0.3) * 0.8, DECK + 2.6, z + 7.5); cam.lookAt(0, DECK * 0.7, z - 2);
+    for (let k = 0; k < N; k++) { const f = (seed[k] + t * 0.9) % 1;
+      sp[k * 3] = ship.position.x + (seed[(k + 7) % N] - 0.5) * 0.8 * (1 - f);
+      sp[k * 3 + 1] = f * DECK;
+      sp[k * 3 + 2] = ship.position.z + 0.3 + (seed[(k + 13) % N] - 0.5) * 0.8 * (1 - f) + f * 0.4; }
+    spray.geometry.attributes.position.needsUpdate = true;
+    c1.position.set(-1.6, DECK + 0.35, z - 3); c2.position.set(0, DECK + 3.4, z - 6); c3.position.set(0.2, 0.75, z - 2.5); c4.position.set(1.6, DECK * 0.55, z - 0.5);
+  } };
+};
+
+/* HEAT — fast in thick air the craft glows hot; climb into thin air and it cools; none in the vacuum */
+SCENES.heat = () => {
+  const scene = new THREE.Scene(); lights(scene);
+  const cam = new THREE.PerspectiveCamera(40, W / H, 0.1, 200); cam.position.set(0, 3, 12); cam.lookAt(0, 3, 0);
+  const sky = new THREE.Mesh(new THREE.PlaneGeometry(60, 30), new THREE.ShaderMaterial({ depthWrite: false,
+    vertexShader: 'varying float vy; void main(){ vy = position.y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+    fragmentShader: 'varying float vy; void main(){ float k = clamp((vy + 8.0) / 20.0, 0.0, 1.0); gl_FragColor = vec4(mix(vec3(0.35,0.55,0.68), vec3(0.01,0.015,0.03), k), 1.0); }' }));
+  sky.position.set(0, 4, -8); scene.add(sky);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 20), mat(0x3a3328)); ground.rotation.x = -Math.PI / 2; ground.position.y = -1; scene.add(ground);
+  const ship = craft(); ship.rotation.y = Math.PI / 2; scene.add(ship);
+  const halo = new THREE.Mesh(new THREE.SphereGeometry(0.9, 16, 12), new THREE.MeshBasicMaterial({ color: C.hot, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  scene.add(halo);
+  const barBg = new THREE.Mesh(new THREE.PlaneGeometry(4, 0.2), new THREE.MeshBasicMaterial({ color: 0x1d2630, depthTest: false })); barBg.renderOrder = 8; scene.add(barBg);
+  const bar = new THREE.Mesh(new THREE.PlaneGeometry(4, 0.2), new THREE.MeshBasicMaterial({ color: C.hot, depthTest: false })); bar.renderOrder = 9; scene.add(bar);
+  const tick = new THREE.Mesh(new THREE.PlaneGeometry(0.05, 0.45), new THREE.MeshBasicMaterial({ color: C.green, depthTest: false })); tick.renderOrder = 10; scene.add(tick);
+  const hl = label('HEAT', C.dim, 0.5); scene.add(hl);
+  const tl = label('← WHERE IT WILL SETTLE', C.green, 0.4); scene.add(tl);
+  const cap = label('', C.ink, 0.55); scene.add(cap);
+  const air = label('', C.dim, 0.6); scene.add(air);
+  let last = '', lastAir = '';
+  return { scene, cam, dur: 12, update(t) {
+    const k = t / 12;
+    let y, v, heat, txt, a;
+    if (k < 0.35) { y = 0.2; v = 0.3 + k / 0.35; heat = Math.pow(v, 2) * 0.95; txt = 'FAST IN THICK AIR · HOT'; a = 'THICK AIR'; }
+    else if (k < 0.7) { const f = (k - 0.35) / 0.35; y = 0.2 + ease(f) * 8.5; v = 1.3; heat = 1.24 * (1 - ease(f)) + 0.05; txt = 'CLIMBING · THE AIR THINS · COOLING'; a = 'THINNING'; }
+    else { y = 8.7; v = 2; heat = 0.03; txt = 'VACUUM · NO HEAT AT ANY SPEED'; a = 'VACUUM'; }
+    ship.position.set(Math.sin(t * 1.4) * 0.4, y * 0.68 - 0.4, 0);
+    cam.position.y = 3 + (y * 0.68 - 0.4) * 0.35; cam.lookAt(0, cam.position.y, 0);
+    halo.position.copy(ship.position); halo.material.opacity = Math.min(0.55, heat * 0.45); halo.scale.setScalar(0.6 + heat * 0.6);
+    ship.userData.plume.scale.setScalar(0.7 + v * 0.6);
+    const h = Math.min(1, heat); bar.scale.x = Math.max(0.001, h);
+    bar.material.color.set(heat > 1 ? C.red : heat > 0.7 ? C.hot : C.brass);
+    pin(barBg, cam, -2.6, 1.7); pin(bar, cam, -4.6 + 2 * h, 1.7, 5.99); pin(tick, cam, -4.6 + 4 * Math.min(1.05, heat * 1.08), 1.7, 5.98);
+    pin(hl, cam, -5.1, 1.7); pin(tl, cam, -4.6 + 4 * Math.min(1.05, heat * 1.08) + 1.3, 1.35); pin(cap, cam, 0, -1.75);
+    if (txt !== last) { cap.userData.setText(txt); last = txt; }
+    if (a !== lastAir) { air.userData.setText(a); lastAir = a; }
+    air.position.set(ship.position.x + 2.2, ship.position.y - 0.7, 0);
+  } };
+};
+
+/* THE VORTEX, THE COLD CORE & ICE — spirals shed heat; the core colds; past two-thirds, frost */
+SCENES.vortex = () => {
+  const scene = new THREE.Scene(); lights(scene);
+  const cam = new THREE.PerspectiveCamera(38, W / H, 0.1, 100); cam.position.set(5.2, 1.4, 5.8); cam.lookAt(0, 0.1, 1.6);
+  const ship = craft(); scene.add(ship);
+  const tex = spiralTexture();
+  const spirals = [0, 1].map(i => { const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
+    m.position.z = 1.4 + i * 1.1; m.scale.setScalar(1.3 + i * 0.7); m.userData.spin = i ? -4 : 6; scene.add(m); return m; });
+  const core = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 12), new THREE.MeshBasicMaterial({ color: C.blue, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
+  core.position.z = 1.9; scene.add(core);
+  const N = 80, hot = particles(N, C.hot, 0.08), hp = hot.geometry.attributes.position.array, sd = []; for (let k = 0; k < N; k++) sd.push([Math.random() * Math.PI * 2, Math.random()]);
+  scene.add(hot);
+  const barBg = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 0.18), new THREE.MeshBasicMaterial({ color: 0x1d2630, depthTest: false })); barBg.renderOrder = 8; scene.add(barBg);
+  const bar = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 0.18), new THREE.MeshBasicMaterial({ color: 0x6fb7e6, depthTest: false })); bar.renderOrder = 9; scene.add(bar);
+  const mark = new THREE.Mesh(new THREE.PlaneGeometry(0.04, 0.4), new THREE.MeshBasicMaterial({ color: 0xf2f7ff, depthTest: false })); mark.renderOrder = 10; scene.add(mark);
+  const ml = label('⅔ · ICE', 0xf2f7ff, 0.4); scene.add(ml);
+  const bl = label('COLD CORE', C.blue, 0.45); scene.add(bl);
+  const cap = label('', C.ink, 0.55); scene.add(cap);
+  const hl = label('HOT RIM THROWN OFF', C.hot, 0.5); hl.position.set(1.2, 0.95, 3.4); scene.add(hl);
+  const cl = label('COLD CORE', C.blue, 0.5); cl.position.set(0.2, -0.75, 1.9); scene.add(cl);
+  let last = '';
+  return { scene, cam, dur: 12, update(t) {
+    const k = t / 12, venting = k > 0.1 && k < 0.8, cold = k < 0.1 ? 0 : k < 0.8 ? Math.min(1, (k - 0.1) / 0.6) : Math.max(0, 1 - (k - 0.8) / 0.2);
+    const lvl = venting ? 1 : 0.35;
+    spirals.forEach(m => { m.rotation.z = t * m.userData.spin * (venting ? 1 : 0.3); m.material.opacity = 0.35 + 0.5 * lvl; m.lookAt(ship.position.clone().setZ(-5)); m.rotateZ(t * m.userData.spin * (venting ? 1 : 0.3)); });
+    core.scale.setScalar(0.6 + cold * 1.4); core.material.opacity = 0.3 + cold * 0.7;
+    for (let q = 0; q < N; q++) { const [ang, s] = sd[q], f = (s + t * (venting ? 0.9 : 0.25)) % 1, r = 0.3 + f * 2.2;
+      hp[q * 3] = Math.cos(ang + t) * r; hp[q * 3 + 1] = Math.sin(ang + t) * r; hp[q * 3 + 2] = 1.9 + f * 1.2; }
+    hot.geometry.attributes.position.needsUpdate = true; hot.material.opacity = venting ? 0.9 : 0.25;
+    bar.scale.x = Math.max(0.001, cold);
+    pin(barBg, cam, -3.3, 1.5); pin(bar, cam, -4.9 + 1.6 * cold, 1.5, 5.99); pin(mark, cam, -4.9 + 3.2 * 0.66, 1.5, 5.98);
+    pin(bl, cam, -3.3, 1.78); pin(ml, cam, -4.9 + 3.2 * 0.66, 1.22); pin(cap, cam, 0, -1.7);
+    const ice = Math.max(0, (cold - 0.66) / 0.34);
+    ship.userData.hull.material.color.setRGB(0.105 + 0.75 * ice, 0.1 + 0.78 * ice, 0.114 + 0.82 * ice);
+    bar.material.color.set(ice > 0 ? 0xf2f7ff : 0x6fb7e6);
+    const txt = !venting && k < 0.1 ? 'THE WAKE VORTEX SHEDS HEAT INTO THE AIR' : venting && ice === 0 ? 'SPACE: VENT · 3× SHEDDING · BANKING COLD' : venting ? 'PAST ⅔ · ICE FORMS · LET GO' : 'LET GO · THE BANKED COLD SOAKS UP HEAT';
+    if (txt !== last) { cap.userData.setText(txt); last = txt; }
+  } };
+};
+
+/* JUMPING — the probe goes first, then you: flood on the deck, over the ridge, through the cyan gate */
+SCENES.jump = () => {
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b1219); lights(scene);
+  const cam = new THREE.PerspectiveCamera(42, W / H, 0.1, 200);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 30, 80, 60), mat(0x4a3f33, { flatShading: true }));
+  ground.rotation.x = -Math.PI / 2;
+  const gp = ground.geometry.attributes.position;
+  const riverPt = u => new THREE.Vector3(-8 + 16 * u, 0, Math.sin(u * Math.PI) * -6);   // a bend round the ridge
+  const rs = []; for (let k = 0; k <= 80; k++) rs.push(riverPt(k / 80));
+  for (let i = 0; i < gp.count; i++) { const x = gp.getX(i), z = -gp.getY(i);
+    let dmin = 1e9; for (const q of rs) dmin = Math.min(dmin, Math.hypot(x - q.x, z - q.z));
+    const bank = Math.min(1, Math.max(0, (dmin - 0.7) / 1.6));            // the river's own channel, cut down to the water
+    const ridge = 3.2 * Math.exp(-((x) ** 2 / 14 + (z + 1.2) ** 2 / 5));
+    gp.setZ(i, (ridge + 0.6 + Math.sin(x * 0.7) * Math.cos(z * 0.6) * 0.15) * bank - 0.15 * (1 - bank)); }
+  ground.geometry.computeVertexNormals(); scene.add(ground);
+  const rpts = []; for (let k = 0; k <= 60; k++) { const p = riverPt(k / 60); p.y = 0.05; rpts.push(p); }
+  const river = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rpts), 80, 0.55, 6, false), new THREE.MeshPhongMaterial({ color: C.water, specular: 0x88ccdd, shininess: 60 }));
+  river.scale.y = 0.08; scene.add(river);
+  const a = riverPt(0.12), b = riverPt(0.88); a.y = b.y = 1.1;
+  const apex = a.clone().lerp(b, 0.5); apex.y = 5.4;
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.06, 8, 40), glow(C.cyan, 2)); ring.position.copy(apex); ring.lookAt(b.clone().setY(apex.y)); scene.add(ring);
+  for (const u of [0.35, 0.5, 0.65]) { const g = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.04, 6, 30), glow(C.gold, 1.6)); const p = riverPt(u); g.position.set(p.x, 1.1, p.z); scene.add(g); g.userData.gate = true; }
+  const arcAt = f => { const p = a.clone().lerp(b, f); p.y = a.y + (apex.y - a.y) * Math.sin(Math.PI * f); return p; };
+  const probe = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 8), glow(C.brass, 2)); scene.add(probe);
+  const ship = craft(); scene.add(ship);
+  const VN = 120, vap = particles(VN, 0xeaf2f6, 0.16), vp = vap.geometry.attributes.position.array; let vn = 0, lastLay = 0; scene.add(vap);
+  const BN = 60, blast = particles(BN, 0xf2f7ff, 0.14), bp = blast.geometry.attributes.position.array, bs = []; for (let k = 0; k < BN; k++) bs.push(new THREE.Vector3((Math.random() - 0.5) * 1.5, Math.random() * 3 + 1, (Math.random() - 0.5) * 1.5)); scene.add(blast);
+  const cap = label('', C.ink, 0.55); scene.add(cap);
+  const gl = label('JUMP GATE', C.cyan, 0.7); gl.position.copy(apex).add(new THREE.Vector3(0, 1.1, 0)); scene.add(gl);
+  let last = '', blastT = -9, blastAt = new THREE.Vector3();
+  return { scene, cam, dur: 16, update(t) {
+    const k = t / 16;
+    cam.position.set(Math.sin(0.5 + k * 0.6) * 15, 9, 13 + Math.cos(0.5 + k * 0.6) * 2); cam.lookAt(0, 1.5, -2.5);
+
+    let txt;
+    /* the probe: 0.05–0.3 */
+    if (k < 0.05) { probe.position.copy(a); txt = 'JUMP POINT · WATCH THE PROBE GO FIRST'; }
+    else if (k < 0.3) { const f = (k - 0.05) / 0.25; probe.position.copy(arcAt(f)); txt = 'THE PROBE JUMPS · ITS VAPOUR MARKS THE ARC';
+      if (t - lastLay > 0.05) { lastLay = t; const q = vn % VN; vp.set([probe.position.x, probe.position.y, probe.position.z], q * 3); vn++; }
+      if (f < 0.03 && t - blastT > 2) { blastT = t; blastAt.copy(a).setY(0.1); } }
+    else probe.position.copy(b).add(new THREE.Vector3(1.5, 0, 0));
+    /* you: flood 0.35–0.5, jump 0.5–0.78, splashdown after */
+    if (k < 0.35) { ship.position.copy(riverPt(0.02)).setY(1.1); txt = txt || 'ON THE DECK OVER THE WATER'; }
+    else if (k < 0.5) { ship.position.copy(a); txt = 'HOLD J · FLOOD THE ENGINES · THE CHARGE BUILDS'; ship.userData.plume.scale.setScalar(1 + (k - 0.35) * 12); }
+    else if (k < 0.78) { const f = (k - 0.5) / 0.28; ship.position.copy(arcAt(f)); txt = f < 0.45 ? 'LET GO · THE BLAST THROWS YOU OVER THE RIDGE' : 'THROUGH THE JUMP GATE · THE BEND IS CLEARED';
+      ship.userData.plume.scale.setScalar(0.6);
+      if (f < 0.03 && t - blastT > 2) { blastT = t; blastAt.copy(a).setY(0.1); }
+      const ahead = arcAt(Math.min(1, f + 0.02)); ship.lookAt(ahead); ship.rotateY(Math.PI); }
+    else { ship.position.copy(b).setY(1.1); txt = 'SPLASHDOWN · COOL AND FAST'; }
+    if (k < 0.5) { const ahead = riverPt(0.2); ship.lookAt(ahead.setY(1.1)); ship.rotateY(Math.PI); }
+    scene.children.forEach(o => { if (o.userData.gate) o.material.color.setScalar(k > 0.66 ? 0.5 : 1.6), o.visible = !(k > 0.66); });
+    const bt = t - blastT;
+    for (let q = 0; q < BN; q++) { const v = bs[q]; bp[q * 3] = blastAt.x + v.x * bt; bp[q * 3 + 1] = blastAt.y + Math.max(0, v.y * bt - 2 * bt * bt); bp[q * 3 + 2] = blastAt.z + v.z * bt; }
+    blast.material.opacity = Math.max(0, 0.9 - bt * 0.5); blast.geometry.attributes.position.needsUpdate = true;
+    for (let q = 0; q < Math.min(vn, VN); q++) vp[q * 3 + 1] += 0.002;
+    vap.geometry.attributes.position.needsUpdate = true; vap.geometry.setDrawRange(0, Math.min(vn, VN));
+    if (k < 0.02) { vn = 0; }
+    if (txt !== last) { cap.userData.setText(txt); last = txt; }
+    pin(cap, cam, 0, -1.75);
+  } };
+};
+
+/* THE STARDUST ENGINE — out through the air, past the Kármán line, the engine wakes */
+SCENES.stardust = () => {
+  const scene = new THREE.Scene(); lights(scene, 0.9);
+  const cam = new THREE.PerspectiveCamera(40, W / H, 0.1, 400);
+  const R = 10, earth = new THREE.Mesh(new THREE.SphereGeometry(R, 96, 64), mat(0x151b24, { roughness: 0.7 }));
+  earth.position.y = -R; scene.add(earth);
+  const air = new THREE.Mesh(new THREE.SphereGeometry(R + 0.6, 96, 64), new THREE.MeshBasicMaterial({ color: 0x4d8fd0, transparent: true, opacity: 0.18, depthWrite: false, side: THREE.DoubleSide }));
+  air.position.y = -R; scene.add(air);
+  const karman = new THREE.Mesh(new THREE.SphereGeometry(R + 1.3, 96, 64), new THREE.MeshBasicMaterial({ color: C.violet, transparent: true, opacity: 0.08, depthWrite: false, side: THREE.DoubleSide, wireframe: false }));
+  karman.position.y = -R; scene.add(karman);
+  const kRing = new THREE.Mesh(new THREE.TorusGeometry(R + 1.3, 0.02, 6, 200), glow(C.violet, 1.6)); kRing.position.y = -R; scene.add(kRing);
+  const kl = label('THE KÁRMÁN LINE · 100 KM', C.violet, 0.65); kl.position.set(-2.4, 1.6, 2); scene.add(kl);
+  const al = label('THE AIR · AIR ENGINES', 0x7fb2de, 0.6); al.position.set(-2.4, 0.45, 2); scene.add(al);
+  const moon = new THREE.Mesh(new THREE.SphereGeometry(0.7, 32, 24), mat(0xcfd4da)); moon.position.set(9, 6, -6); scene.add(moon);
+  const path = []; for (let k = 0; k <= 40; k++) { const f = k / 40; path.push(new THREE.Vector3(0 + 9 * f, 2.5 + 3.5 * f + Math.sin(f * Math.PI) * 1.2, -6 * f)); }
+  const dash = new THREE.Line(new THREE.BufferGeometry().setFromPoints(path), new THREE.LineDashedMaterial({ color: C.violet, dashSize: 0.25, gapSize: 0.2 })); dash.computeLineDistances(); scene.add(dash);
+  const ml = label('1 KG OF WATER → THE MOON IN A DAY', C.ink, 0.6); ml.position.set(5.5, 7.4, -5); scene.add(ml);
+  const ship = craft(0x8a70ff); ship.rotation.x = -Math.PI / 2; scene.add(ship);
+  const aura = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 12), new THREE.MeshBasicMaterial({ color: C.violet, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })); scene.add(aura);
+  const cap = label('', C.ink, 0.55); scene.add(cap);
+  let last = '';
+  return { scene, cam, dur: 12, update(t) {
+    const k = t / 12, y = 0.05 + ease(Math.min(1, k / 0.7)) * 3.2;
+    ship.position.set(-0.5 + k * 1.2, y, 0);
+    cam.position.set(1.5 + Math.sin(k * 1.2) * 1.5, 2.5, 11); cam.lookAt(1.5, 2.2, -1);
+    const active = y > 1.3;
+    aura.position.copy(ship.position); aura.material.opacity = active ? 0.35 + 0.15 * Math.sin(t * 6) : 0;
+    ship.userData.plume.material.color.set(active ? 0xb8a6ff : 0xffe0b0);
+    const txt = active ? 'STARDUST ENGINE · ACTIVE' : 'INSIDE THE ATMOSPHERE · STARDUST IDLE';
+    if (txt !== last) { cap.userData.setText(txt); last = txt; }
+    moon.rotation.y = t * 0.1;
+    pin(cap, cam, 0, -1.75);
+  } };
+};
+
+/* NAVIGATION — the forward probe ahead of you, its vapour the route, over a winding river */
+SCENES.nav = () => {
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b1219); lights(scene);
+  const cam = new THREE.PerspectiveCamera(45, W / H, 0.1, 200);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), mat(0x3d352b)); ground.rotation.x = -Math.PI / 2; scene.add(ground);
+  const rp = u => new THREE.Vector3(Math.sin(u * 0.35) * 4 + Math.sin(u * 0.13) * 3, 0, -u);
+  const pts = []; for (let k = -10; k <= 90; k++) { const p = rp(k); p.y = 0.03; pts.push(p); }
+  const river = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 300, 0.7, 6, false), new THREE.MeshPhongMaterial({ color: C.water, specular: 0x88ccdd, shininess: 60 }));
+  river.scale.y = 0.06; scene.add(river);
+  for (let k = 0; k < 90; k += 9) { const p = rp(k); const g = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.05, 6, 30), glow(C.gold, 1.5)); g.position.set(p.x, 1.4, p.z); g.lookAt(rp(k + 1).setY(1.4)); scene.add(g); }
+  const DECK = 1.4, probe = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 8), glow(C.brass, 2)); scene.add(probe);
+  const ship = craft(); scene.add(ship);
+  const N = 160, vap = particles(N, 0xeaf2f6, 0.22), vp = vap.geometry.attributes.position.array, born = new Float32Array(N); scene.add(vap);
+  vap.material.vertexColors = true; const col = new Float32Array(N * 3); vap.geometry.setAttribute('color', new THREE.BufferAttribute(col, 3)); vap.material.color.set(0xffffff);
+  let n = 0, laid = 0;
+  const pl = label('PROBE · 4 KM AHEAD', C.brass, 0.8); scene.add(pl);
+  const yl = label('YOU', C.dim, 0.7); scene.add(yl);
+  const cap = label('ITS VAPOUR TRAIL IS THE ROUTE · FRESH AHEAD, THINNING BEHIND', C.ink, 0.5); scene.add(cap);
+  return { scene, cam, dur: 14, update(t) {
+    const u = t * 5, pu = u + 11;
+    const sp = rp(u); ship.position.set(sp.x, DECK, sp.z); ship.lookAt(rp(u + 1).setY(DECK)); ship.rotateY(Math.PI);
+    const pp = rp(pu); probe.position.set(pp.x, DECK, pp.z);
+    while (laid < pu * 2) { laid++; const q = n % N; const p = rp(laid / 2); vp.set([p.x, DECK, p.z], q * 3); born[q] = t; n++; }
+    if (t < 0.05) { n = 0; laid = 0; }
+    for (let q = 0; q < Math.min(n, N); q++) { const age = t - born[q]; vp[q * 3 + 1] = DECK + Math.min(1.2, age * 0.12); vp[q * 3] += 0.002;
+      const v = Math.max(0, 1 - age / 9); col[q * 3] = col[q * 3 + 1] = col[q * 3 + 2] = 0.3 + 0.7 * v; }
+    vap.geometry.attributes.position.needsUpdate = true; vap.geometry.attributes.color.needsUpdate = true; vap.geometry.setDrawRange(0, Math.min(n, N));
+    cam.position.set(sp.x + 5, DECK + 4.5, sp.z + 8); cam.lookAt(sp.x, DECK, sp.z - 6);
+    pl.position.copy(probe.position).add(new THREE.Vector3(0, 0.8, 0)); yl.position.copy(ship.position).add(new THREE.Vector3(0, 0.9, 0));
+    pin(cap, cam, 0, -1.75);
+  } };
+};
+
+/* LANDING — the field and its beacon; come in slowly and set down inside the ring */
+SCENES.landing = () => {
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b1219); lights(scene);
+  const cam = new THREE.PerspectiveCamera(40, W / H, 0.1, 300);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), mat(0x3f382c)); ground.rotation.x = -Math.PI / 2; scene.add(ground);
+  const RR = 5;
+  const apron = new THREE.Mesh(new THREE.CircleGeometry(RR, 64), mat(0x2b2d31)); apron.rotation.x = -Math.PI / 2; apron.position.y = 0.01; scene.add(apron);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(RR, 0.14, 8, 96), new THREE.MeshStandardMaterial({ color: C.gold, metalness: 0.8, roughness: 0.3, emissive: 0x3a2a08 })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.05; scene.add(ring);
+  for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3, rw = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 11), mat(0x25282d)); rw.rotation.x = -Math.PI / 2; rw.rotation.z = -a;
+    rw.position.set(Math.sin(a) * (RR + 5.6), 0.02, -Math.cos(a) * (RR + 5.6)); scene.add(rw); }
+  const cols = [0x35e6ff, 0x7cff4f, 0xff2bd6, 0xff7a18, 0xffd23a, 0x9fb3c2];
+  for (let k = 0; k < 6; k++) { const a = (k + 0.5) * Math.PI / 3, s = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.05, 6, 30), glow(cols[k], 1.8)); s.rotation.x = -Math.PI / 2; s.position.set(Math.sin(a) * 3.2, 0.08, -Math.cos(a) * 3.2); scene.add(s); }
+  const pyr = new THREE.Mesh(new THREE.ConeGeometry(1.7, 2.2, 4, 1), mat(0x1c1a18, { flatShading: true, roughness: 0.5 })); pyr.rotation.y = Math.PI / 4; pyr.position.y = 1.1; scene.add(pyr);
+  pyr.add(new THREE.LineSegments(new THREE.EdgesGeometry(pyr.geometry), new THREE.LineBasicMaterial({ color: C.brass })));
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.25, 12, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xfff0c0, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  beam.position.y = 2.2 + 6; scene.add(beam);
+  const ship = craft(); scene.add(ship);
+  const cap = label('', C.ink, 0.55); scene.add(cap);
+  const bl = label('THE BEACON', C.brass, 0.7); bl.position.set(0.9, 9, 0); scene.add(bl);
+  let last = '';
+  return { scene, cam, dur: 12, update(t) {
+    const k = t / 12, f = ease(Math.min(1, k / 0.8));
+    const start = new THREE.Vector3(-16, 7, 14), end = new THREE.Vector3(2.3, 0.28, 1.8);
+    const p = start.clone().lerp(end, f); p.y = start.y + (end.y - start.y) * (1 - Math.pow(1 - f, 1.6));
+    ship.position.copy(p); ship.lookAt(end.clone().add(new THREE.Vector3(3, 0, -3))); ship.rotateY(Math.PI);
+    const speed = (1 - f) * 260 + 20;
+    const txt = k < 0.45 ? 'FOLLOW THE BEACON TO THE FIELD' : k < 0.8 ? `SLOW TO UNDER 90 · NOW ${Math.round(speed)}` : 'DOWN INSIDE THE RING · THE CLOCK STOPS';
+    if (txt !== last) { cap.userData.setText(txt); last = txt; }
+    beam.material.opacity = 0.45 + 0.15 * Math.sin(t * 3);
+    cam.position.set(Math.sin(0.8 + k * 0.5) * 17, 9, Math.cos(0.8 + k * 0.5) * 17); cam.lookAt(0, 1.5, 0);
+    pin(cap, cam, 0, -1.75);
+  } };
+};
+
+/* ============================================================== the loop */
+if (renderer) {
+  const figs = [...document.querySelectorAll('canvas.viz')].map(cv => {
+    const make = SCENES[cv.dataset.viz]; if (!make) return null;
+    cv.width = W * Math.min(devicePixelRatio || 1, 2); cv.height = H * Math.min(devicePixelRatio || 1, 2);
+    return { cv, ctx: cv.getContext('2d'), s: make(), visible: false, t0: performance.now() };
+  }).filter(Boolean);
+  const io = new IntersectionObserver(es => es.forEach(e => { const f = figs.find(q => q.cv === e.target); if (f) f.visible = e.isIntersecting; }), { rootMargin: '100px' });
+  figs.forEach(f => io.observe(f.cv));
+  console.log('[moon-racer] manual: ' + figs.length + ' moving scenes');
+  const frame = now => {
+    for (const f of figs) {
+      if (!f.visible) continue;
+      const t = ((now - f.t0) / 1000) % f.s.dur;
+      f.s.update(t);
+      f.s.cam.aspect = W / H; f.s.cam.updateProjectionMatrix();
+      if (!f.s.scene.background) renderer.setClearColor(C.bg, 1);
+      renderer.render(f.s.scene, f.s.cam);
+      f.ctx.drawImage(renderer.domElement, 0, 0, f.cv.width, f.cv.height);
+    }
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
+</script>
 </body></html>
