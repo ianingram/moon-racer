@@ -49,7 +49,7 @@ th{font-weight:400;color:var(--dim);letter-spacing:.14em;font-size:11px}
 </header>
 <nav>
   <a href="#race">THE RACE</a><a href="#controls">CONTROLS</a><a href="#engines">ENGINES</a><a href="#heat">HEAT</a>
-  <a href="#vortex">VORTEX &amp; ICE</a><a href="#stardust">STARDUST</a><a href="#nav">NAVIGATION</a><a href="#landing">LANDING</a>
+  <a href="#vortex">VORTEX &amp; ICE</a><a href="#jump">JUMPING</a><a href="#stardust">STARDUST</a><a href="#nav">NAVIGATION</a><a href="#landing">LANDING</a>
   <a href="#readouts">READOUTS</a><a href="#copilot">COPILOT</a>
 </nav>
 <main>
@@ -69,6 +69,7 @@ th{font-weight:400;color:var(--dim);letter-spacing:.14em;font-size:11px}
 <tr><td><span class="key">E</span> <span class="key">Q</span></td><td>Throttle up / down. Hold it; speed follows the throttle, not instantly.</td></tr>
 <tr><td><span class="key">↑</span> <span class="key">↓</span> or <span class="key">W</span> <span class="key">S</span></td><td>Climb / dive.</td></tr>
 <tr><td><span class="key">←</span> <span class="key">→</span> or <span class="key">A</span> <span class="key">D</span></td><td>Turn (in runs; the lane has no steering — it is the route).</td></tr>
+<tr><td><span class="key">J</span></td><td>Flood the engines (hold, low over water) and jump (let go).</td></tr>
 <tr><td><span class="key">SPACE</span></td><td>Vent: spin the wake vortex up to shed heat faster, at a cost in speed.</td></tr>
 <tr><td><span class="key">P</span> or <span class="key">Esc</span></td><td>Pause. The race clock stops.</td></tr>
 <tr><td><span class="key">M</span></td><td>This manual (pauses).</td></tr>
@@ -84,13 +85,15 @@ th{font-weight:400;color:var(--dim);letter-spacing:.14em;font-size:11px}
 <p>The craft runs on <b>water</b>. The air engines drink it from whatever is around them and burn it for thrust. The tank holds <b>10 kg</b>.</p>
 <table>
 <tr><th>SOURCE</th><th>HOW MUCH</th><th>HOW</th></tr>
-<tr><td>Open water — any river, lake or sea</td><td>fastest</td><td>fly within about <b>75 m</b> of the surface, over the water itself. The readout says WATER.</td></tr>
+<tr><td>Open water — any river, lake or sea</td><td>fastest</td><td>fly <b>on the deck</b>: about <b>500 ft (150 m)</b> over the water. The readout says WATER; the height reads DECK. It fades above, to nothing by 1,500 ft.</td></tr>
 <tr><td>Dense cloud</td><td>steady</td><td>fly into it. The readout says CLOUD. Thin wispy cloud gives little.</td></tr>
 <tr><td>Rain</td><td>moderate</td><td>the pathfinder can call rain over you when you are low and far from water.</td></tr>
 <tr><td>Damp air</td><td>a trickle</td><td>always, low down; nothing up high.</td></tr>
 </table>
 <p>Thrust and speed burn fuel. Empty, the engines stop: in the air you glide and sink; in space you coast.</p>
-<div class="note">Drinking is not free. Water through the intakes runs the engines hotter — skim with the throttle eased back.</div>
+<div class="note">Drinking is not free. Water through the intakes runs the engines hotter — drink with the throttle eased back.</div>
+<h3>THE DECK</h3>
+<p>500 ft over the water is the <b>deck</b>: the intakes draw water and humid air at full rate, clear of the rocks, trees and debris on the river. There is no need to go lower. The deck is soft — you can fly below it — but below about 300 ft, fast, the river throws up debris that costs speed and heat, and the copilot will call you back up. The gold gates hang at deck height.</p>
 </section>
 
 <section id="heat">
@@ -118,6 +121,22 @@ th{font-weight:400;color:var(--dim);letter-spacing:.14em;font-size:11px}
 <p>Drive the core past <b>two-thirds</b> and ice forms on the intakes and hull — fast in wet air (river spray, cloud, rain), slowly in dry. Ice takes up to <b>60% of your power</b> and weighs the craft down; the hull whitens with frost. Full ice <b>chokes the intakes</b> and the engines stop until it melts back to 40%. Heat melts ice: stop venting, leave the wet air, or run warmer.</p>
 </section>
 
+<section id="jump">
+<h2>JUMPING THE BENDS</h2>
+<p>Two skills win a run: <b>flying the river</b>, and <b>jumping it</b>.</p>
+<h3>FLOOD AND JUMP</h3>
+<ul>
+<li>Get <b>down to the deck</b> over the water and <b>hold <span class="key">J</span></b>. The engines flood: the JUMP gauge fills (2.5 s to full), water is drawn from the tank, and the heat climbs. While you flood, the engines won't cut out — the heat is going into the charge.</li>
+<li><b>Let go.</b> The energy dumps into the river as a steam blast that throws the craft up and on in a long arc, over the ridge between two bends. The heat goes into the water with it: you come out cool, and fast.</li>
+<li>A bigger charge flies higher and further. A full charge reaches about 2 km up and 16 km on. In the arc you can steer, but not climb or throttle.</li>
+<li>Come down on the water and it is a <b>splashdown</b>. Come down on a ridge or wall and it hurts like any wall.</li>
+</ul>
+<h3>JUMP POINTS AND JUMP GATES</h3>
+<p><b>Jump points</b> are where the river swings round a bend far enough, and the ridge inside it is low enough, for a jump to cut it: 8–15 km of flight that saves 2–3 km of river. At each one a <b>cyan jump gate</b> hangs at the top of the right arc. <b>Fly through it</b> and the gold gates on the bend you jumped are cleared with no penalty. Jump without taking it and those gates count as missed.</p>
+<p>The first stretch below the dam is <b>river only</b> — it is where the line is learnt. At every jump point the <b>probe jumps first</b>, a few seconds ahead of you: watch its vapour trace the arc through the cyan gate, then follow. It also marks the river line round the bend, more faintly, so both ways are shown. The first two jump points also show their arc as a faint cyan line.</p>
+<div class="note">Neither line always wins. Jumping is faster but costs water; the river is slower but you drink all the way. The best runs mix the two.</div>
+</section>
+
 <section id="stardust">
 <h2>THE STARDUST ENGINE</h2>
 <p>Everywhere inside the atmosphere the stardust engine is <b>IDLE</b>. Past the <b>Kármán line</b> — 100 km, the edge of space — it becomes <b>ACTIVE</b> and takes over from the air engines, on the same water, at an efficiency nothing in the air can match:</p>
@@ -135,10 +154,12 @@ th{font-weight:400;color:var(--dim);letter-spacing:.14em;font-size:11px}
 <li>Below the lane you are held to 60% of full speed; in it you have everything.</li>
 <li>About <b>1,300 km</b> out, pull the throttle right back and brake; then dive. You arrive within 40 km of the canyon entry, below 25 km. Overshoot and it costs 30 seconds.</li>
 </ul>
+<h3>RECON, BEFORE THE RUN</h3>
+<p>At the start of a run you can choose <b>RECON</b>: the pathfinder leads you over the whole course about <b>1,500 ft above the high ground</b>, with the canyon, the gates, the jump points and the landing field laid out below, and the copilot pointing each out. Nothing is timed; fuel and heat are held. Practise the controls up there — the race itself is flown down in the canyon, below. <span class="key">Enter</span> starts the run at any time.</p>
 <h3>RUNS</h3>
 <p>A run follows real ground — here the Snake River through Hells Canyon, the deepest river gorge in North America. <b>Gates</b> are gold rings over the water; missing one costs 3 s, clipping a wall 2 s and a jolt of heat.</p>
-<h3>THE PATHFINDER</h3>
-<p>A companion craft that flies about 4 km ahead at your pace, tracing the route in gold light that fades once you pass it. If you are off course, going the wrong way, stalled, low on fuel, broken down or iced, it comes back, circles you, draws a dashed line to the nearest water, and if the tank is low and water far, calls in rain.</p>
+<h3>THE PATHFINDER — THE FORWARD PROBE</h3>
+<p>A companion probe that flies about 4 km ahead at your pace, on the deck. It vents compressed air and water from its tanks, and its <b>vapour trail</b> is the route: fresh and bright ahead of you, rising, drifting and thinning once you pass. At each jump point it jumps first, to show you the arc. If you are off course, going the wrong way, stalled, low on fuel, broken down or iced, it comes back, circles you, draws a dashed line to the nearest water, and if the tank is low and water far, calls in rain.</p>
 <h3>THE MAPS</h3>
 <p>The globe shows the planet dark with its coasts, the axis from pole to pole, the Arctic and Antarctic Circles, the lane and the sites. The route map in a run shows the river, the gates, the pathfinder, the landing field and you.</p>
 </section>

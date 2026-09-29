@@ -439,9 +439,9 @@ function copNow() { return performance.now() / 1000; }
 function copSay(text, key, pri, cool) {
   pri = pri || 1; cool = cool === undefined ? 20 : cool;
   const now = copNow();
-  if (key) { if (key.startsWith('!') ? COP.once[key] : now - (COP.last[key] || -1e9) < cool) return false;
-             if (key.startsWith('!')) COP.once[key] = true; COP.last[key] = now; }
-  if (now < COP.busyUntil && pri <= COP.pri) return false;
+  if (key && (key.startsWith('!') ? COP.once[key] : now - (COP.last[key] || -1e9) < cool)) return false;
+  if (now < COP.busyUntil && pri <= COP.pri) return false;      // busy: try again next frame, nothing spent
+  if (key) { if (key.startsWith('!')) COP.once[key] = true; COP.last[key] = now; }
   COP.pri = pri; COP.busyUntil = now + Math.max(3.5, text.length * 0.065);
   copText.textContent = text; copEl.classList.add('on');
   clearTimeout(COP.hide); COP.hide = setTimeout(() => copEl.classList.remove('on'), (COP.busyUntil - now + 2.5) * 1000);

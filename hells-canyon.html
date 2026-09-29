@@ -143,8 +143,18 @@ canvas#gl{display:block;position:fixed;inset:0}
 #copilot{left:20px;bottom:calc(122px + env(safe-area-inset-bottom,0px))}
 #copBar{right:20px;top:calc(104px + env(safe-area-inset-top,0px))}
 @media (max-width:760px){ #copilot{bottom:calc(170px + env(safe-area-inset-bottom,0px));right:20px;max-width:none} }
+#pre{position:fixed;inset:0;z-index:8;display:none;align-items:center;justify-content:center;background:rgba(5,9,14,.45)}
+#pre.on{display:flex}
+#pre .card{width:min(520px,92vw);padding:24px 26px;background:rgba(8,12,18,.9);border:1px solid rgba(255,208,112,.45);display:flex;flex-direction:column;gap:12px}
+#pre h2{margin:0;font-weight:400;font-size:13px;letter-spacing:.3em;color:var(--brass)}
+#pre p{margin:0;font-size:12px;line-height:1.6;color:var(--ink)}
+#pre p.small{font-size:10.5px;color:var(--dim)}
+#pre button{font:11.5px/1.3 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.18em;min-height:46px;padding:10px;cursor:pointer;color:var(--ink);background:transparent;border:1px solid rgba(159,179,194,.5)}
+#pre button:hover{border-color:var(--brass)}
+#pre button.primary{background:var(--gold);color:#1c140b;border-color:var(--gold)}
+#pre button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 #nogl{display:none;padding:40px;max-width:640px;color:#1c140b}
-@media (max-width:1180px){ #keys{left:20px;top:calc(62px + env(safe-area-inset-top,0px));transform:none;max-width:60%;text-align:left} }
+@media (max-width:1180px){ .gauge{width:118px} #keys{left:20px;top:calc(62px + env(safe-area-inset-top,0px));transform:none;max-width:60%;text-align:left} }
 @media (max-width:980px){ .gauge{width:112px} .read{min-width:70px} .read .v{font-size:16px} #gauges{gap:12px;padding:10px 12px} #map{width:130px;height:184px} }
 @media (max-width:760px){ #map{display:none} #keys{display:none}
   #gauges{right:12px;left:12px;flex-wrap:wrap;gap:10px 14px} .gauge{width:calc(33% - 12px)} .read{min-width:0} }
@@ -156,13 +166,14 @@ canvas#gl{display:block;position:fixed;inset:0}
 <div class="hud" id="gauges">
   <div class="gauge"><div class="l">FUEL <b id="fuelTxt"></b></div><div class="bar"><i id="fuelBar"></i></div></div>
   <div class="gauge"><div class="l">HEAT <b id="heatTxt"></b></div><div class="bar"><i id="heatBar"></i><s id="heatEq"></s></div></div>
+  <div class="gauge" id="jumpGauge"><div class="l">JUMP <b id="jumpTxt"></b></div><div class="bar"><i id="jumpBar" style="width:0;background:#8fe6f0"></i></div></div>
   <div class="gauge"><div class="l">COLD CORE <b id="coldTxt"></b></div><div class="bar"><i id="coldBar"></i><s id="iceBar" style="background:#f2f7ff"></s></div></div>
   <div class="read"><span class="l">SPEED</span><span class="v" id="spd">0.00 c</span></div>
   <div class="read"><span class="l">STARDUST</span><span class="v" style="font-size:13px;letter-spacing:.2em;color:var(--dim)" title="Active only outside the atmosphere, above 100 km">IDLE</span></div>
   <div class="read"><span class="l">ABOVE WATER</span><span class="v" id="alt">0 m</span></div>
 </div>
 <canvas class="hud" id="map" width="170" height="240" aria-label="Route map"></canvas>
-<div class="hud" id="keys">← → TURN · ↑ ↓ CLIMB / DIVE · SPACE VENT · E / Q THROTTLE · P PAUSE · R RESTART · G GLOW</div>
+<div class="hud" id="keys">← → TURN · ↑ ↓ CLIMB / DIVE · SPACE VENT · J FLOOD &amp; JUMP · E / Q THROTTLE · P PAUSE · R RESTART · G GLOW</div>
 <div id="end" role="dialog" aria-label="Stage result"><div class="card">
   <h2>DOWN ON CRAIG MOUNTAIN · FINISH</h2>
   <div class="big" id="endTime">0:00.0</div>
@@ -177,6 +188,13 @@ canvas#gl{display:block;position:fixed;inset:0}
 <div id="copBar"><button type="button" id="copManual" title="Manual (M) — pauses">MANUAL</button><button type="button" id="copAsk" title="Ask (/)">ASK</button><button type="button" id="copVoice" aria-pressed="true" title="Voice (V)">VOICE</button></div>
 <div id="askBox" role="dialog" aria-label="Ask the copilot"><label for="askIn">ASK THE COPILOT · ENTER TO ASK · ESC TO CLOSE</label><input id="askIn" type="text" autocomplete="off" placeholder="why do my engines keep cutting out?"></div>
 <div id="manualBox" role="dialog" aria-label="Pilot's manual"><div class="bar"><span>THE PILOT'S MANUAL · THE FLIGHT IS PAUSED</span><button type="button" id="manualClose">CLOSE · FLY ON</button></div><iframe id="manualFrame" title="Pilot's manual"></iframe></div>
+<div id="pre" role="dialog" aria-label="Before the run"><div class="card">
+  <h2>HELLS CANYON · BEFORE THE RUN</h2>
+  <p id="preDone" style="display:none">That's the course. Down in the canyon is where you'll race it.</p>
+  <button type="button" id="reconBtn">RECON · FLY THE COURSE HIGH WITH THE PATHFINDER</button>
+  <button type="button" id="runBtn" class="primary">START THE RUN · ENTER</button>
+  <p class="small">Recon is untimed practice about 1,500 ft over the high ground: fuel and heat are held, and the copilot points out the gates, the jump points and the landing field. Enter starts the run at any time.</p>
+</div></div>
 <div id="nogl"><h1 style="font-weight:400;letter-spacing:.3em">MOON RACER</h1><p>This stage needs WebGL, which this browser has turned off.</p></div>
 
 <script type="module">
@@ -345,6 +363,11 @@ const worldAt = (i, L) => A[i].clone().addScaledVector(N[i], squeeze(i, L));
    at the river, smoothed, never rising as it flows north. Heights in the
    stage are measured from that level, so the water stays at zero. */
 const RIVER_M = new Float32Array(ROWS);
+/* THE DECK: 500 ft over the water. Here the intakes draw water and humid
+   air at full rate, clear of the rocks, trees and debris below. Drinking
+   fades above it to nothing by 1,500 ft. It is soft: you can go lower, but
+   below it the river is full of hazards. */
+const DECK = 152 / 4.85;
 {
   const shift = new Float32Array(ROWS);
   for (let i = 0; i < ROWS; i++) {
@@ -715,19 +738,121 @@ const pathfinder = new THREE.Group();
 scene.add(pathfinder);
 const TRACE_N = 600;                             // points in the trace, one per row it passes
 const tracePos = new Float32Array(TRACE_N * 3), traceCol = new Float32Array(TRACE_N * 3), traceRow = new Float32Array(TRACE_N);
+/* THE PROBE'S VAPOUR. The pathfinder is a forward probe: what it leaves is
+   not a drawn line but compressed air and water vented from its tanks — a
+   vapour trail, fresh and bright where it has just been laid, then rising,
+   drifting and thinning. Where it laid it (traceBase), when (traceBorn),
+   and how thick (traceStr: 1 on its own line, fainter for the river line
+   it marks while it demonstrates a jump). */
+const traceBase = new Float32Array(TRACE_N * 3), traceBorn = new Float32Array(TRACE_N), traceStr = new Float32Array(TRACE_N);
 const traceGeo = new THREE.BufferGeometry();
 traceGeo.setAttribute('position', new THREE.BufferAttribute(tracePos, 3));
 traceGeo.setAttribute('color', new THREE.BufferAttribute(traceCol, 3));
 const traceLine = new THREE.Line(traceGeo, new THREE.LineBasicMaterial({ vertexColors: true, toneMapped: false,
   transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
-const traceDots = new THREE.Points(traceGeo, new THREE.PointsMaterial({ map: glowTex, size: 9, sizeAttenuation: false, vertexColors: true, toneMapped: false,   // same size near and far, so the far bends read
+const traceDots = new THREE.Points(traceGeo, new THREE.PointsMaterial({ map: glowTex, size: 15, sizeAttenuation: false, vertexColors: true, toneMapped: false,   // same size near and far, so the far bends read
   transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
 traceLine.frustumCulled = traceDots.frustumCulled = false;   // the trace grows as it goes; its bounds are never current
+traceLine.visible = false;                                   // vapour, not a line
 scene.add(traceLine, traceDots);
+function layTrace(q, row, str) {
+  if (PF.n >= TRACE_N) { tracePos.copyWithin(0, 3); traceBase.copyWithin(0, 3); traceRow.copyWithin(0, 1); traceBorn.copyWithin(0, 1); traceStr.copyWithin(0, 1); PF.n = TRACE_N - 1; }
+  const k = PF.n; traceBase.set([q.x, q.y, q.z], k * 3); tracePos.set([q.x, q.y, q.z], k * 3);
+  traceRow[k] = row; traceBorn[k] = clock; traceStr[k] = str; PF.n++;
+}
 /* the gold dashed line: down into the canyon at the start, to the field at the end */
 const toField = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]),
   new THREE.LineDashedMaterial({ color: new THREE.Color(2.6, 1.9, 0.7), dashSize: 10, gapSize: 8, toneMapped: false }));
 toField.frustumCulled = false; toField.visible = false; scene.add(toField);
+/* ================================================================= jumping
+   Low over the water, flood the engines (hold J): the tank pumps water
+   through them and the heat climbs as the charge builds. Let go and the
+   energy dumps into the river as a steam blast that throws the craft up
+   and on in a long arc — over the hogback between two loops of the river,
+   one bend or several. The heat goes into the water with it: you come out
+   cool. A full charge carries about 16 km and 2 km high.
+   JUMP POINTS are found from the real river: places where the water runs
+   further round a bend than the straight line across it, and the ridge
+   between is low enough to clear. The first stretch below the dam
+   has none — it is where the river line is learnt. At each jump point a
+   JUMP GATE (cyan) hangs at the top of the arc: fly through it and the
+   gold gates on the loop you jumped are cleared, no penalty. Jump without
+   taking it and those gates count as missed. */
+const JUMP_G = 60;                         // units/s² pulling the arc down
+const JUMP_VY = 220, JUMP_VF = 480;        // a full charge: up-speed, and forward speed at release
+const FIRST_JUMP_ROW = 250;                // river only until here
+const jumpPoints = [];
+{
+  const finishRow = gates.length ? gates[gates.length - 1].row : ROWS - 1;
+  const ridge = (a, b) => {                 // the highest ground on the straight line from a to b
+    let m = 0;
+    for (let k = 1; k < 24; k++) { const p = a.clone().lerp(b, k / 24), i = locateRow(p);
+      const u = unsqueeze(i, p.clone().sub(A[i]).dot(N[i])) - OFF[i]; m = Math.max(m, height(i, u)); }
+    return m;
+  };
+  let i = FIRST_JUMP_ROW;
+  while (i < finishRow - 120 && jumpPoints.length < 6) {
+    let best = null;
+    /* the river here swings in long bends rather than tight loops, so a
+       jump is a chord across a bend: 8–15 km of flight that cuts 2–3 km of
+       river, over a ridge low enough to clear */
+    for (let j = i + 30; j < Math.min(finishRow - 40, i + 300); j += 5) {
+      const a = riverAt(i), b = riverAt(j), d = a.distanceTo(b), L = (j - i) * STEP;
+      if (d > 3100 || L < d * 1.12 || L - d < 350) continue;
+      if (!best || L - d > best.save) best = { i0: i, i1: j, d, save: L - d };
+    }
+    if (best) {
+      best.ridge = ridge(riverAt(best.i0), riverAt(best.i1));
+      if (best.ridge < 330) { jumpPoints.push(best); i = best.i1 + 40; continue; }
+    }
+    i += 10;
+  }
+  const jmat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.5, 2.4, 2.8), toneMapped: false });
+  jumpPoints.forEach((jp, k) => {
+    const a = riverAt(jp.i0), b = riverAt(jp.i1), mid = a.clone().lerp(b, 0.5);
+    /* the charge that lands the arc at the far side: range = forward speed
+       × time aloft; the gate hangs at that arc's top, and never below the
+       ridge */
+    let c = 0.3;
+    while (c < 1 && (200 + JUMP_VF * c) * (2 * JUMP_VY * c / JUMP_G) * 0.9 < jp.d) c += 0.02;
+    jp.c = Math.min(1, c);
+    const ce = jp.c;
+    mid.y = Math.max(DECK + Math.pow(JUMP_VY * ce, 2) / (2 * JUMP_G), jp.ridge + 40);
+    const dir = b.clone().sub(a).setY(0).normalize();
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(70, 3.5, 8, 48), jmat);
+    ring.position.copy(mid); ring.lookAt(mid.clone().add(dir)); scene.add(ring);
+    jp.gate = { at: mid, n: dir, mesh: ring, done: false };
+    jp.loopGates = gates.filter(g => g.row > jp.i0 + 3 && g.row < jp.i1 - 3 && !g.name);
+    jp.k = k + 1;
+    /* the first two are shown as a faint arc; after that, find them */
+    if (k < 2) {
+      const pts = []; for (let t = 0; t <= 40; t++) { const f = t / 40, q = a.clone().lerp(b, f); q.y = DECK + (mid.y - DECK) * Math.sin(Math.PI * f); pts.push(q); }
+      const arc = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),
+        new THREE.LineDashedMaterial({ color: new THREE.Color(0.5, 2.2, 2.6), dashSize: 12, gapSize: 10, toneMapped: false, transparent: true, opacity: 0.6 }));
+      arc.computeLineDistances(); scene.add(arc); jp.arc = arc;
+    }
+  });
+  console.log('[moon-racer] jump points: ' + jumpPoints.map(j => 'rows ' + j.i0 + '→' + j.i1 + ' saves ' + (j.save * M_PER_UNIT / 1000).toFixed(1) + ' km, ridge ' + Math.round(j.ridge * M_PER_UNIT) + ' m, charge ' + Math.round(j.c * 100) + '%, ' + j.loopGates.length + ' gates on the loop').join('; '));
+}
+
+/* ================================================================== recon
+   Before the run, the pathfinder can lead you over the whole course from
+   above: about 1,500 ft over the highest ground either side of the river,
+   so the canyon, the gates, the jump points and the landing field are laid
+   out below. Nothing is timed; fuel and heat are held. The race itself is
+   flown down in the canyon, below this. */
+const RECON_AGL = 95;                        // units over the high ground (~460 m, ~1,500 ft)
+const RECON_Y = new Float32Array(ROWS);
+{
+  const hi = new Float32Array(ROWS);
+  for (let i = 0; i < ROWS; i++) { let m = 0; for (let u = -600; u <= 600; u += 100) m = Math.max(m, height(i, u)); hi[i] = m; }
+  for (let i = 0; i < ROWS; i++) {           // the highest nearby, then eased, so the line never dips into a ridge
+    let m = 0; for (let j = Math.max(0, i - 15); j <= Math.min(ROWS - 1, i + 15); j++) m = Math.max(m, hi[j]); RECON_Y[i] = m;
+  }
+  const t = RECON_Y.slice();
+  for (let i = 0; i < ROWS; i++) { let a = 0, n = 0; for (let j = Math.max(0, i - 10); j <= Math.min(ROWS - 1, i + 10); j++) { a += t[j]; n++; } RECON_Y[i] = Math.max(t[i], a / n) + RECON_AGL; }
+}
+
 const PF = { row: 0, laid: 0, n: 0, mode: 'lead', pos: new THREE.Vector3(), why: '', since: 0, calm: 0, lastRain: -99, lastRow: 0, rowSpeed: 0 };
 
 /* the way to water: a dashed line from the craft down to the nearest
@@ -768,7 +893,7 @@ function underRain(p) { return RAIN.on && Math.hypot(p.x - RAIN.at.x, p.z - RAIN
 function lineAt(r) {
   const i = Math.max(0, Math.min(ROWS - 2, Math.floor(r))), f = r - i;
   const p = riverAt(i).lerp(riverAt(i + 1), f);
-  p.y = 32;
+  p.y = S.mode === 'recon' ? RECON_Y[i] + (RECON_Y[i + 1] - RECON_Y[i]) * f : 32;   // high over the course on recon, gate height in the run
   return p;
 }
 
@@ -804,24 +929,34 @@ const race = (() => { try { const r = JSON.parse(localStorage.getItem(RACE_KEY) 
 if (race) console.log('[moon-racer] race carried in: fuel ' + Math.round(race.fuel * 100) + '%, heat ' + Math.round(race.heat * 100) + '%, clock ' + race.t.toFixed(1) + ' s');
 else console.log('[moon-racer] no race in progress — practice run');
 const raceT0 = race ? race.t : 0;
-function reset() {
+function reset(mode) {
   /* the canyon's entry, at the dam: the run begins here, straight off the
-     route from Giza */
+     route from Giza. mode: 'pre' (choose recon or run), 'recon', or 'run' */
+  mode = mode || 'run';
   const i = 18, c = riverAt(i);
-  Object.assign(S, { pos: new THREE.Vector3(c.x, 10, c.z), yaw: Math.atan2(T[i].x, -T[i].z), pitch: 0, roll: 0, phase: 'river', startY: 10,
+  Object.assign(S, { mode, pos: new THREE.Vector3(c.x, 10, c.z), yaw: Math.atan2(T[i].x, -T[i].z), pitch: 0, roll: 0, phase: mode === 'recon' ? 'recon' : 'river', startY: 10,
     v: 0, throttle: 0.22, fuel: race ? race.fuel : 0.8, heat: race ? race.heat : 0.1, cold: race && race.cold || 0, ice: race && race.ice || 0, cut: 0, row: i, t: 0, started: false, count: 3,
-    gatesDone: 0, missed: 0, over: false, hitT: -9 });
+    gatesDone: 0, missed: 0, over: false, hitT: -9, charge: 0, jump: null, jumps: 0 });
+  for (const jp of jumpPoints) { jp.gate.done = false; jp.gate.mesh.visible = true; jp.cleared = false; jp.demo = false; }
+  PF.arc = null;
   gates.forEach(g => { g.done = false; g.mesh.visible = true; });
   PF.row = i; PF.laid = i; PF.n = 0; PF.mode = 'lead'; PF.since = 0; PF.calm = 0; PF.lastRow = i; PF.rowSpeed = 0;
   PF.pos.copy(lineAt(i)); traceGeo.setDrawRange(0, 0); if (typeof toField !== 'undefined') toField.visible = false;
   RAIN.on = false; rain.visible = rainCloud.visible = false; toWater.visible = waterMark.visible = false;
   document.getElementById('end').style.display = 'none';
+  S.reconDone = false;
+  if (mode === 'recon') { S.pos.y = RECON_Y[i]; S.started = true; S.v = 180; S.throttle = 0.25; PF.pos.copy(lineAt(i)); }
+  document.getElementById('pre').classList.toggle('on', mode === 'pre');
+  document.getElementById('preDone').style.display = 'none';
+  COP.once = {}; COP.missed = 0;
+  if (typeof camPos !== 'undefined') { camPos.copy(S.pos).add(new THREE.Vector3(0, 14, 40)); CAM_TRACK.row = S.row; }
 }
 const keys = {};
 addEventListener('keydown', e => {
   keys[e.key.toLowerCase()] = true;
   if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(e.key.toLowerCase())) e.preventDefault();
-  if (e.key === 'r' || e.key === 'R') { reset(); COP.once = {}; COP.missed = 0; }
+  if (e.key === 'r' || e.key === 'R') reset('run');
+  if (e.key === 'Enter' && (S.mode === 'pre' || S.mode === 'recon')) reset('run');
   if (e.key === 'g' || e.key === 'G') { glowOn = !glowOn; try { localStorage.setItem('moonracer.glow', glowOn ? 'on' : 'off'); } catch (err) {}
     console.log('[moon-racer] glow ' + (glowOn ? 'ON' : 'OFF')); }
 });
@@ -853,9 +988,9 @@ function copNow() { return performance.now() / 1000; }
 function copSay(text, key, pri, cool) {
   pri = pri || 1; cool = cool === undefined ? 20 : cool;
   const now = copNow();
-  if (key) { if (key.startsWith('!') ? COP.once[key] : now - (COP.last[key] || -1e9) < cool) return false;
-             if (key.startsWith('!')) COP.once[key] = true; COP.last[key] = now; }
-  if (now < COP.busyUntil && pri <= COP.pri) return false;
+  if (key && (key.startsWith('!') ? COP.once[key] : now - (COP.last[key] || -1e9) < cool)) return false;
+  if (now < COP.busyUntil && pri <= COP.pri) return false;      // busy: try again next frame, nothing spent
+  if (key) { if (key.startsWith('!')) COP.once[key] = true; COP.last[key] = now; }
   COP.pri = pri; COP.busyUntil = now + Math.max(3.5, text.length * 0.065);
   copText.textContent = text; copEl.classList.add('on');
   clearTimeout(COP.hide); COP.hide = setTimeout(() => copEl.classList.remove('on'), (COP.busyUntil - now + 2.5) * 1000);
@@ -878,7 +1013,7 @@ document.getElementById('copVoice').addEventListener('click', copVoiceToggle);
 
 /* ASKING: answers from the manual, matched by the words in the question */
 const COP_KB = [
-  { k: ['refuel', 'fuel', 'drink', 'water', 'tank', 'empty'], a: 'Fly within about seventy-five metres of any open water, over the water itself, and the tank fills fast. Dense cloud gives a steady drink, rain a moderate one. Up high there is nothing to drink.' },
+  { k: ['refuel', 'fuel', 'drink', 'water', 'tank', 'empty', 'deck'], a: 'Fly on the deck — five hundred feet over any open water — and the intakes draw water and humid air at full rate. Above the deck it fades, to nothing by fifteen hundred feet. There is no need to go lower: below the deck are rocks, trees and debris. Dense cloud gives a steady drink, rain a moderate one.' },
   { k: ['cut', 'cutting', 'overheat', 'hot', 'heat', 'stop', 'engines'], a: 'The engines cut out at a hundred percent heat, and come back at fifty-five. Heat comes from speed and thick air. Watch the green tick on the heat bar: if it is past the end, ease off, climb, or hold space to vent.' },
   { k: ['broke', 'breakdown', 'broken'], a: 'Push past a hundred and twenty percent heat and the engines break down. They stay out until heat falls to thirty percent. Glide, keep off the walls, and let the air cool you.' },
   { k: ['vent', 'space', 'vortex', 'cool', 'cooling'], a: 'Hold space to vent. The wake vortex spins up and sheds heat three times as fast, but its drag costs speed. It needs air: in a vacuum it does almost nothing.' },
@@ -888,9 +1023,10 @@ const COP_KB = [
   { k: ['brake', 'slow', 'braking', 'overshoot', 'reserve'], a: 'In space there is no air to slow you: pull the throttle back and the engines brake, which burns fuel. About thirteen hundred kilometres out, brake, then dive. A three hundred gram reserve is kept for the brakes alone.' },
   { k: ['climb', 'launch', 'take', 'off', 'altitude', 'up'], a: 'Hold the up arrow to climb out. The craft lifts itself off for the first few seconds. Open the throttle once the air has thinned — near the ground, speed cooks the engines.' },
   { k: ['lane', 'orbit', 'great', 'circle', 'route'], a: 'A lane is the great circle through two places, lifted into orbit. It passes straight over both ends. Below the lane you are held to sixty percent of full speed; in it you have everything.' },
+  { k: ['jump', 'jumping', 'flood', 'j', 'hogback', 'shortcut', 'bend', 'bends', 'loop'], a: 'On the deck over the water, hold J to flood the engines. The charge builds, and so does the heat. Let go and the energy dumps into the river as a steam blast that throws you over the ridge between two loops. You come out cool. Fly through the cyan jump gate at the top and the gold gates on the loop you jumped are cleared. The first stretch below the dam is river only.' },
   { k: ['gate', 'gates', 'ring', 'rings', 'missed'], a: 'Gates are the gold rings over the water. Fly through them. A missed gate costs three seconds, a wall two seconds and a jolt of heat.' },
   { k: ['land', 'landing', 'pyramid', 'beacon', 'finish', 'field', 'end'], a: 'A leg ends only when you land. After the last gate, follow the beacon to the pyramid and set down inside the gold ring, below about ninety speed.' },
-  { k: ['pathfinder', 'companion', 'guide', 'trace', 'line'], a: 'I fly ahead of you at your pace and trace the route in gold. If you get into trouble I come back, show you the way to water, and can call in rain.' },
+  { k: ['pathfinder', 'companion', 'guide', 'trace', 'line', 'probe', 'vapour', 'vapor'], a: 'I am a forward probe. I fly ahead of you at your pace, venting air and water from my tanks, and the vapour trail I leave is the route. At a jump point I jump it first so you can see the arc. If you get into trouble I come back, show you the way to water, and can call in rain.' },
   { k: ['rain', 'cloud', 'clouds'], a: 'Fly into a dense cloud to drink steadily. If you are low on fuel and far from water, I can call in rain over you for fifteen seconds.' },
   { k: ['turn', 'steer', 'wall', 'walls', 'bend', 'crash'], a: 'Left and right turn. Turning gets weaker the faster you go, so take tight bends slower, or you will clip the wall.' },
   { k: ['pause', 'stop', 'manual', 'help', 'keys', 'controls'], a: 'P or Escape pauses. M opens the manual. V turns my voice on or off. Slash asks me something. E and Q throttle, arrows climb, dive and turn, space vents.' },
@@ -937,9 +1073,18 @@ addEventListener('keydown', e => {
 
 /* what the copilot watches in the canyon */
 function copRules() {
+  if (S.mode === 'pre') { copSay('Hells Canyon Dam. Before the run, I can lead you over the course from above — or start straight away.', '!pre', 2); return; }
+  if (S.mode === 'recon') {
+    if (S.reconDone) { copSay('That\u2019s the course. After the last gate you land on Craig Mountain, by the beacon. Press Enter and we\u2019ll start the run from the dam.', '!rdone', 5); return; }
+    copSay('Follow me. We\u2019ll fly the course from above, about fifteen hundred feet over the high ground. The race is flown down there, in the canyon. Nothing\u2019s timed; fuel and heat are held.', '!rgo', 4);
+    if (S.row > 60 && S.row < FIRST_JUMP_ROW - 30) copSay('This first stretch is river only. In the run you\u2019ll stay low over the water, through the gold rings.', '!rriver', 2);
+    for (const g of gates) if (g.name && g.row - S.row > 0 && g.row - S.row < 40) copSay((g.finish ? 'The last gate — the Grande Ronde. ' : g.name.charAt(0) + g.name.slice(1).toLowerCase() + ' gate below. ') + (g.finish ? 'After it, you land.' : 'A named gate: never skippable.'), '!rg' + g.k, 3);
+    for (const jp of jumpPoints) if (jp.i0 - S.row > 0 && jp.i0 - S.row < 35) copSay('Jump point below. The river bends round this ridge — from the water you can flood, jump the bend, and take the cyan ring on the way over.', '!rj' + jp.k, 3);
+    return;
+  }
   if (!S.started) { copSay('Canyon entry, Hells Canyon Dam. Stand by — the run starts on go.', '!entry', 2); return; }
   if (S.over) { copSay('Down. Well flown.', '!down', 5); return; }
-  copSay('Ease the throttle up with E and stay low over the river. The gates are the gold rings; I\u2019ll fly ahead and trace the way.', '!go', 3);
+  copSay('Ease the throttle up with E and fly the deck — five hundred feet over the river. The gates are the gold rings; follow my vapour.', '!go', 3);
   if (S.cut !== COP.cutWas) {                    // engine states: said once, when they change
     COP.cutWas = S.cut;
     if (S.cut === 2) copSay('Engines broken down — too hot. Glide, keep off the walls; they come back at thirty percent.', null, 4);
@@ -953,23 +1098,38 @@ function copRules() {
     if (d < 450 && S.v > 90) copSay('Too fast to land. Under ninety, inside the ring.', 'landfast', 3, 10);
   }
   if (S.cut <= 0 && (S.heatEq || 0) > 1.02 && S.heat > 0.55 && !S.venting) copSay('Heat will settle over the limit. Ease off, or hold space to vent.', 'heatEq', 2, 18);
-  if (S.fuel < 0.3 && !S.skim && S.phase === 'river') copSay('Fuel under thirty percent. Drop within seventy-five metres of the water to drink.', 'fuel', 2, 25);
-  if (S.skim && S.heat > 0.7) copSay('You\u2019re drinking hot. Ease the throttle while you skim.', 'skimhot', 1, 25);
+  if (S.fuel < 0.3 && !S.skim && S.phase === 'river') copSay('Fuel under thirty percent. Drop to the deck — five hundred feet over the water — to drink.', 'fuel', 2, 25);
+  if (S.skim && S.heat > 0.7) copSay('You\u2019re drinking hot. Ease the throttle while you drink.', 'skimhot', 1, 25);
+  if (S.overWater && S.pos.y < DECK * 0.6 && S.v > 120 && !S.jump && S.phase !== 'land') copSay('Below the deck — rocks and debris down here. Back up to five hundred feet; you drink just as well.', 'deck', 2, 20);
   if (S.venting && S.cold > 0.6) copSay('Core\u2019s nearly full cold. Let go of space before ice forms.', 'cold', 2, 20);
   if (S.ice > 0.3 && S.cut !== 3) copSay('Ice on the intakes — power\u2019s dropping. Climb out of the spray or run warmer.', 'ice', 2, 20);
+  /* teaching the river, then the jump */
+  if (S.row > 40 && S.row < FIRST_JUMP_ROW - 60) copSay('This first stretch is river only. Learn the line: low, over the water, through the gold.', '!riveronly', 2);
+  const nextJ = jumpPoints.find(jp => !jp.cleared && jp.i0 - S.row > 0 && jp.i0 - S.row < 70);
+  if (nextJ && nextJ.k === 1) copSay('Jump point ahead. Watch me jump it first. Then: on the deck over the water, hold J to flood the engines, let go when the gauge is full, and fly through the cyan ring at the top.', '!jump1', 4);
+  else if (nextJ && nextJ.k === 2) copSay('Another jump point. Same again — flood on the deck, let go full, take the cyan ring.', '!jump2', 3);
+  else if (nextJ) copSay('Jump point.', '!jump' + nextJ.k, 2);
+  if (S.charge > 0.2 && S.heat > 0.95) copSay('Flooding hot — let go now.', 'floodhot', 3, 10);
   if (S.missed > (COP.missed || 0)) { COP.missed = S.missed; copSay('Missed a gate — three seconds. Keep over the river.', 'miss', 1, 6); }
   if (clock - S.hitT < 0.2) copSay('Wall. Take the bends slower — turning\u2019s weaker at speed.', 'wall', 2, 20);
 }
-document.getElementById('again').addEventListener('click', reset);
+document.getElementById('again').addEventListener('click', () => reset('run'));
+document.getElementById('reconBtn').addEventListener('click', () => reset('recon'));
+document.getElementById('runBtn').addEventListener('click', () => reset('run'));
 
 /* where the craft is over the land: row, and distance across from the river */
-function locate(p) {
-  let i = S.row;
+/* where a point is over the land: row, and distance across from the river.
+   Each thing that asks keeps its own row to walk from (the craft uses S,
+   the camera CAM_TRACK), so asking about the camera never moves the craft */
+const CAM_TRACK = { row: 0 };
+function locate(p, tr) {
+  tr = tr || S;
+  let i = tr.row;
   for (let n = 0; n < 60; n++) {
     const d = p.clone().sub(A[i]).dot(T[i]);
     if (d > STEP / 2 && i < ROWS - 1) i++; else if (d < -STEP / 2 && i > 0) i--; else break;
   }
-  S.row = i;
+  tr.row = i;
   return { i, u: unsqueeze(i, p.clone().sub(A[i]).dot(N[i])) - OFF[i] };
 }
 
@@ -982,12 +1142,12 @@ const fmt = s => Math.floor(s / 60) + ':' + (s % 60).toFixed(1).padStart(4, '0')
 
 let clock = 0, last = performance.now();
 const fwd = new THREE.Vector3(), camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
-reset();
+reset('pre');
 camPos.copy(S.pos).add(new THREE.Vector3(0, 14, 40));
 
 function step(dt) {
   /* the count-down */
-  if (!S.started) {
+  if (!S.started && S.mode === 'run') {
     S.count -= dt;
     if (S.count <= 0) { S.started = true; say('GO', 1); }
     else say(String(Math.ceil(S.count)), 0.3);
@@ -1001,12 +1161,17 @@ function step(dt) {
   const rho = Math.exp(-Math.max(0, alt) / ATMO_H);           // how thick the air is
   const at = locate(S.pos);
   const overWater = Math.abs(at.u) < RIVER_W / 2 + 2;
-  const skimming = overWater && alt < 16;
+  const DECK_TOP = DECK * 1.25;                                         // the deck is a band, up to ~600 ft
+  const drinkK = overWater ? Math.min(1, Math.max(0, 1 - (alt - DECK_TOP) / (3 * DECK - DECK_TOP))) : 0;   // full on the deck, none by 1,500 ft
+  const skimming = overWater && alt <= DECK_TOP;                          // on (or below) the deck over water
+  S.overWater = overWater;
   let inCloud = null;
   for (const c of clouds) if (c.at.distanceTo(S.pos) < c.r) { inCloud = c; break; }
 
   /* engines: they stop when the tank is dry, and cut out when they cook */
-  if (S.heat >= 1.2 && S.cut < 2) { S.cut = 2; say('BREAKDOWN — ENGINES OUT', 2.6);
+  /* while flooding, the heat is going into the charge, not the engines: no cut-out until you let go */
+  if (S.flooding) {}
+  else if (S.heat >= 1.2 && S.cut < 2) { S.cut = 2; say('BREAKDOWN — ENGINES OUT', 2.6);
     console.log('[moon-racer] breakdown at heat ' + S.heat.toFixed(2)); }
   else if (S.heat >= 1 && S.cut <= 0) { S.cut = 1; say('OVERHEAT — ENGINES CUT', 2.2); }
   if (S.cut === 1 && S.heat < 0.55) { S.cut = 0; say('ENGINES BACK', 1.2); }
@@ -1020,7 +1185,8 @@ function step(dt) {
   /* speed eases to what the throttle asks; drag bleeds it in thick air */
   const want = power * VMAX;
   const venting = !!keys[' '] && S.started;
-  if (S.v < want) S.v += (want - S.v) * Math.min(1, dt * 0.55);
+  if (S.jump) {}                                                // in the arc the blast carries you; the throttle waits
+  else if (S.v < want) S.v += (want - S.v) * Math.min(1, dt * 0.55);
   else S.v -= (S.v - want) * Math.min(1, dt * (0.25 + 0.6 * rho));
   if (venting) S.v -= S.v * Math.min(1, dt * 0.45 * rho);     // the spun-up vortex drags, in proportion to the air it grips
 
@@ -1030,8 +1196,9 @@ function step(dt) {
      (rho → 0) both go to nothing. Cooling grows as the air thins and
      colds. */
   const wet = underRain(S.pos);
-  const rich = (skimming ? 1 : 0) + (inCloud ? 0.5 * inCloud.dens : 0) + (wet ? 0.35 : 0) + 0.15 * rho;
-  const gain = 0.25 * Math.pow(S.v / 400, 2) * rho + power * rich * 0.2 * rho;
+  const rich = drinkK + (inCloud ? 0.5 * inCloud.dens : 0) + (wet ? 0.35 : 0) + 0.15 * rho;
+  let gain = 0.25 * Math.pow(S.v / 400, 2) * rho + power * rich * 0.2 * rho;
+  if (S.jump) gain *= 0.1;                                      // in the arc the engines are flooded and idle: the steam carries you
   /* the vortex sheds it: in proportion to the air (rho) and better the
      colder that air is; a trickle of radiation always. Venting spins it
      up three times as hard. Where heat will settle = gain / shed rate. */
@@ -1063,20 +1230,62 @@ function step(dt) {
   /* fuel: thrust and speed burn it; water, cloud and damp air give it */
   const burn = S.started ? (0.004 + power * 0.018 + (S.v / VMAX) * 0.01) : 0;
   S.skim = skimming; S.inCloud = !!inCloud;
-  const drink = (skimming ? 0.3 : 0) + (inCloud ? 0.15 * inCloud.dens : 0) + (wet ? 0.1 : 0) + rho * 0.003;
+  const drink = 0.3 * drinkK + (inCloud ? 0.15 * inCloud.dens : 0) + (wet ? 0.1 : 0) + rho * 0.003;
   S.fuel = Math.min(1, Math.max(0, S.fuel + (drink - burn) * dt));
-  if (skimming && S.fuel < 0.999 && Math.random() < 0.6) {
-    puff(S.pos.clone().add(new THREE.Vector3((Math.random() - 0.5) * 3, -1, 0)).addScaledVector(fwd, -5),
-         new THREE.Vector3((Math.random() - 0.5) * 6, 6 + Math.random() * 8, 0).addScaledVector(fwd, -S.v * 0.2), 0xe8f4f6);
+  if (S.mode === 'recon') { S.fuel = 1; S.heat = Math.min(S.heat, 0.35); S.ice = 0; S.cold = Math.min(S.cold, 0.5); }   // practice: nothing runs out
+  if (skimming && S.fuel < 0.999 && Math.random() < 0.6) {            // spray drawn up off the water to the intakes
+    const lift = Math.max(6, S.pos.y) * 0.9;
+    puff(S.pos.clone().setY(1).add(new THREE.Vector3((Math.random() - 0.5) * 8, 0, (Math.random() - 0.5) * 8)),
+         new THREE.Vector3((Math.random() - 0.5) * 4, lift, (Math.random() - 0.5) * 4), 0xe8f4f6);
   }
+
+  /* below the deck, over the water, fast: rocks, trees and debris */
+  if (S.mode === 'run' && S.started && !S.over && !S.jump && overWater && S.pos.y < DECK * 0.35 && S.v > 150 && S.phase !== 'land'
+      && clock - (S.debT || -9) > 1.5) {
+    S.debT = clock;
+    if (Math.random() < 0.5) { S.heat = Math.min(1.5, S.heat + 0.08); S.v *= 0.85; say('DEBRIS', 0.9); }
+  }
+
+  /* flooding and jumping */
+  const floodKey = !!keys['j'] && S.started && !S.over && !S.jump;
+  S.flooding = false;
+  if (floodKey) {
+    if (!S.skim) { if (clock - (S.jHint || -9) > 3) { S.jHint = clock; say('GET DOWN TO THE DECK OVER THE WATER TO FLOOD', 1.8); } }
+    else if (S.row < FIRST_JUMP_ROW) { if (clock - (S.jHint || -9) > 3) { S.jHint = clock; say('RIVER ONLY HERE — LEARN THE LINE', 1.8); } }
+    else if (S.fuel > 0.05) {
+      S.flooding = true;
+      S.charge = Math.min(1, S.charge + dt / 2.5);                     // 2.5 s to full
+      S.heat = Math.min(1.5, S.heat + dt * 0.22);                       // flooded engines run hot
+      S.fuel = Math.max(0, S.fuel - dt * 0.05);                          // the water flashed to steam
+    }
+  } else if (S.charge > 0.08 && !S.jump) {
+    /* release: the blast. Heat dumped into the river; the arc begins */
+    /* river water is fast and cold: the energy dumped into it comes back as thrust */
+    const c = S.charge;
+    S.jump = { vy: JUMP_VY * c, jp: jumpPoints.find(jp => Math.abs(S.row - jp.i0) < 45 && !jp.cleared) || null };
+    S.v = Math.max(S.v, 200 + JUMP_VF * c);
+    S.heat *= 0.3; S.charge = 0; S.jumps++;
+    if (S.jump.jp) for (const g of S.jump.jp.loopGates) g.skip = true;
+    for (let k = 0; k < 24; k++) puff(S.pos.clone().setY(1).add(new THREE.Vector3((Math.random() - 0.5) * 20, 0, (Math.random() - 0.5) * 20)),
+      new THREE.Vector3((Math.random() - 0.5) * 30, 20 + Math.random() * 40, (Math.random() - 0.5) * 30), 0xf2f7ff);
+    say(c > 0.9 ? 'FULL JUMP' : 'JUMP', 1.2);
+    console.log('[moon-racer] jump at row ' + S.row + ', charge ' + Math.round(c * 100) + '%' + (S.jump.jp ? ' — jump point ' + S.jump.jp.k : ''));
+  } else if (!floodKey) S.charge = Math.max(0, S.charge - dt * 0.5);
 
   /* steering */
   S.yaw -= turn * dt * (1.15 - 0.4 * Math.min(1, S.v / 900));   // yaw runs clockwise from north, so left takes it down
   S.pitch += (climb * 0.55 - S.pitch) * Math.min(1, dt * 2.5);
   S.roll += (turn * 0.55 - S.roll) * Math.min(1, dt * 3);     // bank into the turn
   fwd.set(Math.sin(S.yaw) * Math.cos(S.pitch), Math.sin(S.pitch), -Math.cos(S.yaw) * Math.cos(S.pitch));
-  S.pos.addScaledVector(fwd, S.v * dt);
-  if (S.v < 70) S.pos.y -= (70 - S.v) * 0.35 * dt;           // too slow to hold the air
+  if (S.jump) {
+    /* in the arc: carried on, rising then falling; the nose follows the arc */
+    const flat = fwd.clone().setY(0).normalize();
+    S.pos.addScaledVector(flat, S.v * dt);
+    S.pos.y += S.jump.vy * dt; S.jump.vy -= JUMP_G * dt;
+    S.pitch = Math.atan2(S.jump.vy, Math.max(50, S.v)) * 0.8;
+    S.v -= S.v * 0.04 * dt;
+  } else S.pos.addScaledVector(fwd, S.v * dt);
+  if (S.v < 70 && !S.jump) S.pos.y -= (70 - S.v) * 0.35 * dt;           // too slow to hold the air
   if (S.ice > 0.05) S.pos.y -= S.ice * 6 * dt;                // and ice is weight
   if (!S.started) { S.pos.y = S.startY; }
 
@@ -1090,6 +1299,21 @@ function step(dt) {
     if (d < FIELD_SIZE.ringR && S.pos.y - f.y < 14 && S.v < 90) { say('DOWN · ' + f.name, 2.4); finish(); }
   }
   const soft = S.v < 90 && fieldPull(S.pos)[0] >= 1;            // setting down on a field costs nothing
+  /* the end of a jump: down on the water is a splashdown; on land it is a wall */
+  if (S.jump && S.jump.vy < 0 && S.pos.y < ground + 18) {
+    const onWater = Math.abs(at2.u) < RIVER_W / 2 + 6;
+    const jp = S.jump.jp;
+    if (jp) {
+      for (const g of jp.loopGates) {
+        g.skip = false;
+        if (!g.done) { g.done = true; g.mesh.visible = false;
+          if (jp.cleared) {} else { S.missed++; S.t += 3; } }
+      }
+      if (!jp.cleared) say('LOOP SKIPPED WITHOUT THE JUMP GATE · +' + (3 * jp.loopGates.length) + ' s', 2.2);
+    }
+    S.jump = null;
+    if (onWater) { say('SPLASHDOWN', 1.2); S.pos.y = Math.max(S.pos.y, 10); }
+  }
   /* on the finish field too early: say why it will not count */
   if (S.phase === 'river' && S.started && !S.over && soft && S.pos.y - FIELD.finish.y < 30 && clock - (S.earlyT || -9) > 4) {
     S.earlyT = clock; say('FLY THE GRANDE RONDE GATE FIRST', 2.6);
@@ -1100,7 +1324,7 @@ function step(dt) {
        a slope slowly costs nothing */
     if (ground > 1 && S.v > 40 && !soft && clock - S.hitT > 1.0) {
       S.hitT = clock; S.v *= 0.4; S.heat = Math.min(1.2, S.heat + 0.15);
-      if (S.started && !S.over) { S.t += 2; say('WALL — +2 s', 1.4); }
+      if (S.started && !S.over && S.mode === 'run') { S.t += 2; say('WALL — +2 s', 1.4); }
       const along = Math.atan2(T[at2.i].x, -T[at2.i].z);
       let d = along - S.yaw; d = Math.atan2(Math.sin(d), Math.cos(d));
       S.yaw += d * 0.6;
@@ -1114,13 +1338,31 @@ function step(dt) {
     S.pos.addScaledVector(N[at2.i], -Math.sign(at2.u) * (Math.abs(at2.u) - (HALF - 200)));
   }
 
+  if (S.mode === 'recon' && !S.reconDone && S.row > (gates.length ? gates[gates.length - 1].row : ROWS - 30) - 5) {
+    S.reconDone = true; PF.mode = 'field';
+    document.getElementById('pre').classList.add('on'); document.getElementById('preDone').style.display = 'block';
+    console.log('[moon-racer] recon complete');
+  }
   if (S.phase === 'depart' && Math.abs(at2.u) < 300 && S.pos.y < 200) { S.phase = 'river'; say('INTO THE CANYON', 1.6); }
 
+  /* the jump gates: fly through one mid-arc and the loop below is cleared */
+  if (S.started && !S.over && S.mode === 'run') for (const jp of jumpPoints) {
+    const g = jp.gate; if (g.done) continue;
+    const d = S.pos.clone().sub(g.at).dot(g.n);
+    if (d > 0 && d < S.v * dt + 6) {
+      if (S.pos.distanceTo(g.at) < 75) {
+        g.done = true; g.mesh.visible = false; jp.cleared = true;
+        for (const lg of jp.loopGates) if (!lg.done) { lg.done = true; lg.mesh.visible = false; S.gatesDone++; }
+        say('JUMP GATE · LOOP CLEARED', 1.8);
+      }
+    }
+  }
+
   /* the gates: crossing a gate's plane counts, through it or not */
-  if (S.started && !S.over) {
+  if (S.started && !S.over && S.mode === 'run') {
     S.t += dt;
     for (const g of gates) {
-      if (g.done) continue;
+      if (g.done || g.skip) continue;
       const d = S.pos.clone().sub(g.at).dot(g.n);
       if (d > 0 && d < S.v * dt + 6) {
         g.done = true;
@@ -1157,7 +1399,7 @@ function step(dt) {
     const off = S.phase === 'river' && Math.abs(at2.u) > RIVER_W / 2 + 260 && S.pos.y < 900;
     const back = S.phase === 'river' && S.v > 30 && fwd.clone().setY(0).normalize().dot(T[at2.i]) < -0.5;
     const stalled = S.started && S.t > 5 && S.v < 40 && !S.over;          // not in the first seconds off the line
-    const why = S.cut === 2 ? 'ENGINES DOWN' : S.cut === 3 ? 'ICED UP' : S.fuel < 0.18 ? 'LOW ON FUEL' : off ? 'OFF COURSE' : back ? 'WRONG WAY' : stalled ? 'STALLED' : '';
+    const why = S.jump ? '' : S.cut === 2 ? 'ENGINES DOWN' : S.cut === 3 ? 'ICED UP' : S.fuel < 0.18 ? 'LOW ON FUEL' : off ? 'OFF COURSE' : back ? 'WRONG WAY' : stalled ? 'STALLED' : '';
     if (why && S.started && !S.over) { PF.since += dt; PF.calm = 0; } else { PF.since = 0; PF.calm += dt; }
     if (PF.mode === 'lead' && PF.since > 1.5) {
       PF.mode = 'assist'; PF.why = why;
@@ -1170,7 +1412,8 @@ function step(dt) {
       say('PATHFINDER · BACK ON POINT', 1.6);
     }
 
-    if (S.phase === 'land' && PF.mode !== 'field') { PF.mode = 'field'; toWater.visible = waterMark.visible = false; }
+    if (S.mode === 'recon' && S.reconDone) {}
+    else if (S.phase === 'land' && PF.mode !== 'field') { PF.mode = 'field'; toWater.visible = waterMark.visible = false; }
     if (PF.mode === 'field') {
       /* over the finish pyramid, a beacon to land by; and the line to it */
       const f = FIELD.finish, target = new THREE.Vector3(f.c.x, f.y + FIELD_SIZE.pyH + 30, f.c.z);
@@ -1184,18 +1427,37 @@ function step(dt) {
         const g0 = gates[0].at;
         toField.geometry.setFromPoints([S.pos.clone(), g0.clone()]); toField.computeLineDistances();
       }
-      const want = Math.min(finishRow + 20, S.row + LEAD_ROWS);
-      /* the craft's pace, plus a pull to close the gap; never backwards */
-      const rate = Math.max(0, PF.rowSpeed) + (want - PF.row) * 1.2;
-      PF.row = Math.min(ROWS - 2, Math.max(PF.row, PF.row + dt * Math.max(0, rate)));
-      while (PF.laid < Math.floor(PF.row)) {
-        PF.laid++;
-        if (PF.n >= TRACE_N) { tracePos.copyWithin(0, 3); traceRow.copyWithin(0, 1); PF.n = TRACE_N - 1; }
-        const q = lineAt(PF.laid);
-        tracePos.set([q.x, q.y, q.z], PF.n * 3); traceRow[PF.n] = PF.laid; PF.n++;
+      /* DEMONSTRATING: at a jump point the probe jumps it first, a few
+         seconds ahead of you — dumps into the river, flies the arc through
+         the cyan gate, vapour marking the path — and marks the river line
+         round the bend more faintly, so both ways are shown */
+      if (S.mode === 'run' && !PF.arc) {
+        const jp = jumpPoints.find(j => !j.demo && PF.row >= j.i0 && PF.row < j.i1);
+        if (jp) {
+          jp.demo = true; PF.arc = { jp, t: 0, dur: Math.max(3.5, jp.d / 650), lay: 0 };
+          for (let r = PF.laid + 1; r <= jp.i1; r++) layTrace(lineAt(r), r, 0.45);
+          PF.laid = jp.i1;
+          const w = riverAt(jp.i0);
+          for (let k = 0; k < 18; k++) puff(w.clone().setY(1).add(new THREE.Vector3((Math.random() - 0.5) * 20, 0, (Math.random() - 0.5) * 20)),
+            new THREE.Vector3((Math.random() - 0.5) * 20, 20 + Math.random() * 30, (Math.random() - 0.5) * 20), 0xf2f7ff);
+        }
       }
-      const target = lineAt(PF.row);
-      PF.pos.lerp(target, 1 - Math.exp(-dt * 3));
+      if (PF.arc) {
+        const A2 = PF.arc, jp = A2.jp, a = lineAt(jp.i0), b = lineAt(jp.i1);
+        A2.t += dt; const f = Math.min(1, A2.t / A2.dur);
+        const p = a.clone().lerp(b, f); p.y = a.y + (jp.gate.at.y - a.y) * Math.sin(Math.PI * f) + (b.y - a.y) * f * 0;
+        PF.pos.copy(p);
+        A2.lay += dt; if (A2.lay > 0.06) { A2.lay = 0; layTrace(p, jp.i0 + (jp.i1 - jp.i0) * f, 1); }
+        if (f >= 1) { PF.row = jp.i1; PF.arc = null; }
+      } else {
+        const want = Math.min(finishRow + 20, S.row + LEAD_ROWS);
+        /* the craft's pace, plus a pull to close the gap; never backwards */
+        const rate = Math.max(0, PF.rowSpeed) + (want - PF.row) * 1.2;
+        PF.row = Math.min(ROWS - 2, Math.max(PF.row, PF.row + dt * Math.max(0, rate)));
+        while (PF.laid < Math.floor(PF.row)) { PF.laid++; layTrace(lineAt(PF.laid), PF.laid, 1); }
+        const target = lineAt(PF.row);
+        PF.pos.lerp(target, 1 - Math.exp(-dt * 3));
+      }
     } else {
       /* circle the craft, just above and to the side */
       const ang = clock * 1.4, rad = 26;
@@ -1211,10 +1473,14 @@ function step(dt) {
       const farFromWater = Math.abs(at2.u) > RIVER_W / 2 + 120 || S.pos.y > 150;
       if (S.fuel < 0.3 && farFromWater && !RAIN.on && clock - PF.lastRain > 30 && PF.pos.distanceTo(S.pos) < 60) callRain(S.pos);
     }
-    for (let k = 0; k < PF.n; k++) {              // bright ahead of you, fading once passed
-      const d = traceRow[k] - S.row;
+    for (let k = 0; k < PF.n; k++) {              // fresh and bright ahead of you; rising, drifting and thinning with age
+      const d = traceRow[k] - S.row, age = clock - traceBorn[k], i3 = k * 3;
+      tracePos[i3] = traceBase[i3] + Math.min(40, age * 0.9);
+      tracePos[i3 + 1] = traceBase[i3 + 1] + Math.min(25, age * 1.1);
+      tracePos[i3 + 2] = traceBase[i3 + 2];
       const f = d >= 0 ? 0.55 + 0.45 * Math.min(1, d / LEAD_ROWS) : Math.max(0, 1 + d / 12) * 0.55;
-      traceCol[k * 3] = 2.2 * f; traceCol[k * 3 + 1] = 1.65 * f; traceCol[k * 3 + 2] = 0.6 * f;
+      const v = f * traceStr[k] * (age < 25 ? 1 : Math.max(0, 1 - (age - 25) / 35));
+      traceCol[i3] = 1.25 * v; traceCol[i3 + 1] = 1.3 * v; traceCol[i3 + 2] = 1.42 * v;
     }
     traceGeo.attributes.position.needsUpdate = true; traceGeo.attributes.color.needsUpdate = true;
     traceGeo.setDrawRange(0, PF.n);
@@ -1282,7 +1548,7 @@ function step(dt) {
   const back = new THREE.Vector3(Math.sin(S.yaw), 0, -Math.cos(S.yaw));
   const want2 = S.pos.clone().addScaledVector(back, -34 - S.v * 0.012).add(new THREE.Vector3(0, 10 + S.v * 0.004, 0));
   camPos.lerp(want2, Math.min(1, dt * 5));
-  const gAt = locate(camPos), gy = Math.max(0, height(gAt.i, gAt.u)) + 4;
+  const gAt = locate(camPos, CAM_TRACK), gy = Math.max(0, height(gAt.i, gAt.u)) + 4;
   if (camPos.y < gy) camPos.y = gy;
   camLook.lerp(S.pos.clone().addScaledVector(fwd, 30), Math.min(1, dt * 8));
   camera.position.copy(camPos);
@@ -1329,10 +1595,16 @@ function hud(rho, skimming, inCloud) {
   ib.style.left = '0'; ib.style.top = '0'; ib.style.height = '100%'; ib.style.width = Math.min(100, S.ice * 100).toFixed(1) + '%';
   ib.style.opacity = S.ice > 0.02 ? 0.85 : 0;
   document.getElementById('coldTxt').textContent = S.cut === 3 ? 'ICED' : S.ice > 0.05 ? 'ICE ' + Math.round(S.ice * 100) + '%' : Math.round(S.cold * 100) + '%';
+  document.getElementById('jumpBar').style.width = (S.charge * 100).toFixed(1) + '%';
+  document.getElementById('jumpTxt').textContent = S.jump ? 'IN THE ARC' : S.charge > 0 ? Math.round(S.charge * 100) + '%' : S.row < FIRST_JUMP_ROW ? 'RIVER ONLY' : 'J';
   document.getElementById('spd').textContent = (S.v / VMAX * 0.97).toFixed(2) + ' c';
   document.getElementById('alt').textContent = S.pos.y * 4.85 >= 1000 ? (S.pos.y * 4.85 / 1000).toFixed(1) + ' km' : Math.round(S.pos.y * 4.85) + ' m';
+  if (S.overWater && S.pos.y >= DECK * 0.75 && S.pos.y <= DECK * 1.25) document.getElementById('alt').textContent += ' · DECK';
+  else if (S.overWater && S.pos.y < DECK * 0.6) document.getElementById('alt').textContent += ' · LOW';
   document.getElementById('time').textContent = fmt(S.t);
-  document.getElementById('gates').textContent = S.phase === 'land'
+  document.getElementById('gates').textContent = S.mode === 'recon' ? 'RECON · PRACTICE · ENTER TO START THE RUN'
+    : S.mode === 'pre' ? 'BEFORE THE RUN'
+    : S.phase === 'land'
     ? 'LAND · ' + FIELD.finish.name + ' ' + (Math.hypot(S.pos.x - FIELD.finish.c.x, S.pos.z - FIELD.finish.c.z) * M_PER_UNIT / 1000).toFixed(1) + ' km'
     : 'GATES ' + S.gatesDone + ' / ' + gates.length;
   document.getElementById('best').textContent = (race ? 'RACE ' + fmt(raceT0 + S.t) + ' · ' : '') + (best !== null ? 'BEST ' + fmt(best) : '');
