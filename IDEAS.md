@@ -90,8 +90,6 @@ What it opens up later:
 - **The cockpit console** (`console.html` is the mockup): build it live into
   the canyon and the lane — ORBIT globe, FLIGHT readings, SEA LEVEL plan
   and profile.
-- **The 3D globe** could get the console globe's axis, pole labels and
-  Arctic/Antarctic Circles, so the two match.
 - **A dark start map** with the same coastlines as the dark globe.
 - **Every guide as probe vapour:** the line to water, the line to the
   landing field and the jump arcs could all come from the probe's vapour

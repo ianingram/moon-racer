@@ -90,6 +90,7 @@ canvas#gl{display:block;position:fixed;inset:0;touch-action:none}
 #msg.on{opacity:1}
 #leg .keys{font-size:10.5px;letter-spacing:.14em;color:var(--dim);display:none}
 #sight.on{color:#8fe6a8}
+.tag.pole{color:#f2efe6;font-size:12px;letter-spacing:0;transform:translate(-50%,-50%)}
 .tag{position:fixed;z-index:4;pointer-events:none;font-size:10.5px;letter-spacing:.22em;color:var(--ink);
   text-shadow:0 1px 3px rgba(0,0,0,.9);transform:translate(10px,-50%);white-space:nowrap}
 .tag.site{color:var(--brass)}
@@ -340,6 +341,31 @@ function site(s, cls) {
   return at;
 }
 const A = site(GIZA, 'site'), B = site(HELLS, 'site');
+
+/* ============================================ the axis and the polar circles
+   As on the console's globe: the Earth's axis through the planet, N and S
+   where it comes out (the stretch inside drawn faint, seen through the
+   planet), the Arctic and Antarctic Circles at 66°34′, and the equator
+   faint between. */
+{
+  const AX = R * 1.32, pole = new THREE.Color(0.85, 0.83, 0.78);            // below the glow threshold: a line, not a light
+  for (const sgn of [1, -1]) {
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, sgn * R, 0), new THREE.Vector3(0, sgn * AX, 0)]),
+      new THREE.LineBasicMaterial({ color: pole, toneMapped: false })));
+    const el = document.createElement('div'); el.className = 'tag pole'; el.textContent = sgn > 0 ? 'N' : 'S';
+    document.body.appendChild(el); tags.push({ el, at: new THREE.Vector3(0, sgn * AX * 1.04, 0) });
+  }
+  const inner = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, -R, 0), new THREE.Vector3(0, R, 0)]),
+    new THREE.LineDashedMaterial({ color: 0xf2efe6, dashSize: R * 0.04, gapSize: R * 0.035, transparent: true, opacity: 0.28, depthTest: false }));
+  inner.computeLineDistances(); scene.add(inner);
+  const parallel = (lat, color, opacity, dashed) => {
+    const pts = []; for (let k = 0; k <= 180; k++) pts.push(toVec(lat, -180 + k * 2, R * 1.003));
+    const m = dashed ? new THREE.LineDashedMaterial({ color, transparent: true, opacity, dashSize: R * 0.03, gapSize: R * 0.03 })
+                     : new THREE.LineBasicMaterial({ color, transparent: true, opacity });
+    const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), m); if (dashed) l.computeLineDistances(); scene.add(l);
+  };
+  parallel(66.5634, 0xa0d2ff, 0.9); parallel(-66.5634, 0xa0d2ff, 0.9); parallel(0, 0x9fb3c2, 0.4, true);
+}
 
 /* =============================================================== the lane
    The great circle through both, lifted RL from the centre. The stretch
